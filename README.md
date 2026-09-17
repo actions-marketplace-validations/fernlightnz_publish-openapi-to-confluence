@@ -25,7 +25,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: fernlightnz/publish-openapi-to-confluence@v1
         with:
           spec: openapi.yaml
@@ -48,7 +48,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: fernlightnz/publish-openapi-to-confluence@v1
         with:
           mode: check
