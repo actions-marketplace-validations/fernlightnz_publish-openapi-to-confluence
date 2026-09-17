@@ -1,0 +1,26994 @@
+import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
+var __commonJS = (cb, mod) => function __require2() {
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
+};
+var __export = (target, all2) => {
+  for (var name in all2)
+    __defProp(target, name, { get: all2[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// node_modules/@apidevtools/swagger-parser/lib/util.js
+var require_util = __commonJS({
+  "node_modules/@apidevtools/swagger-parser/lib/util.js"(exports) {
+    "use strict";
+    var util = __require("util");
+    exports.format = util.format;
+    exports.inherits = util.inherits;
+    var parse4 = (u) => new URL(u);
+    exports.swaggerParamRegExp = /\{([^/}]+)}/g;
+    var operationsList = ["get", "post", "put", "delete", "patch", "options", "head", "trace"];
+    function fixServers(server, path) {
+      if (server.url && server.url.startsWith("/")) {
+        const inUrl = parse4(path);
+        const finalUrl = inUrl.protocol + "//" + inUrl.hostname + server.url;
+        server.url = finalUrl;
+        return server;
+      }
+    }
+    function fixOasRelativeServers(schema2, filePath) {
+      if (schema2.openapi && filePath && (filePath.startsWith("http:") || filePath.startsWith("https:"))) {
+        if (schema2.servers) {
+          schema2.servers.map((server) => fixServers(server, filePath));
+        }
+        ["paths", "webhooks"].forEach((component) => {
+          Object.keys(schema2[component] || []).forEach((path) => {
+            const pathItem = schema2[component][path];
+            Object.keys(pathItem).forEach((opItem) => {
+              if (opItem === "servers") {
+                pathItem[opItem].map((server) => fixServers(server, filePath));
+              } else if (operationsList.includes(opItem)) {
+                if (pathItem[opItem].servers) {
+                  pathItem[opItem].servers.map((server) => fixServers(server, filePath));
+                }
+              }
+            });
+          });
+        });
+      } else {
+      }
+    }
+    exports.fixOasRelativeServers = fixOasRelativeServers;
+  }
+});
+
+// node_modules/ajv/dist/compile/codegen/code.js
+var require_code = __commonJS({
+  "node_modules/ajv/dist/compile/codegen/code.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
+    var _CodeOrName = class {
+    };
+    exports._CodeOrName = _CodeOrName;
+    exports.IDENTIFIER = /^[a-z$_][a-z$_0-9]*$/i;
+    var Name = class extends _CodeOrName {
+      constructor(s) {
+        super();
+        if (!exports.IDENTIFIER.test(s))
+          throw new Error("CodeGen: name must be a valid identifier");
+        this.str = s;
+      }
+      toString() {
+        return this.str;
+      }
+      emptyStr() {
+        return false;
+      }
+      get names() {
+        return { [this.str]: 1 };
+      }
+    };
+    exports.Name = Name;
+    var _Code = class extends _CodeOrName {
+      constructor(code) {
+        super();
+        this._items = typeof code === "string" ? [code] : code;
+      }
+      toString() {
+        return this.str;
+      }
+      emptyStr() {
+        if (this._items.length > 1)
+          return false;
+        const item = this._items[0];
+        return item === "" || item === '""';
+      }
+      get str() {
+        var _a;
+        return (_a = this._str) !== null && _a !== void 0 ? _a : this._str = this._items.reduce((s, c) => `${s}${c}`, "");
+      }
+      get names() {
+        var _a;
+        return (_a = this._names) !== null && _a !== void 0 ? _a : this._names = this._items.reduce((names, c) => {
+          if (c instanceof Name)
+            names[c.str] = (names[c.str] || 0) + 1;
+          return names;
+        }, {});
+      }
+    };
+    exports._Code = _Code;
+    exports.nil = new _Code("");
+    function _(strs, ...args) {
+      const code = [strs[0]];
+      let i = 0;
+      while (i < args.length) {
+        addCodeArg(code, args[i]);
+        code.push(strs[++i]);
+      }
+      return new _Code(code);
+    }
+    exports._ = _;
+    var plus = new _Code("+");
+    function str2(strs, ...args) {
+      const expr = [safeStringify(strs[0])];
+      let i = 0;
+      while (i < args.length) {
+        expr.push(plus);
+        addCodeArg(expr, args[i]);
+        expr.push(plus, safeStringify(strs[++i]));
+      }
+      optimize(expr);
+      return new _Code(expr);
+    }
+    exports.str = str2;
+    function addCodeArg(code, arg) {
+      if (arg instanceof _Code)
+        code.push(...arg._items);
+      else if (arg instanceof Name)
+        code.push(arg);
+      else
+        code.push(interpolate(arg));
+    }
+    exports.addCodeArg = addCodeArg;
+    function optimize(expr) {
+      let i = 1;
+      while (i < expr.length - 1) {
+        if (expr[i] === plus) {
+          const res = mergeExprItems(expr[i - 1], expr[i + 1]);
+          if (res !== void 0) {
+            expr.splice(i - 1, 3, res);
+            continue;
+          }
+          expr[i++] = "+";
+        }
+        i++;
+      }
+    }
+    function mergeExprItems(a, b) {
+      if (b === '""')
+        return a;
+      if (a === '""')
+        return b;
+      if (typeof a == "string") {
+        if (b instanceof Name || a[a.length - 1] !== '"')
+          return;
+        if (typeof b != "string")
+          return `${a.slice(0, -1)}${b}"`;
+        if (b[0] === '"')
+          return a.slice(0, -1) + b.slice(1);
+        return;
+      }
+      if (typeof b == "string" && b[0] === '"' && !(a instanceof Name))
+        return `"${a}${b.slice(1)}`;
+      return;
+    }
+    function strConcat(c1, c2) {
+      return c2.emptyStr() ? c1 : c1.emptyStr() ? c2 : str2`${c1}${c2}`;
+    }
+    exports.strConcat = strConcat;
+    function interpolate(x) {
+      return typeof x == "number" || typeof x == "boolean" || x === null ? x : safeStringify(Array.isArray(x) ? x.join(",") : x);
+    }
+    function stringify(x) {
+      return new _Code(safeStringify(x));
+    }
+    exports.stringify = stringify;
+    function safeStringify(x) {
+      return JSON.stringify(x).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+    }
+    exports.safeStringify = safeStringify;
+    function getProperty(key) {
+      return typeof key == "string" && exports.IDENTIFIER.test(key) ? new _Code(`.${key}`) : _`[${key}]`;
+    }
+    exports.getProperty = getProperty;
+    function getEsmExportName(key) {
+      if (typeof key == "string" && exports.IDENTIFIER.test(key)) {
+        return new _Code(`${key}`);
+      }
+      throw new Error(`CodeGen: invalid export name: ${key}, use explicit $id name mapping`);
+    }
+    exports.getEsmExportName = getEsmExportName;
+    function regexpCode(rx) {
+      return new _Code(rx.toString());
+    }
+    exports.regexpCode = regexpCode;
+  }
+});
+
+// node_modules/ajv/dist/compile/codegen/scope.js
+var require_scope = __commonJS({
+  "node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
+    var code_1 = require_code();
+    var ValueError = class extends Error {
+      constructor(name) {
+        super(`CodeGen: "code" for ${name} not defined`);
+        this.value = name.value;
+      }
+    };
+    var UsedValueState;
+    (function(UsedValueState2) {
+      UsedValueState2[UsedValueState2["Started"] = 0] = "Started";
+      UsedValueState2[UsedValueState2["Completed"] = 1] = "Completed";
+    })(UsedValueState || (exports.UsedValueState = UsedValueState = {}));
+    exports.varKinds = {
+      const: new code_1.Name("const"),
+      let: new code_1.Name("let"),
+      var: new code_1.Name("var")
+    };
+    var Scope = class {
+      constructor({ prefixes, parent } = {}) {
+        this._names = {};
+        this._prefixes = prefixes;
+        this._parent = parent;
+      }
+      toName(nameOrPrefix) {
+        return nameOrPrefix instanceof code_1.Name ? nameOrPrefix : this.name(nameOrPrefix);
+      }
+      name(prefix) {
+        return new code_1.Name(this._newName(prefix));
+      }
+      _newName(prefix) {
+        const ng = this._names[prefix] || this._nameGroup(prefix);
+        return `${prefix}${ng.index++}`;
+      }
+      _nameGroup(prefix) {
+        var _a, _b;
+        if (((_b = (_a = this._parent) === null || _a === void 0 ? void 0 : _a._prefixes) === null || _b === void 0 ? void 0 : _b.has(prefix)) || this._prefixes && !this._prefixes.has(prefix)) {
+          throw new Error(`CodeGen: prefix "${prefix}" is not allowed in this scope`);
+        }
+        return this._names[prefix] = { prefix, index: 0 };
+      }
+    };
+    exports.Scope = Scope;
+    var ValueScopeName = class extends code_1.Name {
+      constructor(prefix, nameStr) {
+        super(nameStr);
+        this.prefix = prefix;
+      }
+      setValue(value, { property, itemIndex }) {
+        this.value = value;
+        this.scopePath = (0, code_1._)`.${new code_1.Name(property)}[${itemIndex}]`;
+      }
+    };
+    exports.ValueScopeName = ValueScopeName;
+    var line = (0, code_1._)`\n`;
+    var ValueScope = class extends Scope {
+      constructor(opts) {
+        super(opts);
+        this._values = {};
+        this._scope = opts.scope;
+        this.opts = { ...opts, _n: opts.lines ? line : code_1.nil };
+      }
+      get() {
+        return this._scope;
+      }
+      name(prefix) {
+        return new ValueScopeName(prefix, this._newName(prefix));
+      }
+      value(nameOrPrefix, value) {
+        var _a;
+        if (value.ref === void 0)
+          throw new Error("CodeGen: ref must be passed in value");
+        const name = this.toName(nameOrPrefix);
+        const { prefix } = name;
+        const valueKey = (_a = value.key) !== null && _a !== void 0 ? _a : value.ref;
+        let vs = this._values[prefix];
+        if (vs) {
+          const _name = vs.get(valueKey);
+          if (_name)
+            return _name;
+        } else {
+          vs = this._values[prefix] = /* @__PURE__ */ new Map();
+        }
+        vs.set(valueKey, name);
+        const s = this._scope[prefix] || (this._scope[prefix] = []);
+        const itemIndex = s.length;
+        s[itemIndex] = value.ref;
+        name.setValue(value, { property: prefix, itemIndex });
+        return name;
+      }
+      getValue(prefix, keyOrRef) {
+        const vs = this._values[prefix];
+        if (!vs)
+          return;
+        return vs.get(keyOrRef);
+      }
+      scopeRefs(scopeName, values = this._values) {
+        return this._reduceValues(values, (name) => {
+          if (name.scopePath === void 0)
+            throw new Error(`CodeGen: name "${name}" has no value`);
+          return (0, code_1._)`${scopeName}${name.scopePath}`;
+        });
+      }
+      scopeCode(values = this._values, usedValues, getCode) {
+        return this._reduceValues(values, (name) => {
+          if (name.value === void 0)
+            throw new Error(`CodeGen: name "${name}" has no value`);
+          return name.value.code;
+        }, usedValues, getCode);
+      }
+      _reduceValues(values, valueCode, usedValues = {}, getCode) {
+        let code = code_1.nil;
+        for (const prefix in values) {
+          const vs = values[prefix];
+          if (!vs)
+            continue;
+          const nameSet = usedValues[prefix] = usedValues[prefix] || /* @__PURE__ */ new Map();
+          vs.forEach((name) => {
+            if (nameSet.has(name))
+              return;
+            nameSet.set(name, UsedValueState.Started);
+            let c = valueCode(name);
+            if (c) {
+              const def = this.opts.es5 ? exports.varKinds.var : exports.varKinds.const;
+              code = (0, code_1._)`${code}${def} ${name} = ${c};${this.opts._n}`;
+            } else if (c = getCode === null || getCode === void 0 ? void 0 : getCode(name)) {
+              code = (0, code_1._)`${code}${c}${this.opts._n}`;
+            } else {
+              throw new ValueError(name);
+            }
+            nameSet.set(name, UsedValueState.Completed);
+          });
+        }
+        return code;
+      }
+    };
+    exports.ValueScope = ValueScope;
+  }
+});
+
+// node_modules/ajv/dist/compile/codegen/index.js
+var require_codegen = __commonJS({
+  "node_modules/ajv/dist/compile/codegen/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.or = exports.and = exports.not = exports.CodeGen = exports.operators = exports.varKinds = exports.ValueScopeName = exports.ValueScope = exports.Scope = exports.Name = exports.regexpCode = exports.stringify = exports.getProperty = exports.nil = exports.strConcat = exports.str = exports._ = void 0;
+    var code_1 = require_code();
+    var scope_1 = require_scope();
+    var code_2 = require_code();
+    Object.defineProperty(exports, "_", { enumerable: true, get: function() {
+      return code_2._;
+    } });
+    Object.defineProperty(exports, "str", { enumerable: true, get: function() {
+      return code_2.str;
+    } });
+    Object.defineProperty(exports, "strConcat", { enumerable: true, get: function() {
+      return code_2.strConcat;
+    } });
+    Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
+      return code_2.nil;
+    } });
+    Object.defineProperty(exports, "getProperty", { enumerable: true, get: function() {
+      return code_2.getProperty;
+    } });
+    Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
+      return code_2.stringify;
+    } });
+    Object.defineProperty(exports, "regexpCode", { enumerable: true, get: function() {
+      return code_2.regexpCode;
+    } });
+    Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
+      return code_2.Name;
+    } });
+    var scope_2 = require_scope();
+    Object.defineProperty(exports, "Scope", { enumerable: true, get: function() {
+      return scope_2.Scope;
+    } });
+    Object.defineProperty(exports, "ValueScope", { enumerable: true, get: function() {
+      return scope_2.ValueScope;
+    } });
+    Object.defineProperty(exports, "ValueScopeName", { enumerable: true, get: function() {
+      return scope_2.ValueScopeName;
+    } });
+    Object.defineProperty(exports, "varKinds", { enumerable: true, get: function() {
+      return scope_2.varKinds;
+    } });
+    exports.operators = {
+      GT: new code_1._Code(">"),
+      GTE: new code_1._Code(">="),
+      LT: new code_1._Code("<"),
+      LTE: new code_1._Code("<="),
+      EQ: new code_1._Code("==="),
+      NEQ: new code_1._Code("!=="),
+      NOT: new code_1._Code("!"),
+      OR: new code_1._Code("||"),
+      AND: new code_1._Code("&&"),
+      ADD: new code_1._Code("+")
+    };
+    var Node = class {
+      optimizeNodes() {
+        return this;
+      }
+      optimizeNames(_names, _constants) {
+        return this;
+      }
+    };
+    var Def = class extends Node {
+      constructor(varKind, name, rhs) {
+        super();
+        this.varKind = varKind;
+        this.name = name;
+        this.rhs = rhs;
+      }
+      render({ es5, _n }) {
+        const varKind = es5 ? scope_1.varKinds.var : this.varKind;
+        const rhs = this.rhs === void 0 ? "" : ` = ${this.rhs}`;
+        return `${varKind} ${this.name}${rhs};` + _n;
+      }
+      optimizeNames(names, constants) {
+        if (!names[this.name.str])
+          return;
+        if (this.rhs)
+          this.rhs = optimizeExpr(this.rhs, names, constants);
+        return this;
+      }
+      get names() {
+        return this.rhs instanceof code_1._CodeOrName ? this.rhs.names : {};
+      }
+    };
+    var Assign = class extends Node {
+      constructor(lhs, rhs, sideEffects) {
+        super();
+        this.lhs = lhs;
+        this.rhs = rhs;
+        this.sideEffects = sideEffects;
+      }
+      render({ _n }) {
+        return `${this.lhs} = ${this.rhs};` + _n;
+      }
+      optimizeNames(names, constants) {
+        if (this.lhs instanceof code_1.Name && !names[this.lhs.str] && !this.sideEffects)
+          return;
+        this.rhs = optimizeExpr(this.rhs, names, constants);
+        return this;
+      }
+      get names() {
+        const names = this.lhs instanceof code_1.Name ? {} : { ...this.lhs.names };
+        return addExprNames(names, this.rhs);
+      }
+    };
+    var AssignOp = class extends Assign {
+      constructor(lhs, op, rhs, sideEffects) {
+        super(lhs, rhs, sideEffects);
+        this.op = op;
+      }
+      render({ _n }) {
+        return `${this.lhs} ${this.op}= ${this.rhs};` + _n;
+      }
+    };
+    var Label = class extends Node {
+      constructor(label) {
+        super();
+        this.label = label;
+        this.names = {};
+      }
+      render({ _n }) {
+        return `${this.label}:` + _n;
+      }
+    };
+    var Break = class extends Node {
+      constructor(label) {
+        super();
+        this.label = label;
+        this.names = {};
+      }
+      render({ _n }) {
+        const label = this.label ? ` ${this.label}` : "";
+        return `break${label};` + _n;
+      }
+    };
+    var Throw = class extends Node {
+      constructor(error) {
+        super();
+        this.error = error;
+      }
+      render({ _n }) {
+        return `throw ${this.error};` + _n;
+      }
+      get names() {
+        return this.error.names;
+      }
+    };
+    var AnyCode = class extends Node {
+      constructor(code) {
+        super();
+        this.code = code;
+      }
+      render({ _n }) {
+        return `${this.code};` + _n;
+      }
+      optimizeNodes() {
+        return `${this.code}` ? this : void 0;
+      }
+      optimizeNames(names, constants) {
+        this.code = optimizeExpr(this.code, names, constants);
+        return this;
+      }
+      get names() {
+        return this.code instanceof code_1._CodeOrName ? this.code.names : {};
+      }
+    };
+    var ParentNode = class extends Node {
+      constructor(nodes = []) {
+        super();
+        this.nodes = nodes;
+      }
+      render(opts) {
+        return this.nodes.reduce((code, n) => code + n.render(opts), "");
+      }
+      optimizeNodes() {
+        const { nodes } = this;
+        let i = nodes.length;
+        while (i--) {
+          const n = nodes[i].optimizeNodes();
+          if (Array.isArray(n))
+            nodes.splice(i, 1, ...n);
+          else if (n)
+            nodes[i] = n;
+          else
+            nodes.splice(i, 1);
+        }
+        return nodes.length > 0 ? this : void 0;
+      }
+      optimizeNames(names, constants) {
+        const { nodes } = this;
+        let i = nodes.length;
+        while (i--) {
+          const n = nodes[i];
+          if (n.optimizeNames(names, constants))
+            continue;
+          subtractNames(names, n.names);
+          nodes.splice(i, 1);
+        }
+        return nodes.length > 0 ? this : void 0;
+      }
+      get names() {
+        return this.nodes.reduce((names, n) => addNames(names, n.names), {});
+      }
+    };
+    var BlockNode = class extends ParentNode {
+      render(opts) {
+        return "{" + opts._n + super.render(opts) + "}" + opts._n;
+      }
+    };
+    var Root = class extends ParentNode {
+    };
+    var Else = class extends BlockNode {
+    };
+    Else.kind = "else";
+    var If = class _If extends BlockNode {
+      constructor(condition, nodes) {
+        super(nodes);
+        this.condition = condition;
+      }
+      render(opts) {
+        let code = `if(${this.condition})` + super.render(opts);
+        if (this.else)
+          code += "else " + this.else.render(opts);
+        return code;
+      }
+      optimizeNodes() {
+        super.optimizeNodes();
+        const cond = this.condition;
+        if (cond === true)
+          return this.nodes;
+        let e = this.else;
+        if (e) {
+          const ns = e.optimizeNodes();
+          e = this.else = Array.isArray(ns) ? new Else(ns) : ns;
+        }
+        if (e) {
+          if (cond === false)
+            return e instanceof _If ? e : e.nodes;
+          if (this.nodes.length)
+            return this;
+          return new _If(not(cond), e instanceof _If ? [e] : e.nodes);
+        }
+        if (cond === false || !this.nodes.length)
+          return void 0;
+        return this;
+      }
+      optimizeNames(names, constants) {
+        var _a;
+        this.else = (_a = this.else) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants);
+        if (!(super.optimizeNames(names, constants) || this.else))
+          return;
+        this.condition = optimizeExpr(this.condition, names, constants);
+        return this;
+      }
+      get names() {
+        const names = super.names;
+        addExprNames(names, this.condition);
+        if (this.else)
+          addNames(names, this.else.names);
+        return names;
+      }
+    };
+    If.kind = "if";
+    var For = class extends BlockNode {
+    };
+    For.kind = "for";
+    var ForLoop = class extends For {
+      constructor(iteration) {
+        super();
+        this.iteration = iteration;
+      }
+      render(opts) {
+        return `for(${this.iteration})` + super.render(opts);
+      }
+      optimizeNames(names, constants) {
+        if (!super.optimizeNames(names, constants))
+          return;
+        this.iteration = optimizeExpr(this.iteration, names, constants);
+        return this;
+      }
+      get names() {
+        return addNames(super.names, this.iteration.names);
+      }
+    };
+    var ForRange = class extends For {
+      constructor(varKind, name, from, to) {
+        super();
+        this.varKind = varKind;
+        this.name = name;
+        this.from = from;
+        this.to = to;
+      }
+      render(opts) {
+        const varKind = opts.es5 ? scope_1.varKinds.var : this.varKind;
+        const { name, from, to } = this;
+        return `for(${varKind} ${name}=${from}; ${name}<${to}; ${name}++)` + super.render(opts);
+      }
+      get names() {
+        const names = addExprNames(super.names, this.from);
+        return addExprNames(names, this.to);
+      }
+    };
+    var ForIter = class extends For {
+      constructor(loop, varKind, name, iterable) {
+        super();
+        this.loop = loop;
+        this.varKind = varKind;
+        this.name = name;
+        this.iterable = iterable;
+      }
+      render(opts) {
+        return `for(${this.varKind} ${this.name} ${this.loop} ${this.iterable})` + super.render(opts);
+      }
+      optimizeNames(names, constants) {
+        if (!super.optimizeNames(names, constants))
+          return;
+        this.iterable = optimizeExpr(this.iterable, names, constants);
+        return this;
+      }
+      get names() {
+        return addNames(super.names, this.iterable.names);
+      }
+    };
+    var Func = class extends BlockNode {
+      constructor(name, args, async) {
+        super();
+        this.name = name;
+        this.args = args;
+        this.async = async;
+      }
+      render(opts) {
+        const _async = this.async ? "async " : "";
+        return `${_async}function ${this.name}(${this.args})` + super.render(opts);
+      }
+    };
+    Func.kind = "func";
+    var Return = class extends ParentNode {
+      render(opts) {
+        return "return " + super.render(opts);
+      }
+    };
+    Return.kind = "return";
+    var Try = class extends BlockNode {
+      render(opts) {
+        let code = "try" + super.render(opts);
+        if (this.catch)
+          code += this.catch.render(opts);
+        if (this.finally)
+          code += this.finally.render(opts);
+        return code;
+      }
+      optimizeNodes() {
+        var _a, _b;
+        super.optimizeNodes();
+        (_a = this.catch) === null || _a === void 0 ? void 0 : _a.optimizeNodes();
+        (_b = this.finally) === null || _b === void 0 ? void 0 : _b.optimizeNodes();
+        return this;
+      }
+      optimizeNames(names, constants) {
+        var _a, _b;
+        super.optimizeNames(names, constants);
+        (_a = this.catch) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants);
+        (_b = this.finally) === null || _b === void 0 ? void 0 : _b.optimizeNames(names, constants);
+        return this;
+      }
+      get names() {
+        const names = super.names;
+        if (this.catch)
+          addNames(names, this.catch.names);
+        if (this.finally)
+          addNames(names, this.finally.names);
+        return names;
+      }
+    };
+    var Catch = class extends BlockNode {
+      constructor(error) {
+        super();
+        this.error = error;
+      }
+      render(opts) {
+        return `catch(${this.error})` + super.render(opts);
+      }
+    };
+    Catch.kind = "catch";
+    var Finally = class extends BlockNode {
+      render(opts) {
+        return "finally" + super.render(opts);
+      }
+    };
+    Finally.kind = "finally";
+    var CodeGen = class {
+      constructor(extScope, opts = {}) {
+        this._values = {};
+        this._blockStarts = [];
+        this._constants = {};
+        this.opts = { ...opts, _n: opts.lines ? "\n" : "" };
+        this._extScope = extScope;
+        this._scope = new scope_1.Scope({ parent: extScope });
+        this._nodes = [new Root()];
+      }
+      toString() {
+        return this._root.render(this.opts);
+      }
+      // returns unique name in the internal scope
+      name(prefix) {
+        return this._scope.name(prefix);
+      }
+      // reserves unique name in the external scope
+      scopeName(prefix) {
+        return this._extScope.name(prefix);
+      }
+      // reserves unique name in the external scope and assigns value to it
+      scopeValue(prefixOrName, value) {
+        const name = this._extScope.value(prefixOrName, value);
+        const vs = this._values[name.prefix] || (this._values[name.prefix] = /* @__PURE__ */ new Set());
+        vs.add(name);
+        return name;
+      }
+      getScopeValue(prefix, keyOrRef) {
+        return this._extScope.getValue(prefix, keyOrRef);
+      }
+      // return code that assigns values in the external scope to the names that are used internally
+      // (same names that were returned by gen.scopeName or gen.scopeValue)
+      scopeRefs(scopeName) {
+        return this._extScope.scopeRefs(scopeName, this._values);
+      }
+      scopeCode() {
+        return this._extScope.scopeCode(this._values);
+      }
+      _def(varKind, nameOrPrefix, rhs, constant) {
+        const name = this._scope.toName(nameOrPrefix);
+        if (rhs !== void 0 && constant)
+          this._constants[name.str] = rhs;
+        this._leafNode(new Def(varKind, name, rhs));
+        return name;
+      }
+      // `const` declaration (`var` in es5 mode)
+      const(nameOrPrefix, rhs, _constant) {
+        return this._def(scope_1.varKinds.const, nameOrPrefix, rhs, _constant);
+      }
+      // `let` declaration with optional assignment (`var` in es5 mode)
+      let(nameOrPrefix, rhs, _constant) {
+        return this._def(scope_1.varKinds.let, nameOrPrefix, rhs, _constant);
+      }
+      // `var` declaration with optional assignment
+      var(nameOrPrefix, rhs, _constant) {
+        return this._def(scope_1.varKinds.var, nameOrPrefix, rhs, _constant);
+      }
+      // assignment code
+      assign(lhs, rhs, sideEffects) {
+        return this._leafNode(new Assign(lhs, rhs, sideEffects));
+      }
+      // `+=` code
+      add(lhs, rhs) {
+        return this._leafNode(new AssignOp(lhs, exports.operators.ADD, rhs));
+      }
+      // appends passed SafeExpr to code or executes Block
+      code(c) {
+        if (typeof c == "function")
+          c();
+        else if (c !== code_1.nil)
+          this._leafNode(new AnyCode(c));
+        return this;
+      }
+      // returns code for object literal for the passed argument list of key-value pairs
+      object(...keyValues) {
+        const code = ["{"];
+        for (const [key, value] of keyValues) {
+          if (code.length > 1)
+            code.push(",");
+          code.push(key);
+          if (key !== value || this.opts.es5) {
+            code.push(":");
+            (0, code_1.addCodeArg)(code, value);
+          }
+        }
+        code.push("}");
+        return new code_1._Code(code);
+      }
+      // `if` clause (or statement if `thenBody` and, optionally, `elseBody` are passed)
+      if(condition, thenBody, elseBody) {
+        this._blockNode(new If(condition));
+        if (thenBody && elseBody) {
+          this.code(thenBody).else().code(elseBody).endIf();
+        } else if (thenBody) {
+          this.code(thenBody).endIf();
+        } else if (elseBody) {
+          throw new Error('CodeGen: "else" body without "then" body');
+        }
+        return this;
+      }
+      // `else if` clause - invalid without `if` or after `else` clauses
+      elseIf(condition) {
+        return this._elseNode(new If(condition));
+      }
+      // `else` clause - only valid after `if` or `else if` clauses
+      else() {
+        return this._elseNode(new Else());
+      }
+      // end `if` statement (needed if gen.if was used only with condition)
+      endIf() {
+        return this._endBlockNode(If, Else);
+      }
+      _for(node, forBody) {
+        this._blockNode(node);
+        if (forBody)
+          this.code(forBody).endFor();
+        return this;
+      }
+      // a generic `for` clause (or statement if `forBody` is passed)
+      for(iteration, forBody) {
+        return this._for(new ForLoop(iteration), forBody);
+      }
+      // `for` statement for a range of values
+      forRange(nameOrPrefix, from, to, forBody, varKind = this.opts.es5 ? scope_1.varKinds.var : scope_1.varKinds.let) {
+        const name = this._scope.toName(nameOrPrefix);
+        return this._for(new ForRange(varKind, name, from, to), () => forBody(name));
+      }
+      // `for-of` statement (in es5 mode replace with a normal for loop)
+      forOf(nameOrPrefix, iterable, forBody, varKind = scope_1.varKinds.const) {
+        const name = this._scope.toName(nameOrPrefix);
+        if (this.opts.es5) {
+          const arr = iterable instanceof code_1.Name ? iterable : this.var("_arr", iterable);
+          return this.forRange("_i", 0, (0, code_1._)`${arr}.length`, (i) => {
+            this.var(name, (0, code_1._)`${arr}[${i}]`);
+            forBody(name);
+          });
+        }
+        return this._for(new ForIter("of", varKind, name, iterable), () => forBody(name));
+      }
+      // `for-in` statement.
+      // With option `ownProperties` replaced with a `for-of` loop for object keys
+      forIn(nameOrPrefix, obj, forBody, varKind = this.opts.es5 ? scope_1.varKinds.var : scope_1.varKinds.const) {
+        if (this.opts.ownProperties) {
+          return this.forOf(nameOrPrefix, (0, code_1._)`Object.keys(${obj})`, forBody);
+        }
+        const name = this._scope.toName(nameOrPrefix);
+        return this._for(new ForIter("in", varKind, name, obj), () => forBody(name));
+      }
+      // end `for` loop
+      endFor() {
+        return this._endBlockNode(For);
+      }
+      // `label` statement
+      label(label) {
+        return this._leafNode(new Label(label));
+      }
+      // `break` statement
+      break(label) {
+        return this._leafNode(new Break(label));
+      }
+      // `return` statement
+      return(value) {
+        const node = new Return();
+        this._blockNode(node);
+        this.code(value);
+        if (node.nodes.length !== 1)
+          throw new Error('CodeGen: "return" should have one node');
+        return this._endBlockNode(Return);
+      }
+      // `try` statement
+      try(tryBody, catchCode, finallyCode) {
+        if (!catchCode && !finallyCode)
+          throw new Error('CodeGen: "try" without "catch" and "finally"');
+        const node = new Try();
+        this._blockNode(node);
+        this.code(tryBody);
+        if (catchCode) {
+          const error = this.name("e");
+          this._currNode = node.catch = new Catch(error);
+          catchCode(error);
+        }
+        if (finallyCode) {
+          this._currNode = node.finally = new Finally();
+          this.code(finallyCode);
+        }
+        return this._endBlockNode(Catch, Finally);
+      }
+      // `throw` statement
+      throw(error) {
+        return this._leafNode(new Throw(error));
+      }
+      // start self-balancing block
+      block(body, nodeCount) {
+        this._blockStarts.push(this._nodes.length);
+        if (body)
+          this.code(body).endBlock(nodeCount);
+        return this;
+      }
+      // end the current self-balancing block
+      endBlock(nodeCount) {
+        const len = this._blockStarts.pop();
+        if (len === void 0)
+          throw new Error("CodeGen: not in self-balancing block");
+        const toClose = this._nodes.length - len;
+        if (toClose < 0 || nodeCount !== void 0 && toClose !== nodeCount) {
+          throw new Error(`CodeGen: wrong number of nodes: ${toClose} vs ${nodeCount} expected`);
+        }
+        this._nodes.length = len;
+        return this;
+      }
+      // `function` heading (or definition if funcBody is passed)
+      func(name, args = code_1.nil, async, funcBody) {
+        this._blockNode(new Func(name, args, async));
+        if (funcBody)
+          this.code(funcBody).endFunc();
+        return this;
+      }
+      // end function definition
+      endFunc() {
+        return this._endBlockNode(Func);
+      }
+      optimize(n = 1) {
+        while (n-- > 0) {
+          this._root.optimizeNodes();
+          this._root.optimizeNames(this._root.names, this._constants);
+        }
+      }
+      _leafNode(node) {
+        this._currNode.nodes.push(node);
+        return this;
+      }
+      _blockNode(node) {
+        this._currNode.nodes.push(node);
+        this._nodes.push(node);
+      }
+      _endBlockNode(N1, N2) {
+        const n = this._currNode;
+        if (n instanceof N1 || N2 && n instanceof N2) {
+          this._nodes.pop();
+          return this;
+        }
+        throw new Error(`CodeGen: not in block "${N2 ? `${N1.kind}/${N2.kind}` : N1.kind}"`);
+      }
+      _elseNode(node) {
+        const n = this._currNode;
+        if (!(n instanceof If)) {
+          throw new Error('CodeGen: "else" without "if"');
+        }
+        this._currNode = n.else = node;
+        return this;
+      }
+      get _root() {
+        return this._nodes[0];
+      }
+      get _currNode() {
+        const ns = this._nodes;
+        return ns[ns.length - 1];
+      }
+      set _currNode(node) {
+        const ns = this._nodes;
+        ns[ns.length - 1] = node;
+      }
+    };
+    exports.CodeGen = CodeGen;
+    function addNames(names, from) {
+      for (const n in from)
+        names[n] = (names[n] || 0) + (from[n] || 0);
+      return names;
+    }
+    function addExprNames(names, from) {
+      return from instanceof code_1._CodeOrName ? addNames(names, from.names) : names;
+    }
+    function optimizeExpr(expr, names, constants) {
+      if (expr instanceof code_1.Name)
+        return replaceName(expr);
+      if (!canOptimize(expr))
+        return expr;
+      return new code_1._Code(expr._items.reduce((items, c) => {
+        if (c instanceof code_1.Name)
+          c = replaceName(c);
+        if (c instanceof code_1._Code)
+          items.push(...c._items);
+        else
+          items.push(c);
+        return items;
+      }, []));
+      function replaceName(n) {
+        const c = constants[n.str];
+        if (c === void 0 || names[n.str] !== 1)
+          return n;
+        delete names[n.str];
+        return c;
+      }
+      function canOptimize(e) {
+        return e instanceof code_1._Code && e._items.some((c) => c instanceof code_1.Name && names[c.str] === 1 && constants[c.str] !== void 0);
+      }
+    }
+    function subtractNames(names, from) {
+      for (const n in from)
+        names[n] = (names[n] || 0) - (from[n] || 0);
+    }
+    function not(x) {
+      return typeof x == "boolean" || typeof x == "number" || x === null ? !x : (0, code_1._)`!${par(x)}`;
+    }
+    exports.not = not;
+    var andCode = mappend(exports.operators.AND);
+    function and(...args) {
+      return args.reduce(andCode);
+    }
+    exports.and = and;
+    var orCode = mappend(exports.operators.OR);
+    function or(...args) {
+      return args.reduce(orCode);
+    }
+    exports.or = or;
+    function mappend(op) {
+      return (x, y) => x === code_1.nil ? y : y === code_1.nil ? x : (0, code_1._)`${par(x)} ${op} ${par(y)}`;
+    }
+    function par(x) {
+      return x instanceof code_1.Name ? x : (0, code_1._)`(${x})`;
+    }
+  }
+});
+
+// node_modules/ajv/dist/compile/util.js
+var require_util2 = __commonJS({
+  "node_modules/ajv/dist/compile/util.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.checkStrictMode = exports.getErrorPath = exports.Type = exports.useFunc = exports.setEvaluated = exports.evaluatedPropsToName = exports.mergeEvaluated = exports.eachItem = exports.unescapeJsonPointer = exports.escapeJsonPointer = exports.escapeFragment = exports.unescapeFragment = exports.schemaRefOrVal = exports.schemaHasRulesButRef = exports.schemaHasRules = exports.checkUnknownRules = exports.alwaysValidSchema = exports.toHash = void 0;
+    var codegen_1 = require_codegen();
+    var code_1 = require_code();
+    function toHash(arr) {
+      const hash = {};
+      for (const item of arr)
+        hash[item] = true;
+      return hash;
+    }
+    exports.toHash = toHash;
+    function alwaysValidSchema(it, schema2) {
+      if (typeof schema2 == "boolean")
+        return schema2;
+      if (Object.keys(schema2).length === 0)
+        return true;
+      checkUnknownRules(it, schema2);
+      return !schemaHasRules(schema2, it.self.RULES.all);
+    }
+    exports.alwaysValidSchema = alwaysValidSchema;
+    function checkUnknownRules(it, schema2 = it.schema) {
+      const { opts, self } = it;
+      if (!opts.strictSchema)
+        return;
+      if (typeof schema2 === "boolean")
+        return;
+      const rules = self.RULES.keywords;
+      for (const key in schema2) {
+        if (!rules[key])
+          checkStrictMode(it, `unknown keyword: "${key}"`);
+      }
+    }
+    exports.checkUnknownRules = checkUnknownRules;
+    function schemaHasRules(schema2, rules) {
+      if (typeof schema2 == "boolean")
+        return !schema2;
+      for (const key in schema2)
+        if (rules[key])
+          return true;
+      return false;
+    }
+    exports.schemaHasRules = schemaHasRules;
+    function schemaHasRulesButRef(schema2, RULES) {
+      if (typeof schema2 == "boolean")
+        return !schema2;
+      for (const key in schema2)
+        if (key !== "$ref" && RULES.all[key])
+          return true;
+      return false;
+    }
+    exports.schemaHasRulesButRef = schemaHasRulesButRef;
+    function schemaRefOrVal({ topSchemaRef, schemaPath }, schema2, keyword, $data) {
+      if (!$data) {
+        if (typeof schema2 == "number" || typeof schema2 == "boolean")
+          return schema2;
+        if (typeof schema2 == "string")
+          return (0, codegen_1._)`${schema2}`;
+      }
+      return (0, codegen_1._)`${topSchemaRef}${schemaPath}${(0, codegen_1.getProperty)(keyword)}`;
+    }
+    exports.schemaRefOrVal = schemaRefOrVal;
+    function unescapeFragment(str2) {
+      return unescapeJsonPointer(decodeURIComponent(str2));
+    }
+    exports.unescapeFragment = unescapeFragment;
+    function escapeFragment(str2) {
+      return encodeURIComponent(escapeJsonPointer(str2));
+    }
+    exports.escapeFragment = escapeFragment;
+    function escapeJsonPointer(str2) {
+      if (typeof str2 == "number")
+        return `${str2}`;
+      return str2.replace(/~/g, "~0").replace(/\//g, "~1");
+    }
+    exports.escapeJsonPointer = escapeJsonPointer;
+    function unescapeJsonPointer(str2) {
+      return str2.replace(/~1/g, "/").replace(/~0/g, "~");
+    }
+    exports.unescapeJsonPointer = unescapeJsonPointer;
+    function eachItem(xs, f) {
+      if (Array.isArray(xs)) {
+        for (const x of xs)
+          f(x);
+      } else {
+        f(xs);
+      }
+    }
+    exports.eachItem = eachItem;
+    function makeMergeEvaluated({ mergeNames, mergeToName, mergeValues, resultToName }) {
+      return (gen, from, to, toName) => {
+        const res = to === void 0 ? from : to instanceof codegen_1.Name ? (from instanceof codegen_1.Name ? mergeNames(gen, from, to) : mergeToName(gen, from, to), to) : from instanceof codegen_1.Name ? (mergeToName(gen, to, from), from) : mergeValues(from, to);
+        return toName === codegen_1.Name && !(res instanceof codegen_1.Name) ? resultToName(gen, res) : res;
+      };
+    }
+    exports.mergeEvaluated = {
+      props: makeMergeEvaluated({
+        mergeNames: (gen, from, to) => gen.if((0, codegen_1._)`${to} !== true && ${from} !== undefined`, () => {
+          gen.if((0, codegen_1._)`${from} === true`, () => gen.assign(to, true), () => gen.assign(to, (0, codegen_1._)`${to} || {}`).code((0, codegen_1._)`Object.assign(${to}, ${from})`));
+        }),
+        mergeToName: (gen, from, to) => gen.if((0, codegen_1._)`${to} !== true`, () => {
+          if (from === true) {
+            gen.assign(to, true);
+          } else {
+            gen.assign(to, (0, codegen_1._)`${to} || {}`);
+            setEvaluated(gen, to, from);
+          }
+        }),
+        mergeValues: (from, to) => from === true ? true : { ...from, ...to },
+        resultToName: evaluatedPropsToName
+      }),
+      items: makeMergeEvaluated({
+        mergeNames: (gen, from, to) => gen.if((0, codegen_1._)`${to} !== true && ${from} !== undefined`, () => gen.assign(to, (0, codegen_1._)`${from} === true ? true : ${to} > ${from} ? ${to} : ${from}`)),
+        mergeToName: (gen, from, to) => gen.if((0, codegen_1._)`${to} !== true`, () => gen.assign(to, from === true ? true : (0, codegen_1._)`${to} > ${from} ? ${to} : ${from}`)),
+        mergeValues: (from, to) => from === true ? true : Math.max(from, to),
+        resultToName: (gen, items) => gen.var("items", items)
+      })
+    };
+    function evaluatedPropsToName(gen, ps) {
+      if (ps === true)
+        return gen.var("props", true);
+      const props = gen.var("props", (0, codegen_1._)`{}`);
+      if (ps !== void 0)
+        setEvaluated(gen, props, ps);
+      return props;
+    }
+    exports.evaluatedPropsToName = evaluatedPropsToName;
+    function setEvaluated(gen, props, ps) {
+      Object.keys(ps).forEach((p) => gen.assign((0, codegen_1._)`${props}${(0, codegen_1.getProperty)(p)}`, true));
+    }
+    exports.setEvaluated = setEvaluated;
+    var snippets = {};
+    function useFunc(gen, f) {
+      return gen.scopeValue("func", {
+        ref: f,
+        code: snippets[f.code] || (snippets[f.code] = new code_1._Code(f.code))
+      });
+    }
+    exports.useFunc = useFunc;
+    var Type2;
+    (function(Type3) {
+      Type3[Type3["Num"] = 0] = "Num";
+      Type3[Type3["Str"] = 1] = "Str";
+    })(Type2 || (exports.Type = Type2 = {}));
+    function getErrorPath(dataProp, dataPropType, jsPropertySyntax) {
+      if (dataProp instanceof codegen_1.Name) {
+        const isNumber = dataPropType === Type2.Num;
+        return jsPropertySyntax ? isNumber ? (0, codegen_1._)`"[" + ${dataProp} + "]"` : (0, codegen_1._)`"['" + ${dataProp} + "']"` : isNumber ? (0, codegen_1._)`"/" + ${dataProp}` : (0, codegen_1._)`"/" + ${dataProp}.replace(/~/g, "~0").replace(/\\//g, "~1")`;
+      }
+      return jsPropertySyntax ? (0, codegen_1.getProperty)(dataProp).toString() : "/" + escapeJsonPointer(dataProp);
+    }
+    exports.getErrorPath = getErrorPath;
+    function checkStrictMode(it, msg, mode = it.opts.strictSchema) {
+      if (!mode)
+        return;
+      msg = `strict mode: ${msg}`;
+      if (mode === true)
+        throw new Error(msg);
+      it.self.logger.warn(msg);
+    }
+    exports.checkStrictMode = checkStrictMode;
+  }
+});
+
+// node_modules/ajv/dist/compile/names.js
+var require_names = __commonJS({
+  "node_modules/ajv/dist/compile/names.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var names = {
+      // validation function arguments
+      data: new codegen_1.Name("data"),
+      // data passed to validation function
+      // args passed from referencing schema
+      valCxt: new codegen_1.Name("valCxt"),
+      // validation/data context - should not be used directly, it is destructured to the names below
+      instancePath: new codegen_1.Name("instancePath"),
+      parentData: new codegen_1.Name("parentData"),
+      parentDataProperty: new codegen_1.Name("parentDataProperty"),
+      rootData: new codegen_1.Name("rootData"),
+      // root data - same as the data passed to the first/top validation function
+      dynamicAnchors: new codegen_1.Name("dynamicAnchors"),
+      // used to support recursiveRef and dynamicRef
+      // function scoped variables
+      vErrors: new codegen_1.Name("vErrors"),
+      // null or array of validation errors
+      errors: new codegen_1.Name("errors"),
+      // counter of validation errors
+      this: new codegen_1.Name("this"),
+      // "globals"
+      self: new codegen_1.Name("self"),
+      scope: new codegen_1.Name("scope"),
+      // JTD serialize/parse name for JSON string and position
+      json: new codegen_1.Name("json"),
+      jsonPos: new codegen_1.Name("jsonPos"),
+      jsonLen: new codegen_1.Name("jsonLen"),
+      jsonPart: new codegen_1.Name("jsonPart")
+    };
+    exports.default = names;
+  }
+});
+
+// node_modules/ajv/dist/compile/errors.js
+var require_errors = __commonJS({
+  "node_modules/ajv/dist/compile/errors.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.extendErrors = exports.resetErrorsCount = exports.reportExtraError = exports.reportError = exports.keyword$DataError = exports.keywordError = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var names_1 = require_names();
+    exports.keywordError = {
+      message: ({ keyword }) => (0, codegen_1.str)`must pass "${keyword}" keyword validation`
+    };
+    exports.keyword$DataError = {
+      message: ({ keyword, schemaType }) => schemaType ? (0, codegen_1.str)`"${keyword}" keyword must be ${schemaType} ($data)` : (0, codegen_1.str)`"${keyword}" keyword is invalid ($data)`
+    };
+    function reportError(cxt, error = exports.keywordError, errorPaths, overrideAllErrors) {
+      const { it } = cxt;
+      const { gen, compositeRule, allErrors } = it;
+      const errObj = errorObjectCode(cxt, error, errorPaths);
+      if (overrideAllErrors !== null && overrideAllErrors !== void 0 ? overrideAllErrors : compositeRule || allErrors) {
+        addError(gen, errObj);
+      } else {
+        returnErrors(it, (0, codegen_1._)`[${errObj}]`);
+      }
+    }
+    exports.reportError = reportError;
+    function reportExtraError(cxt, error = exports.keywordError, errorPaths) {
+      const { it } = cxt;
+      const { gen, compositeRule, allErrors } = it;
+      const errObj = errorObjectCode(cxt, error, errorPaths);
+      addError(gen, errObj);
+      if (!(compositeRule || allErrors)) {
+        returnErrors(it, names_1.default.vErrors);
+      }
+    }
+    exports.reportExtraError = reportExtraError;
+    function resetErrorsCount(gen, errsCount) {
+      gen.assign(names_1.default.errors, errsCount);
+      gen.if((0, codegen_1._)`${names_1.default.vErrors} !== null`, () => gen.if(errsCount, () => gen.assign((0, codegen_1._)`${names_1.default.vErrors}.length`, errsCount), () => gen.assign(names_1.default.vErrors, null)));
+    }
+    exports.resetErrorsCount = resetErrorsCount;
+    function extendErrors({ gen, keyword, schemaValue, data, errsCount, it }) {
+      if (errsCount === void 0)
+        throw new Error("ajv implementation error");
+      const err = gen.name("err");
+      gen.forRange("i", errsCount, names_1.default.errors, (i) => {
+        gen.const(err, (0, codegen_1._)`${names_1.default.vErrors}[${i}]`);
+        gen.if((0, codegen_1._)`${err}.instancePath === undefined`, () => gen.assign((0, codegen_1._)`${err}.instancePath`, (0, codegen_1.strConcat)(names_1.default.instancePath, it.errorPath)));
+        gen.assign((0, codegen_1._)`${err}.schemaPath`, (0, codegen_1.str)`${it.errSchemaPath}/${keyword}`);
+        if (it.opts.verbose) {
+          gen.assign((0, codegen_1._)`${err}.schema`, schemaValue);
+          gen.assign((0, codegen_1._)`${err}.data`, data);
+        }
+      });
+    }
+    exports.extendErrors = extendErrors;
+    function addError(gen, errObj) {
+      const err = gen.const("err", errObj);
+      gen.if((0, codegen_1._)`${names_1.default.vErrors} === null`, () => gen.assign(names_1.default.vErrors, (0, codegen_1._)`[${err}]`), (0, codegen_1._)`${names_1.default.vErrors}.push(${err})`);
+      gen.code((0, codegen_1._)`${names_1.default.errors}++`);
+    }
+    function returnErrors(it, errs) {
+      const { gen, validateName, schemaEnv } = it;
+      if (schemaEnv.$async) {
+        gen.throw((0, codegen_1._)`new ${it.ValidationError}(${errs})`);
+      } else {
+        gen.assign((0, codegen_1._)`${validateName}.errors`, errs);
+        gen.return(false);
+      }
+    }
+    var E = {
+      keyword: new codegen_1.Name("keyword"),
+      schemaPath: new codegen_1.Name("schemaPath"),
+      // also used in JTD errors
+      params: new codegen_1.Name("params"),
+      propertyName: new codegen_1.Name("propertyName"),
+      message: new codegen_1.Name("message"),
+      schema: new codegen_1.Name("schema"),
+      parentSchema: new codegen_1.Name("parentSchema")
+    };
+    function errorObjectCode(cxt, error, errorPaths) {
+      const { createErrors } = cxt.it;
+      if (createErrors === false)
+        return (0, codegen_1._)`{}`;
+      return errorObject(cxt, error, errorPaths);
+    }
+    function errorObject(cxt, error, errorPaths = {}) {
+      const { gen, it } = cxt;
+      const keyValues = [
+        errorInstancePath(it, errorPaths),
+        errorSchemaPath(cxt, errorPaths)
+      ];
+      extraErrorProps(cxt, error, keyValues);
+      return gen.object(...keyValues);
+    }
+    function errorInstancePath({ errorPath }, { instancePath }) {
+      const instPath = instancePath ? (0, codegen_1.str)`${errorPath}${(0, util_1.getErrorPath)(instancePath, util_1.Type.Str)}` : errorPath;
+      return [names_1.default.instancePath, (0, codegen_1.strConcat)(names_1.default.instancePath, instPath)];
+    }
+    function errorSchemaPath({ keyword, it: { errSchemaPath } }, { schemaPath, parentSchema }) {
+      let schPath = parentSchema ? errSchemaPath : (0, codegen_1.str)`${errSchemaPath}/${keyword}`;
+      if (schemaPath) {
+        schPath = (0, codegen_1.str)`${schPath}${(0, util_1.getErrorPath)(schemaPath, util_1.Type.Str)}`;
+      }
+      return [E.schemaPath, schPath];
+    }
+    function extraErrorProps(cxt, { params, message }, keyValues) {
+      const { keyword, data, schemaValue, it } = cxt;
+      const { opts, propertyName, topSchemaRef, schemaPath } = it;
+      keyValues.push([E.keyword, keyword], [E.params, typeof params == "function" ? params(cxt) : params || (0, codegen_1._)`{}`]);
+      if (opts.messages) {
+        keyValues.push([E.message, typeof message == "function" ? message(cxt) : message]);
+      }
+      if (opts.verbose) {
+        keyValues.push([E.schema, schemaValue], [E.parentSchema, (0, codegen_1._)`${topSchemaRef}${schemaPath}`], [names_1.default.data, data]);
+      }
+      if (propertyName)
+        keyValues.push([E.propertyName, propertyName]);
+    }
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/boolSchema.js
+var require_boolSchema = __commonJS({
+  "node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.boolOrEmptySchema = exports.topBoolOrEmptySchema = void 0;
+    var errors_1 = require_errors();
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var boolError = {
+      message: "boolean schema is false"
+    };
+    function topBoolOrEmptySchema(it) {
+      const { gen, schema: schema2, validateName } = it;
+      if (schema2 === false) {
+        falseSchemaError(it, false);
+      } else if (typeof schema2 == "object" && schema2.$async === true) {
+        gen.return(names_1.default.data);
+      } else {
+        gen.assign((0, codegen_1._)`${validateName}.errors`, null);
+        gen.return(true);
+      }
+    }
+    exports.topBoolOrEmptySchema = topBoolOrEmptySchema;
+    function boolOrEmptySchema(it, valid) {
+      const { gen, schema: schema2 } = it;
+      if (schema2 === false) {
+        gen.var(valid, false);
+        falseSchemaError(it);
+      } else {
+        gen.var(valid, true);
+      }
+    }
+    exports.boolOrEmptySchema = boolOrEmptySchema;
+    function falseSchemaError(it, overrideAllErrors) {
+      const { gen, data } = it;
+      const cxt = {
+        gen,
+        keyword: "false schema",
+        data,
+        schema: false,
+        schemaCode: false,
+        schemaValue: false,
+        params: {},
+        it
+      };
+      (0, errors_1.reportError)(cxt, boolError, void 0, overrideAllErrors);
+    }
+  }
+});
+
+// node_modules/ajv/dist/compile/rules.js
+var require_rules = __commonJS({
+  "node_modules/ajv/dist/compile/rules.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getRules = exports.isJSONType = void 0;
+    var _jsonTypes = ["string", "number", "integer", "boolean", "null", "object", "array"];
+    var jsonTypes = new Set(_jsonTypes);
+    function isJSONType(x) {
+      return typeof x == "string" && jsonTypes.has(x);
+    }
+    exports.isJSONType = isJSONType;
+    function getRules() {
+      const groups = {
+        number: { type: "number", rules: [] },
+        string: { type: "string", rules: [] },
+        array: { type: "array", rules: [] },
+        object: { type: "object", rules: [] }
+      };
+      return {
+        types: { ...groups, integer: true, boolean: true, null: true },
+        rules: [{ rules: [] }, groups.number, groups.string, groups.array, groups.object],
+        post: { rules: [] },
+        all: {},
+        keywords: {}
+      };
+    }
+    exports.getRules = getRules;
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/applicability.js
+var require_applicability = __commonJS({
+  "node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.shouldUseRule = exports.shouldUseGroup = exports.schemaHasRulesForType = void 0;
+    function schemaHasRulesForType({ schema: schema2, self }, type2) {
+      const group = self.RULES.types[type2];
+      return group && group !== true && shouldUseGroup(schema2, group);
+    }
+    exports.schemaHasRulesForType = schemaHasRulesForType;
+    function shouldUseGroup(schema2, group) {
+      return group.rules.some((rule) => shouldUseRule(schema2, rule));
+    }
+    exports.shouldUseGroup = shouldUseGroup;
+    function shouldUseRule(schema2, rule) {
+      var _a;
+      return schema2[rule.keyword] !== void 0 || ((_a = rule.definition.implements) === null || _a === void 0 ? void 0 : _a.some((kwd) => schema2[kwd] !== void 0));
+    }
+    exports.shouldUseRule = shouldUseRule;
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/dataType.js
+var require_dataType = __commonJS({
+  "node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.reportTypeError = exports.checkDataTypes = exports.checkDataType = exports.coerceAndCheckDataType = exports.getJSONTypes = exports.getSchemaTypes = exports.DataType = void 0;
+    var rules_1 = require_rules();
+    var applicability_1 = require_applicability();
+    var errors_1 = require_errors();
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var DataType;
+    (function(DataType2) {
+      DataType2[DataType2["Correct"] = 0] = "Correct";
+      DataType2[DataType2["Wrong"] = 1] = "Wrong";
+    })(DataType || (exports.DataType = DataType = {}));
+    function getSchemaTypes(schema2) {
+      const types2 = getJSONTypes(schema2.type);
+      const hasNull = types2.includes("null");
+      if (hasNull) {
+        if (schema2.nullable === false)
+          throw new Error("type: null contradicts nullable: false");
+      } else {
+        if (!types2.length && schema2.nullable !== void 0) {
+          throw new Error('"nullable" cannot be used without "type"');
+        }
+        if (schema2.nullable === true)
+          types2.push("null");
+      }
+      return types2;
+    }
+    exports.getSchemaTypes = getSchemaTypes;
+    function getJSONTypes(ts) {
+      const types2 = Array.isArray(ts) ? ts : ts ? [ts] : [];
+      if (types2.every(rules_1.isJSONType))
+        return types2;
+      throw new Error("type must be JSONType or JSONType[]: " + types2.join(","));
+    }
+    exports.getJSONTypes = getJSONTypes;
+    function coerceAndCheckDataType(it, types2) {
+      const { gen, data, opts } = it;
+      const coerceTo = coerceToTypes(types2, opts.coerceTypes);
+      const checkTypes = types2.length > 0 && !(coerceTo.length === 0 && types2.length === 1 && (0, applicability_1.schemaHasRulesForType)(it, types2[0]));
+      if (checkTypes) {
+        const wrongType = checkDataTypes(types2, data, opts.strictNumbers, DataType.Wrong);
+        gen.if(wrongType, () => {
+          if (coerceTo.length)
+            coerceData(it, types2, coerceTo);
+          else
+            reportTypeError(it);
+        });
+      }
+      return checkTypes;
+    }
+    exports.coerceAndCheckDataType = coerceAndCheckDataType;
+    var COERCIBLE = /* @__PURE__ */ new Set(["string", "number", "integer", "boolean", "null"]);
+    function coerceToTypes(types2, coerceTypes) {
+      return coerceTypes ? types2.filter((t) => COERCIBLE.has(t) || coerceTypes === "array" && t === "array") : [];
+    }
+    function coerceData(it, types2, coerceTo) {
+      const { gen, data, opts } = it;
+      const dataType = gen.let("dataType", (0, codegen_1._)`typeof ${data}`);
+      const coerced = gen.let("coerced", (0, codegen_1._)`undefined`);
+      if (opts.coerceTypes === "array") {
+        gen.if((0, codegen_1._)`${dataType} == 'object' && Array.isArray(${data}) && ${data}.length == 1`, () => gen.assign(data, (0, codegen_1._)`${data}[0]`).assign(dataType, (0, codegen_1._)`typeof ${data}`).if(checkDataTypes(types2, data, opts.strictNumbers), () => gen.assign(coerced, data)));
+      }
+      gen.if((0, codegen_1._)`${coerced} !== undefined`);
+      for (const t of coerceTo) {
+        if (COERCIBLE.has(t) || t === "array" && opts.coerceTypes === "array") {
+          coerceSpecificType(t);
+        }
+      }
+      gen.else();
+      reportTypeError(it);
+      gen.endIf();
+      gen.if((0, codegen_1._)`${coerced} !== undefined`, () => {
+        gen.assign(data, coerced);
+        assignParentData(it, coerced);
+      });
+      function coerceSpecificType(t) {
+        switch (t) {
+          case "string":
+            gen.elseIf((0, codegen_1._)`${dataType} == "number" || ${dataType} == "boolean"`).assign(coerced, (0, codegen_1._)`"" + ${data}`).elseIf((0, codegen_1._)`${data} === null`).assign(coerced, (0, codegen_1._)`""`);
+            return;
+          case "number":
+            gen.elseIf((0, codegen_1._)`${dataType} == "boolean" || ${data} === null
+              || (${dataType} == "string" && ${data} && ${data} == +${data})`).assign(coerced, (0, codegen_1._)`+${data}`);
+            return;
+          case "integer":
+            gen.elseIf((0, codegen_1._)`${dataType} === "boolean" || ${data} === null
+              || (${dataType} === "string" && ${data} && ${data} == +${data} && !(${data} % 1))`).assign(coerced, (0, codegen_1._)`+${data}`);
+            return;
+          case "boolean":
+            gen.elseIf((0, codegen_1._)`${data} === "false" || ${data} === 0 || ${data} === null`).assign(coerced, false).elseIf((0, codegen_1._)`${data} === "true" || ${data} === 1`).assign(coerced, true);
+            return;
+          case "null":
+            gen.elseIf((0, codegen_1._)`${data} === "" || ${data} === 0 || ${data} === false`);
+            gen.assign(coerced, null);
+            return;
+          case "array":
+            gen.elseIf((0, codegen_1._)`${dataType} === "string" || ${dataType} === "number"
+              || ${dataType} === "boolean" || ${data} === null`).assign(coerced, (0, codegen_1._)`[${data}]`);
+        }
+      }
+    }
+    function assignParentData({ gen, parentData, parentDataProperty }, expr) {
+      gen.if((0, codegen_1._)`${parentData} !== undefined`, () => gen.assign((0, codegen_1._)`${parentData}[${parentDataProperty}]`, expr));
+    }
+    function checkDataType(dataType, data, strictNums, correct = DataType.Correct) {
+      const EQ = correct === DataType.Correct ? codegen_1.operators.EQ : codegen_1.operators.NEQ;
+      let cond;
+      switch (dataType) {
+        case "null":
+          return (0, codegen_1._)`${data} ${EQ} null`;
+        case "array":
+          cond = (0, codegen_1._)`Array.isArray(${data})`;
+          break;
+        case "object":
+          cond = (0, codegen_1._)`${data} && typeof ${data} == "object" && !Array.isArray(${data})`;
+          break;
+        case "integer":
+          cond = numCond((0, codegen_1._)`!(${data} % 1) && !isNaN(${data})`);
+          break;
+        case "number":
+          cond = numCond();
+          break;
+        default:
+          return (0, codegen_1._)`typeof ${data} ${EQ} ${dataType}`;
+      }
+      return correct === DataType.Correct ? cond : (0, codegen_1.not)(cond);
+      function numCond(_cond = codegen_1.nil) {
+        return (0, codegen_1.and)((0, codegen_1._)`typeof ${data} == "number"`, _cond, strictNums ? (0, codegen_1._)`isFinite(${data})` : codegen_1.nil);
+      }
+    }
+    exports.checkDataType = checkDataType;
+    function checkDataTypes(dataTypes, data, strictNums, correct) {
+      if (dataTypes.length === 1) {
+        return checkDataType(dataTypes[0], data, strictNums, correct);
+      }
+      let cond;
+      const types2 = (0, util_1.toHash)(dataTypes);
+      if (types2.array && types2.object) {
+        const notObj = (0, codegen_1._)`typeof ${data} != "object"`;
+        cond = types2.null ? notObj : (0, codegen_1._)`!${data} || ${notObj}`;
+        delete types2.null;
+        delete types2.array;
+        delete types2.object;
+      } else {
+        cond = codegen_1.nil;
+      }
+      if (types2.number)
+        delete types2.integer;
+      for (const t in types2)
+        cond = (0, codegen_1.and)(cond, checkDataType(t, data, strictNums, correct));
+      return cond;
+    }
+    exports.checkDataTypes = checkDataTypes;
+    var typeError = {
+      message: ({ schema: schema2 }) => `must be ${schema2}`,
+      params: ({ schema: schema2, schemaValue }) => typeof schema2 == "string" ? (0, codegen_1._)`{type: ${schema2}}` : (0, codegen_1._)`{type: ${schemaValue}}`
+    };
+    function reportTypeError(it) {
+      const cxt = getTypeErrorContext(it);
+      (0, errors_1.reportError)(cxt, typeError);
+    }
+    exports.reportTypeError = reportTypeError;
+    function getTypeErrorContext(it) {
+      const { gen, data, schema: schema2 } = it;
+      const schemaCode = (0, util_1.schemaRefOrVal)(it, schema2, "type");
+      return {
+        gen,
+        keyword: "type",
+        data,
+        schema: schema2.type,
+        schemaCode,
+        schemaValue: schemaCode,
+        parentSchema: schema2,
+        params: {},
+        it
+      };
+    }
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/defaults.js
+var require_defaults = __commonJS({
+  "node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.assignDefaults = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    function assignDefaults(it, ty) {
+      const { properties, items } = it.schema;
+      if (ty === "object" && properties) {
+        for (const key in properties) {
+          assignDefault(it, key, properties[key].default);
+        }
+      } else if (ty === "array" && Array.isArray(items)) {
+        items.forEach((sch, i) => assignDefault(it, i, sch.default));
+      }
+    }
+    exports.assignDefaults = assignDefaults;
+    function assignDefault(it, prop, defaultValue) {
+      const { gen, compositeRule, data, opts } = it;
+      if (defaultValue === void 0)
+        return;
+      const childData = (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(prop)}`;
+      if (compositeRule) {
+        (0, util_1.checkStrictMode)(it, `default is ignored for: ${childData}`);
+        return;
+      }
+      let condition = (0, codegen_1._)`${childData} === undefined`;
+      if (opts.useDefaults === "empty") {
+        condition = (0, codegen_1._)`${condition} || ${childData} === null || ${childData} === ""`;
+      }
+      gen.if(condition, (0, codegen_1._)`${childData} = ${(0, codegen_1.stringify)(defaultValue)}`);
+    }
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/code.js
+var require_code2 = __commonJS({
+  "node_modules/ajv/dist/vocabularies/code.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.validateUnion = exports.validateArray = exports.usePattern = exports.callValidateCode = exports.schemaProperties = exports.allSchemaProperties = exports.noPropertyInData = exports.propertyInData = exports.isOwnProperty = exports.hasPropFunc = exports.reportMissingProp = exports.checkMissingProp = exports.checkReportMissingProp = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var names_1 = require_names();
+    var util_2 = require_util2();
+    function checkReportMissingProp(cxt, prop) {
+      const { gen, data, it } = cxt;
+      gen.if(noPropertyInData(gen, data, prop, it.opts.ownProperties), () => {
+        cxt.setParams({ missingProperty: (0, codegen_1._)`${prop}` }, true);
+        cxt.error();
+      });
+    }
+    exports.checkReportMissingProp = checkReportMissingProp;
+    function checkMissingProp({ gen, data, it: { opts } }, properties, missing) {
+      return (0, codegen_1.or)(...properties.map((prop) => (0, codegen_1.and)(noPropertyInData(gen, data, prop, opts.ownProperties), (0, codegen_1._)`${missing} = ${prop}`)));
+    }
+    exports.checkMissingProp = checkMissingProp;
+    function reportMissingProp(cxt, missing) {
+      cxt.setParams({ missingProperty: missing }, true);
+      cxt.error();
+    }
+    exports.reportMissingProp = reportMissingProp;
+    function hasPropFunc(gen) {
+      return gen.scopeValue("func", {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        ref: Object.prototype.hasOwnProperty,
+        code: (0, codegen_1._)`Object.prototype.hasOwnProperty`
+      });
+    }
+    exports.hasPropFunc = hasPropFunc;
+    function isOwnProperty(gen, data, property) {
+      return (0, codegen_1._)`${hasPropFunc(gen)}.call(${data}, ${property})`;
+    }
+    exports.isOwnProperty = isOwnProperty;
+    function propertyInData(gen, data, property, ownProperties) {
+      const cond = (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(property)} !== undefined`;
+      return ownProperties ? (0, codegen_1._)`${cond} && ${isOwnProperty(gen, data, property)}` : cond;
+    }
+    exports.propertyInData = propertyInData;
+    function noPropertyInData(gen, data, property, ownProperties) {
+      const cond = (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(property)} === undefined`;
+      return ownProperties ? (0, codegen_1.or)(cond, (0, codegen_1.not)(isOwnProperty(gen, data, property))) : cond;
+    }
+    exports.noPropertyInData = noPropertyInData;
+    function allSchemaProperties(schemaMap) {
+      return schemaMap ? Object.keys(schemaMap).filter((p) => p !== "__proto__") : [];
+    }
+    exports.allSchemaProperties = allSchemaProperties;
+    function schemaProperties(it, schemaMap) {
+      return allSchemaProperties(schemaMap).filter((p) => !(0, util_1.alwaysValidSchema)(it, schemaMap[p]));
+    }
+    exports.schemaProperties = schemaProperties;
+    function callValidateCode({ schemaCode, data, it: { gen, topSchemaRef, schemaPath, errorPath }, it }, func, context, passSchema) {
+      const dataAndSchema = passSchema ? (0, codegen_1._)`${schemaCode}, ${data}, ${topSchemaRef}${schemaPath}` : data;
+      const valCxt = [
+        [names_1.default.instancePath, (0, codegen_1.strConcat)(names_1.default.instancePath, errorPath)],
+        [names_1.default.parentData, it.parentData],
+        [names_1.default.parentDataProperty, it.parentDataProperty],
+        [names_1.default.rootData, names_1.default.rootData]
+      ];
+      if (it.opts.dynamicRef)
+        valCxt.push([names_1.default.dynamicAnchors, names_1.default.dynamicAnchors]);
+      const args = (0, codegen_1._)`${dataAndSchema}, ${gen.object(...valCxt)}`;
+      return context !== codegen_1.nil ? (0, codegen_1._)`${func}.call(${context}, ${args})` : (0, codegen_1._)`${func}(${args})`;
+    }
+    exports.callValidateCode = callValidateCode;
+    var newRegExp = (0, codegen_1._)`new RegExp`;
+    function usePattern({ gen, it: { opts } }, pattern) {
+      const u = opts.unicodeRegExp ? "u" : "";
+      const { regExp } = opts.code;
+      const rx = regExp(pattern, u);
+      return gen.scopeValue("pattern", {
+        key: rx.toString(),
+        ref: rx,
+        code: (0, codegen_1._)`${regExp.code === "new RegExp" ? newRegExp : (0, util_2.useFunc)(gen, regExp)}(${pattern}, ${u})`
+      });
+    }
+    exports.usePattern = usePattern;
+    function validateArray(cxt) {
+      const { gen, data, keyword, it } = cxt;
+      const valid = gen.name("valid");
+      if (it.allErrors) {
+        const validArr = gen.let("valid", true);
+        validateItems(() => gen.assign(validArr, false));
+        return validArr;
+      }
+      gen.var(valid, true);
+      validateItems(() => gen.break());
+      return valid;
+      function validateItems(notValid) {
+        const len = gen.const("len", (0, codegen_1._)`${data}.length`);
+        gen.forRange("i", 0, len, (i) => {
+          cxt.subschema({
+            keyword,
+            dataProp: i,
+            dataPropType: util_1.Type.Num
+          }, valid);
+          gen.if((0, codegen_1.not)(valid), notValid);
+        });
+      }
+    }
+    exports.validateArray = validateArray;
+    function validateUnion(cxt) {
+      const { gen, schema: schema2, keyword, it } = cxt;
+      if (!Array.isArray(schema2))
+        throw new Error("ajv implementation error");
+      const alwaysValid = schema2.some((sch) => (0, util_1.alwaysValidSchema)(it, sch));
+      if (alwaysValid && !it.opts.unevaluated)
+        return;
+      const valid = gen.let("valid", false);
+      const schValid = gen.name("_valid");
+      gen.block(() => schema2.forEach((_sch, i) => {
+        const schCxt = cxt.subschema({
+          keyword,
+          schemaProp: i,
+          compositeRule: true
+        }, schValid);
+        gen.assign(valid, (0, codegen_1._)`${valid} || ${schValid}`);
+        const merged = cxt.mergeValidEvaluated(schCxt, schValid);
+        if (!merged)
+          gen.if((0, codegen_1.not)(valid));
+      }));
+      cxt.result(valid, () => cxt.reset(), () => cxt.error(true));
+    }
+    exports.validateUnion = validateUnion;
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/keyword.js
+var require_keyword = __commonJS({
+  "node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.validateKeywordUsage = exports.validSchemaType = exports.funcKeywordCode = exports.macroKeywordCode = void 0;
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var code_1 = require_code2();
+    var errors_1 = require_errors();
+    function macroKeywordCode(cxt, def) {
+      const { gen, keyword, schema: schema2, parentSchema, it } = cxt;
+      const macroSchema = def.macro.call(it.self, schema2, parentSchema, it);
+      const schemaRef = useKeyword(gen, keyword, macroSchema);
+      if (it.opts.validateSchema !== false)
+        it.self.validateSchema(macroSchema, true);
+      const valid = gen.name("valid");
+      cxt.subschema({
+        schema: macroSchema,
+        schemaPath: codegen_1.nil,
+        errSchemaPath: `${it.errSchemaPath}/${keyword}`,
+        topSchemaRef: schemaRef,
+        compositeRule: true
+      }, valid);
+      cxt.pass(valid, () => cxt.error(true));
+    }
+    exports.macroKeywordCode = macroKeywordCode;
+    function funcKeywordCode(cxt, def) {
+      var _a;
+      const { gen, keyword, schema: schema2, parentSchema, $data, it } = cxt;
+      checkAsyncKeyword(it, def);
+      const validate = !$data && def.compile ? def.compile.call(it.self, schema2, parentSchema, it) : def.validate;
+      const validateRef = useKeyword(gen, keyword, validate);
+      const valid = gen.let("valid");
+      cxt.block$data(valid, validateKeyword);
+      cxt.ok((_a = def.valid) !== null && _a !== void 0 ? _a : valid);
+      function validateKeyword() {
+        if (def.errors === false) {
+          assignValid();
+          if (def.modifying)
+            modifyData(cxt);
+          reportErrs(() => cxt.error());
+        } else {
+          const ruleErrs = def.async ? validateAsync() : validateSync();
+          if (def.modifying)
+            modifyData(cxt);
+          reportErrs(() => addErrs(cxt, ruleErrs));
+        }
+      }
+      function validateAsync() {
+        const ruleErrs = gen.let("ruleErrs", null);
+        gen.try(() => assignValid((0, codegen_1._)`await `), (e) => gen.assign(valid, false).if((0, codegen_1._)`${e} instanceof ${it.ValidationError}`, () => gen.assign(ruleErrs, (0, codegen_1._)`${e}.errors`), () => gen.throw(e)));
+        return ruleErrs;
+      }
+      function validateSync() {
+        const validateErrs = (0, codegen_1._)`${validateRef}.errors`;
+        gen.assign(validateErrs, null);
+        assignValid(codegen_1.nil);
+        return validateErrs;
+      }
+      function assignValid(_await = def.async ? (0, codegen_1._)`await ` : codegen_1.nil) {
+        const passCxt = it.opts.passContext ? names_1.default.this : names_1.default.self;
+        const passSchema = !("compile" in def && !$data || def.schema === false);
+        gen.assign(valid, (0, codegen_1._)`${_await}${(0, code_1.callValidateCode)(cxt, validateRef, passCxt, passSchema)}`, def.modifying);
+      }
+      function reportErrs(errors) {
+        var _a2;
+        gen.if((0, codegen_1.not)((_a2 = def.valid) !== null && _a2 !== void 0 ? _a2 : valid), errors);
+      }
+    }
+    exports.funcKeywordCode = funcKeywordCode;
+    function modifyData(cxt) {
+      const { gen, data, it } = cxt;
+      gen.if(it.parentData, () => gen.assign(data, (0, codegen_1._)`${it.parentData}[${it.parentDataProperty}]`));
+    }
+    function addErrs(cxt, errs) {
+      const { gen } = cxt;
+      gen.if((0, codegen_1._)`Array.isArray(${errs})`, () => {
+        gen.assign(names_1.default.vErrors, (0, codegen_1._)`${names_1.default.vErrors} === null ? ${errs} : ${names_1.default.vErrors}.concat(${errs})`).assign(names_1.default.errors, (0, codegen_1._)`${names_1.default.vErrors}.length`);
+        (0, errors_1.extendErrors)(cxt);
+      }, () => cxt.error());
+    }
+    function checkAsyncKeyword({ schemaEnv }, def) {
+      if (def.async && !schemaEnv.$async)
+        throw new Error("async keyword in sync schema");
+    }
+    function useKeyword(gen, keyword, result) {
+      if (result === void 0)
+        throw new Error(`keyword "${keyword}" failed to compile`);
+      return gen.scopeValue("keyword", typeof result == "function" ? { ref: result } : { ref: result, code: (0, codegen_1.stringify)(result) });
+    }
+    function validSchemaType(schema2, schemaType, allowUndefined = false) {
+      return !schemaType.length || schemaType.some((st) => st === "array" ? Array.isArray(schema2) : st === "object" ? schema2 && typeof schema2 == "object" && !Array.isArray(schema2) : typeof schema2 == st || allowUndefined && typeof schema2 == "undefined");
+    }
+    exports.validSchemaType = validSchemaType;
+    function validateKeywordUsage({ schema: schema2, opts, self, errSchemaPath }, def, keyword) {
+      if (Array.isArray(def.keyword) ? !def.keyword.includes(keyword) : def.keyword !== keyword) {
+        throw new Error("ajv implementation error");
+      }
+      const deps = def.dependencies;
+      if (deps === null || deps === void 0 ? void 0 : deps.some((kwd) => !Object.prototype.hasOwnProperty.call(schema2, kwd))) {
+        throw new Error(`parent schema must have dependencies of ${keyword}: ${deps.join(",")}`);
+      }
+      if (def.validateSchema) {
+        const valid = def.validateSchema(schema2[keyword]);
+        if (!valid) {
+          const msg = `keyword "${keyword}" value is invalid at path "${errSchemaPath}": ` + self.errorsText(def.validateSchema.errors);
+          if (opts.validateSchema === "log")
+            self.logger.error(msg);
+          else
+            throw new Error(msg);
+        }
+      }
+    }
+    exports.validateKeywordUsage = validateKeywordUsage;
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/subschema.js
+var require_subschema = __commonJS({
+  "node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.extendSubschemaMode = exports.extendSubschemaData = exports.getSubschema = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    function getSubschema(it, { keyword, schemaProp, schema: schema2, schemaPath, errSchemaPath, topSchemaRef }) {
+      if (keyword !== void 0 && schema2 !== void 0) {
+        throw new Error('both "keyword" and "schema" passed, only one allowed');
+      }
+      if (keyword !== void 0) {
+        const sch = it.schema[keyword];
+        return schemaProp === void 0 ? {
+          schema: sch,
+          schemaPath: (0, codegen_1._)`${it.schemaPath}${(0, codegen_1.getProperty)(keyword)}`,
+          errSchemaPath: `${it.errSchemaPath}/${keyword}`
+        } : {
+          schema: sch[schemaProp],
+          schemaPath: (0, codegen_1._)`${it.schemaPath}${(0, codegen_1.getProperty)(keyword)}${(0, codegen_1.getProperty)(schemaProp)}`,
+          errSchemaPath: `${it.errSchemaPath}/${keyword}/${(0, util_1.escapeFragment)(schemaProp)}`
+        };
+      }
+      if (schema2 !== void 0) {
+        if (schemaPath === void 0 || errSchemaPath === void 0 || topSchemaRef === void 0) {
+          throw new Error('"schemaPath", "errSchemaPath" and "topSchemaRef" are required with "schema"');
+        }
+        return {
+          schema: schema2,
+          schemaPath,
+          topSchemaRef,
+          errSchemaPath
+        };
+      }
+      throw new Error('either "keyword" or "schema" must be passed');
+    }
+    exports.getSubschema = getSubschema;
+    function extendSubschemaData(subschema, it, { dataProp, dataPropType: dpType, data, dataTypes, propertyName }) {
+      if (data !== void 0 && dataProp !== void 0) {
+        throw new Error('both "data" and "dataProp" passed, only one allowed');
+      }
+      const { gen } = it;
+      if (dataProp !== void 0) {
+        const { errorPath, dataPathArr, opts } = it;
+        const nextData = gen.let("data", (0, codegen_1._)`${it.data}${(0, codegen_1.getProperty)(dataProp)}`, true);
+        dataContextProps(nextData);
+        subschema.errorPath = (0, codegen_1.str)`${errorPath}${(0, util_1.getErrorPath)(dataProp, dpType, opts.jsPropertySyntax)}`;
+        subschema.parentDataProperty = (0, codegen_1._)`${dataProp}`;
+        subschema.dataPathArr = [...dataPathArr, subschema.parentDataProperty];
+      }
+      if (data !== void 0) {
+        const nextData = data instanceof codegen_1.Name ? data : gen.let("data", data, true);
+        dataContextProps(nextData);
+        if (propertyName !== void 0)
+          subschema.propertyName = propertyName;
+      }
+      if (dataTypes)
+        subschema.dataTypes = dataTypes;
+      function dataContextProps(_nextData) {
+        subschema.data = _nextData;
+        subschema.dataLevel = it.dataLevel + 1;
+        subschema.dataTypes = [];
+        it.definedProperties = /* @__PURE__ */ new Set();
+        subschema.parentData = it.data;
+        subschema.dataNames = [...it.dataNames, _nextData];
+      }
+    }
+    exports.extendSubschemaData = extendSubschemaData;
+    function extendSubschemaMode(subschema, { jtdDiscriminator, jtdMetadata, compositeRule, createErrors, allErrors }) {
+      if (compositeRule !== void 0)
+        subschema.compositeRule = compositeRule;
+      if (createErrors !== void 0)
+        subschema.createErrors = createErrors;
+      if (allErrors !== void 0)
+        subschema.allErrors = allErrors;
+      subschema.jtdDiscriminator = jtdDiscriminator;
+      subschema.jtdMetadata = jtdMetadata;
+    }
+    exports.extendSubschemaMode = extendSubschemaMode;
+  }
+});
+
+// node_modules/fast-deep-equal/index.js
+var require_fast_deep_equal = __commonJS({
+  "node_modules/fast-deep-equal/index.js"(exports, module) {
+    "use strict";
+    module.exports = function equal(a, b) {
+      if (a === b) return true;
+      if (a && b && typeof a == "object" && typeof b == "object") {
+        if (a.constructor !== b.constructor) return false;
+        var length, i, keys;
+        if (Array.isArray(a)) {
+          length = a.length;
+          if (length != b.length) return false;
+          for (i = length; i-- !== 0; )
+            if (!equal(a[i], b[i])) return false;
+          return true;
+        }
+        if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
+        if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
+        if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+        keys = Object.keys(a);
+        length = keys.length;
+        if (length !== Object.keys(b).length) return false;
+        for (i = length; i-- !== 0; )
+          if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
+        for (i = length; i-- !== 0; ) {
+          var key = keys[i];
+          if (!equal(a[key], b[key])) return false;
+        }
+        return true;
+      }
+      return a !== a && b !== b;
+    };
+  }
+});
+
+// node_modules/json-schema-traverse/index.js
+var require_json_schema_traverse = __commonJS({
+  "node_modules/json-schema-traverse/index.js"(exports, module) {
+    "use strict";
+    var traverse = module.exports = function(schema2, opts, cb) {
+      if (typeof opts == "function") {
+        cb = opts;
+        opts = {};
+      }
+      cb = opts.cb || cb;
+      var pre = typeof cb == "function" ? cb : cb.pre || function() {
+      };
+      var post = cb.post || function() {
+      };
+      _traverse(opts, pre, post, schema2, "", schema2);
+    };
+    traverse.keywords = {
+      additionalItems: true,
+      items: true,
+      contains: true,
+      additionalProperties: true,
+      propertyNames: true,
+      not: true,
+      if: true,
+      then: true,
+      else: true
+    };
+    traverse.arrayKeywords = {
+      items: true,
+      allOf: true,
+      anyOf: true,
+      oneOf: true
+    };
+    traverse.propsKeywords = {
+      $defs: true,
+      definitions: true,
+      properties: true,
+      patternProperties: true,
+      dependencies: true
+    };
+    traverse.skipKeywords = {
+      default: true,
+      enum: true,
+      const: true,
+      required: true,
+      maximum: true,
+      minimum: true,
+      exclusiveMaximum: true,
+      exclusiveMinimum: true,
+      multipleOf: true,
+      maxLength: true,
+      minLength: true,
+      pattern: true,
+      format: true,
+      maxItems: true,
+      minItems: true,
+      uniqueItems: true,
+      maxProperties: true,
+      minProperties: true
+    };
+    function _traverse(opts, pre, post, schema2, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) {
+      if (schema2 && typeof schema2 == "object" && !Array.isArray(schema2)) {
+        pre(schema2, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex);
+        for (var key in schema2) {
+          var sch = schema2[key];
+          if (Array.isArray(sch)) {
+            if (key in traverse.arrayKeywords) {
+              for (var i = 0; i < sch.length; i++)
+                _traverse(opts, pre, post, sch[i], jsonPtr + "/" + key + "/" + i, rootSchema, jsonPtr, key, schema2, i);
+            }
+          } else if (key in traverse.propsKeywords) {
+            if (sch && typeof sch == "object") {
+              for (var prop in sch)
+                _traverse(opts, pre, post, sch[prop], jsonPtr + "/" + key + "/" + escapeJsonPtr(prop), rootSchema, jsonPtr, key, schema2, prop);
+            }
+          } else if (key in traverse.keywords || opts.allKeys && !(key in traverse.skipKeywords)) {
+            _traverse(opts, pre, post, sch, jsonPtr + "/" + key, rootSchema, jsonPtr, key, schema2);
+          }
+        }
+        post(schema2, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex);
+      }
+    }
+    function escapeJsonPtr(str2) {
+      return str2.replace(/~/g, "~0").replace(/\//g, "~1");
+    }
+  }
+});
+
+// node_modules/ajv/dist/compile/resolve.js
+var require_resolve = __commonJS({
+  "node_modules/ajv/dist/compile/resolve.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getSchemaRefs = exports.resolveUrl = exports.normalizeId = exports._getFullPath = exports.getFullPath = exports.inlineRef = void 0;
+    var util_1 = require_util2();
+    var equal = require_fast_deep_equal();
+    var traverse = require_json_schema_traverse();
+    var SIMPLE_INLINED = /* @__PURE__ */ new Set([
+      "type",
+      "format",
+      "pattern",
+      "maxLength",
+      "minLength",
+      "maxProperties",
+      "minProperties",
+      "maxItems",
+      "minItems",
+      "maximum",
+      "minimum",
+      "uniqueItems",
+      "multipleOf",
+      "required",
+      "enum",
+      "const"
+    ]);
+    function inlineRef(schema2, limit = true) {
+      if (typeof schema2 == "boolean")
+        return true;
+      if (limit === true)
+        return !hasRef(schema2);
+      if (!limit)
+        return false;
+      return countKeys(schema2) <= limit;
+    }
+    exports.inlineRef = inlineRef;
+    var REF_KEYWORDS = /* @__PURE__ */ new Set([
+      "$ref",
+      "$recursiveRef",
+      "$recursiveAnchor",
+      "$dynamicRef",
+      "$dynamicAnchor"
+    ]);
+    function hasRef(schema2) {
+      for (const key in schema2) {
+        if (REF_KEYWORDS.has(key))
+          return true;
+        const sch = schema2[key];
+        if (Array.isArray(sch) && sch.some(hasRef))
+          return true;
+        if (typeof sch == "object" && hasRef(sch))
+          return true;
+      }
+      return false;
+    }
+    function countKeys(schema2) {
+      let count = 0;
+      for (const key in schema2) {
+        if (key === "$ref")
+          return Infinity;
+        count++;
+        if (SIMPLE_INLINED.has(key))
+          continue;
+        if (typeof schema2[key] == "object") {
+          (0, util_1.eachItem)(schema2[key], (sch) => count += countKeys(sch));
+        }
+        if (count === Infinity)
+          return Infinity;
+      }
+      return count;
+    }
+    function getFullPath(resolver, id = "", normalize) {
+      if (normalize !== false)
+        id = normalizeId(id);
+      const p = resolver.parse(id);
+      return _getFullPath(resolver, p);
+    }
+    exports.getFullPath = getFullPath;
+    function _getFullPath(resolver, p) {
+      const serialized = resolver.serialize(p);
+      return serialized.split("#")[0] + "#";
+    }
+    exports._getFullPath = _getFullPath;
+    var TRAILING_SLASH_HASH = /#\/?$/;
+    function normalizeId(id) {
+      return id ? id.replace(TRAILING_SLASH_HASH, "") : "";
+    }
+    exports.normalizeId = normalizeId;
+    function resolveUrl(resolver, baseId, id) {
+      id = normalizeId(id);
+      return resolver.resolve(baseId, id);
+    }
+    exports.resolveUrl = resolveUrl;
+    var ANCHOR = /^[a-z_][-a-z0-9._]*$/i;
+    function getSchemaRefs(schema2, baseId) {
+      if (typeof schema2 == "boolean")
+        return {};
+      const { schemaId, uriResolver } = this.opts;
+      const schId = normalizeId(schema2[schemaId] || baseId);
+      const baseIds = { "": schId };
+      const pathPrefix = getFullPath(uriResolver, schId, false);
+      const localRefs = {};
+      const schemaRefs = /* @__PURE__ */ new Set();
+      traverse(schema2, { allKeys: true }, (sch, jsonPtr, _, parentJsonPtr) => {
+        if (parentJsonPtr === void 0)
+          return;
+        const fullPath = pathPrefix + jsonPtr;
+        let innerBaseId = baseIds[parentJsonPtr];
+        if (typeof sch[schemaId] == "string")
+          innerBaseId = addRef.call(this, sch[schemaId]);
+        addAnchor.call(this, sch.$anchor);
+        addAnchor.call(this, sch.$dynamicAnchor);
+        baseIds[jsonPtr] = innerBaseId;
+        function addRef(ref) {
+          const _resolve = this.opts.uriResolver.resolve;
+          ref = normalizeId(innerBaseId ? _resolve(innerBaseId, ref) : ref);
+          if (schemaRefs.has(ref))
+            throw ambiguos(ref);
+          schemaRefs.add(ref);
+          let schOrRef = this.refs[ref];
+          if (typeof schOrRef == "string")
+            schOrRef = this.refs[schOrRef];
+          if (typeof schOrRef == "object") {
+            checkAmbiguosRef(sch, schOrRef.schema, ref);
+          } else if (ref !== normalizeId(fullPath)) {
+            if (ref[0] === "#") {
+              checkAmbiguosRef(sch, localRefs[ref], ref);
+              localRefs[ref] = sch;
+            } else {
+              this.refs[ref] = fullPath;
+            }
+          }
+          return ref;
+        }
+        function addAnchor(anchor) {
+          if (typeof anchor == "string") {
+            if (!ANCHOR.test(anchor))
+              throw new Error(`invalid anchor "${anchor}"`);
+            addRef.call(this, `#${anchor}`);
+          }
+        }
+      });
+      return localRefs;
+      function checkAmbiguosRef(sch1, sch2, ref) {
+        if (sch2 !== void 0 && !equal(sch1, sch2))
+          throw ambiguos(ref);
+      }
+      function ambiguos(ref) {
+        return new Error(`reference "${ref}" resolves to more than one schema`);
+      }
+    }
+    exports.getSchemaRefs = getSchemaRefs;
+  }
+});
+
+// node_modules/ajv/dist/compile/validate/index.js
+var require_validate = __commonJS({
+  "node_modules/ajv/dist/compile/validate/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getData = exports.KeywordCxt = exports.validateFunctionCode = void 0;
+    var boolSchema_1 = require_boolSchema();
+    var dataType_1 = require_dataType();
+    var applicability_1 = require_applicability();
+    var dataType_2 = require_dataType();
+    var defaults_1 = require_defaults();
+    var keyword_1 = require_keyword();
+    var subschema_1 = require_subschema();
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var resolve_1 = require_resolve();
+    var util_1 = require_util2();
+    var errors_1 = require_errors();
+    function validateFunctionCode(it) {
+      if (isSchemaObj(it)) {
+        checkKeywords(it);
+        if (schemaCxtHasRules(it)) {
+          topSchemaObjCode(it);
+          return;
+        }
+      }
+      validateFunction(it, () => (0, boolSchema_1.topBoolOrEmptySchema)(it));
+    }
+    exports.validateFunctionCode = validateFunctionCode;
+    function validateFunction({ gen, validateName, schema: schema2, schemaEnv, opts }, body) {
+      if (opts.code.es5) {
+        gen.func(validateName, (0, codegen_1._)`${names_1.default.data}, ${names_1.default.valCxt}`, schemaEnv.$async, () => {
+          gen.code((0, codegen_1._)`"use strict"; ${funcSourceUrl(schema2, opts)}`);
+          destructureValCxtES5(gen, opts);
+          gen.code(body);
+        });
+      } else {
+        gen.func(validateName, (0, codegen_1._)`${names_1.default.data}, ${destructureValCxt(opts)}`, schemaEnv.$async, () => gen.code(funcSourceUrl(schema2, opts)).code(body));
+      }
+    }
+    function destructureValCxt(opts) {
+      return (0, codegen_1._)`{${names_1.default.instancePath}="", ${names_1.default.parentData}, ${names_1.default.parentDataProperty}, ${names_1.default.rootData}=${names_1.default.data}${opts.dynamicRef ? (0, codegen_1._)`, ${names_1.default.dynamicAnchors}={}` : codegen_1.nil}}={}`;
+    }
+    function destructureValCxtES5(gen, opts) {
+      gen.if(names_1.default.valCxt, () => {
+        gen.var(names_1.default.instancePath, (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.instancePath}`);
+        gen.var(names_1.default.parentData, (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.parentData}`);
+        gen.var(names_1.default.parentDataProperty, (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.parentDataProperty}`);
+        gen.var(names_1.default.rootData, (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.rootData}`);
+        if (opts.dynamicRef)
+          gen.var(names_1.default.dynamicAnchors, (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.dynamicAnchors}`);
+      }, () => {
+        gen.var(names_1.default.instancePath, (0, codegen_1._)`""`);
+        gen.var(names_1.default.parentData, (0, codegen_1._)`undefined`);
+        gen.var(names_1.default.parentDataProperty, (0, codegen_1._)`undefined`);
+        gen.var(names_1.default.rootData, names_1.default.data);
+        if (opts.dynamicRef)
+          gen.var(names_1.default.dynamicAnchors, (0, codegen_1._)`{}`);
+      });
+    }
+    function topSchemaObjCode(it) {
+      const { schema: schema2, opts, gen } = it;
+      validateFunction(it, () => {
+        if (opts.$comment && schema2.$comment)
+          commentKeyword(it);
+        checkNoDefault(it);
+        gen.let(names_1.default.vErrors, null);
+        gen.let(names_1.default.errors, 0);
+        if (opts.unevaluated)
+          resetEvaluated(it);
+        typeAndKeywords(it);
+        returnResults(it);
+      });
+      return;
+    }
+    function resetEvaluated(it) {
+      const { gen, validateName } = it;
+      it.evaluated = gen.const("evaluated", (0, codegen_1._)`${validateName}.evaluated`);
+      gen.if((0, codegen_1._)`${it.evaluated}.dynamicProps`, () => gen.assign((0, codegen_1._)`${it.evaluated}.props`, (0, codegen_1._)`undefined`));
+      gen.if((0, codegen_1._)`${it.evaluated}.dynamicItems`, () => gen.assign((0, codegen_1._)`${it.evaluated}.items`, (0, codegen_1._)`undefined`));
+    }
+    function funcSourceUrl(schema2, opts) {
+      const schId = typeof schema2 == "object" && schema2[opts.schemaId];
+      return schId && (opts.code.source || opts.code.process) ? (0, codegen_1._)`/*# sourceURL=${schId} */` : codegen_1.nil;
+    }
+    function subschemaCode(it, valid) {
+      if (isSchemaObj(it)) {
+        checkKeywords(it);
+        if (schemaCxtHasRules(it)) {
+          subSchemaObjCode(it, valid);
+          return;
+        }
+      }
+      (0, boolSchema_1.boolOrEmptySchema)(it, valid);
+    }
+    function schemaCxtHasRules({ schema: schema2, self }) {
+      if (typeof schema2 == "boolean")
+        return !schema2;
+      for (const key in schema2)
+        if (self.RULES.all[key])
+          return true;
+      return false;
+    }
+    function isSchemaObj(it) {
+      return typeof it.schema != "boolean";
+    }
+    function subSchemaObjCode(it, valid) {
+      const { schema: schema2, gen, opts } = it;
+      if (opts.$comment && schema2.$comment)
+        commentKeyword(it);
+      updateContext(it);
+      checkAsyncSchema(it);
+      const errsCount = gen.const("_errs", names_1.default.errors);
+      typeAndKeywords(it, errsCount);
+      gen.var(valid, (0, codegen_1._)`${errsCount} === ${names_1.default.errors}`);
+    }
+    function checkKeywords(it) {
+      (0, util_1.checkUnknownRules)(it);
+      checkRefsAndKeywords(it);
+    }
+    function typeAndKeywords(it, errsCount) {
+      if (it.opts.jtd)
+        return schemaKeywords(it, [], false, errsCount);
+      const types2 = (0, dataType_1.getSchemaTypes)(it.schema);
+      const checkedTypes = (0, dataType_1.coerceAndCheckDataType)(it, types2);
+      schemaKeywords(it, types2, !checkedTypes, errsCount);
+    }
+    function checkRefsAndKeywords(it) {
+      const { schema: schema2, errSchemaPath, opts, self } = it;
+      if (schema2.$ref && opts.ignoreKeywordsWithRef && (0, util_1.schemaHasRulesButRef)(schema2, self.RULES)) {
+        self.logger.warn(`$ref: keywords ignored in schema at path "${errSchemaPath}"`);
+      }
+    }
+    function checkNoDefault(it) {
+      const { schema: schema2, opts } = it;
+      if (schema2.default !== void 0 && opts.useDefaults && opts.strictSchema) {
+        (0, util_1.checkStrictMode)(it, "default is ignored in the schema root");
+      }
+    }
+    function updateContext(it) {
+      const schId = it.schema[it.opts.schemaId];
+      if (schId)
+        it.baseId = (0, resolve_1.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
+    }
+    function checkAsyncSchema(it) {
+      if (it.schema.$async && !it.schemaEnv.$async)
+        throw new Error("async schema in sync schema");
+    }
+    function commentKeyword({ gen, schemaEnv, schema: schema2, errSchemaPath, opts }) {
+      const msg = schema2.$comment;
+      if (opts.$comment === true) {
+        gen.code((0, codegen_1._)`${names_1.default.self}.logger.log(${msg})`);
+      } else if (typeof opts.$comment == "function") {
+        const schemaPath = (0, codegen_1.str)`${errSchemaPath}/$comment`;
+        const rootName = gen.scopeValue("root", { ref: schemaEnv.root });
+        gen.code((0, codegen_1._)`${names_1.default.self}.opts.$comment(${msg}, ${schemaPath}, ${rootName}.schema)`);
+      }
+    }
+    function returnResults(it) {
+      const { gen, schemaEnv, validateName, ValidationError, opts } = it;
+      if (schemaEnv.$async) {
+        gen.if((0, codegen_1._)`${names_1.default.errors} === 0`, () => gen.return(names_1.default.data), () => gen.throw((0, codegen_1._)`new ${ValidationError}(${names_1.default.vErrors})`));
+      } else {
+        gen.assign((0, codegen_1._)`${validateName}.errors`, names_1.default.vErrors);
+        if (opts.unevaluated)
+          assignEvaluated(it);
+        gen.return((0, codegen_1._)`${names_1.default.errors} === 0`);
+      }
+    }
+    function assignEvaluated({ gen, evaluated, props, items }) {
+      if (props instanceof codegen_1.Name)
+        gen.assign((0, codegen_1._)`${evaluated}.props`, props);
+      if (items instanceof codegen_1.Name)
+        gen.assign((0, codegen_1._)`${evaluated}.items`, items);
+    }
+    function schemaKeywords(it, types2, typeErrors, errsCount) {
+      const { gen, schema: schema2, data, allErrors, opts, self } = it;
+      const { RULES } = self;
+      if (schema2.$ref && (opts.ignoreKeywordsWithRef || !(0, util_1.schemaHasRulesButRef)(schema2, RULES))) {
+        gen.block(() => keywordCode(it, "$ref", RULES.all.$ref.definition));
+        return;
+      }
+      if (!opts.jtd)
+        checkStrictTypes(it, types2);
+      gen.block(() => {
+        for (const group of RULES.rules)
+          groupKeywords(group);
+        groupKeywords(RULES.post);
+      });
+      function groupKeywords(group) {
+        if (!(0, applicability_1.shouldUseGroup)(schema2, group))
+          return;
+        if (group.type) {
+          gen.if((0, dataType_2.checkDataType)(group.type, data, opts.strictNumbers));
+          iterateKeywords(it, group);
+          if (types2.length === 1 && types2[0] === group.type && typeErrors) {
+            gen.else();
+            (0, dataType_2.reportTypeError)(it);
+          }
+          gen.endIf();
+        } else {
+          iterateKeywords(it, group);
+        }
+        if (!allErrors)
+          gen.if((0, codegen_1._)`${names_1.default.errors} === ${errsCount || 0}`);
+      }
+    }
+    function iterateKeywords(it, group) {
+      const { gen, schema: schema2, opts: { useDefaults } } = it;
+      if (useDefaults)
+        (0, defaults_1.assignDefaults)(it, group.type);
+      gen.block(() => {
+        for (const rule of group.rules) {
+          if ((0, applicability_1.shouldUseRule)(schema2, rule)) {
+            keywordCode(it, rule.keyword, rule.definition, group.type);
+          }
+        }
+      });
+    }
+    function checkStrictTypes(it, types2) {
+      if (it.schemaEnv.meta || !it.opts.strictTypes)
+        return;
+      checkContextTypes(it, types2);
+      if (!it.opts.allowUnionTypes)
+        checkMultipleTypes(it, types2);
+      checkKeywordTypes(it, it.dataTypes);
+    }
+    function checkContextTypes(it, types2) {
+      if (!types2.length)
+        return;
+      if (!it.dataTypes.length) {
+        it.dataTypes = types2;
+        return;
+      }
+      types2.forEach((t) => {
+        if (!includesType(it.dataTypes, t)) {
+          strictTypesError(it, `type "${t}" not allowed by context "${it.dataTypes.join(",")}"`);
+        }
+      });
+      narrowSchemaTypes(it, types2);
+    }
+    function checkMultipleTypes(it, ts) {
+      if (ts.length > 1 && !(ts.length === 2 && ts.includes("null"))) {
+        strictTypesError(it, "use allowUnionTypes to allow union type keyword");
+      }
+    }
+    function checkKeywordTypes(it, ts) {
+      const rules = it.self.RULES.all;
+      for (const keyword in rules) {
+        const rule = rules[keyword];
+        if (typeof rule == "object" && (0, applicability_1.shouldUseRule)(it.schema, rule)) {
+          const { type: type2 } = rule.definition;
+          if (type2.length && !type2.some((t) => hasApplicableType(ts, t))) {
+            strictTypesError(it, `missing type "${type2.join(",")}" for keyword "${keyword}"`);
+          }
+        }
+      }
+    }
+    function hasApplicableType(schTs, kwdT) {
+      return schTs.includes(kwdT) || kwdT === "number" && schTs.includes("integer");
+    }
+    function includesType(ts, t) {
+      return ts.includes(t) || t === "integer" && ts.includes("number");
+    }
+    function narrowSchemaTypes(it, withTypes) {
+      const ts = [];
+      for (const t of it.dataTypes) {
+        if (includesType(withTypes, t))
+          ts.push(t);
+        else if (withTypes.includes("integer") && t === "number")
+          ts.push("integer");
+      }
+      it.dataTypes = ts;
+    }
+    function strictTypesError(it, msg) {
+      const schemaPath = it.schemaEnv.baseId + it.errSchemaPath;
+      msg += ` at "${schemaPath}" (strictTypes)`;
+      (0, util_1.checkStrictMode)(it, msg, it.opts.strictTypes);
+    }
+    var KeywordCxt = class {
+      constructor(it, def, keyword) {
+        (0, keyword_1.validateKeywordUsage)(it, def, keyword);
+        this.gen = it.gen;
+        this.allErrors = it.allErrors;
+        this.keyword = keyword;
+        this.data = it.data;
+        this.schema = it.schema[keyword];
+        this.$data = def.$data && it.opts.$data && this.schema && this.schema.$data;
+        this.schemaValue = (0, util_1.schemaRefOrVal)(it, this.schema, keyword, this.$data);
+        this.schemaType = def.schemaType;
+        this.parentSchema = it.schema;
+        this.params = {};
+        this.it = it;
+        this.def = def;
+        if (this.$data) {
+          this.schemaCode = it.gen.const("vSchema", getData(this.$data, it));
+        } else {
+          this.schemaCode = this.schemaValue;
+          if (!(0, keyword_1.validSchemaType)(this.schema, def.schemaType, def.allowUndefined)) {
+            throw new Error(`${keyword} value must be ${JSON.stringify(def.schemaType)}`);
+          }
+        }
+        if ("code" in def ? def.trackErrors : def.errors !== false) {
+          this.errsCount = it.gen.const("_errs", names_1.default.errors);
+        }
+      }
+      result(condition, successAction, failAction) {
+        this.failResult((0, codegen_1.not)(condition), successAction, failAction);
+      }
+      failResult(condition, successAction, failAction) {
+        this.gen.if(condition);
+        if (failAction)
+          failAction();
+        else
+          this.error();
+        if (successAction) {
+          this.gen.else();
+          successAction();
+          if (this.allErrors)
+            this.gen.endIf();
+        } else {
+          if (this.allErrors)
+            this.gen.endIf();
+          else
+            this.gen.else();
+        }
+      }
+      pass(condition, failAction) {
+        this.failResult((0, codegen_1.not)(condition), void 0, failAction);
+      }
+      fail(condition) {
+        if (condition === void 0) {
+          this.error();
+          if (!this.allErrors)
+            this.gen.if(false);
+          return;
+        }
+        this.gen.if(condition);
+        this.error();
+        if (this.allErrors)
+          this.gen.endIf();
+        else
+          this.gen.else();
+      }
+      fail$data(condition) {
+        if (!this.$data)
+          return this.fail(condition);
+        const { schemaCode } = this;
+        this.fail((0, codegen_1._)`${schemaCode} !== undefined && (${(0, codegen_1.or)(this.invalid$data(), condition)})`);
+      }
+      error(append, errorParams, errorPaths) {
+        if (errorParams) {
+          this.setParams(errorParams);
+          this._error(append, errorPaths);
+          this.setParams({});
+          return;
+        }
+        this._error(append, errorPaths);
+      }
+      _error(append, errorPaths) {
+        ;
+        (append ? errors_1.reportExtraError : errors_1.reportError)(this, this.def.error, errorPaths);
+      }
+      $dataError() {
+        (0, errors_1.reportError)(this, this.def.$dataError || errors_1.keyword$DataError);
+      }
+      reset() {
+        if (this.errsCount === void 0)
+          throw new Error('add "trackErrors" to keyword definition');
+        (0, errors_1.resetErrorsCount)(this.gen, this.errsCount);
+      }
+      ok(cond) {
+        if (!this.allErrors)
+          this.gen.if(cond);
+      }
+      setParams(obj, assign) {
+        if (assign)
+          Object.assign(this.params, obj);
+        else
+          this.params = obj;
+      }
+      block$data(valid, codeBlock, $dataValid = codegen_1.nil) {
+        this.gen.block(() => {
+          this.check$data(valid, $dataValid);
+          codeBlock();
+        });
+      }
+      check$data(valid = codegen_1.nil, $dataValid = codegen_1.nil) {
+        if (!this.$data)
+          return;
+        const { gen, schemaCode, schemaType, def } = this;
+        gen.if((0, codegen_1.or)((0, codegen_1._)`${schemaCode} === undefined`, $dataValid));
+        if (valid !== codegen_1.nil)
+          gen.assign(valid, true);
+        if (schemaType.length || def.validateSchema) {
+          gen.elseIf(this.invalid$data());
+          this.$dataError();
+          if (valid !== codegen_1.nil)
+            gen.assign(valid, false);
+        }
+        gen.else();
+      }
+      invalid$data() {
+        const { gen, schemaCode, schemaType, def, it } = this;
+        return (0, codegen_1.or)(wrong$DataType(), invalid$DataSchema());
+        function wrong$DataType() {
+          if (schemaType.length) {
+            if (!(schemaCode instanceof codegen_1.Name))
+              throw new Error("ajv implementation error");
+            const st = Array.isArray(schemaType) ? schemaType : [schemaType];
+            return (0, codegen_1._)`${(0, dataType_2.checkDataTypes)(st, schemaCode, it.opts.strictNumbers, dataType_2.DataType.Wrong)}`;
+          }
+          return codegen_1.nil;
+        }
+        function invalid$DataSchema() {
+          if (def.validateSchema) {
+            const validateSchemaRef = gen.scopeValue("validate$data", { ref: def.validateSchema });
+            return (0, codegen_1._)`!${validateSchemaRef}(${schemaCode})`;
+          }
+          return codegen_1.nil;
+        }
+      }
+      subschema(appl, valid) {
+        const subschema = (0, subschema_1.getSubschema)(this.it, appl);
+        (0, subschema_1.extendSubschemaData)(subschema, this.it, appl);
+        (0, subschema_1.extendSubschemaMode)(subschema, appl);
+        const nextContext = { ...this.it, ...subschema, items: void 0, props: void 0 };
+        subschemaCode(nextContext, valid);
+        return nextContext;
+      }
+      mergeEvaluated(schemaCxt, toName) {
+        const { it, gen } = this;
+        if (!it.opts.unevaluated)
+          return;
+        if (it.props !== true && schemaCxt.props !== void 0) {
+          it.props = util_1.mergeEvaluated.props(gen, schemaCxt.props, it.props, toName);
+        }
+        if (it.items !== true && schemaCxt.items !== void 0) {
+          it.items = util_1.mergeEvaluated.items(gen, schemaCxt.items, it.items, toName);
+        }
+      }
+      mergeValidEvaluated(schemaCxt, valid) {
+        const { it, gen } = this;
+        if (it.opts.unevaluated && (it.props !== true || it.items !== true)) {
+          gen.if(valid, () => this.mergeEvaluated(schemaCxt, codegen_1.Name));
+          return true;
+        }
+      }
+    };
+    exports.KeywordCxt = KeywordCxt;
+    function keywordCode(it, keyword, def, ruleType) {
+      const cxt = new KeywordCxt(it, def, keyword);
+      if ("code" in def) {
+        def.code(cxt, ruleType);
+      } else if (cxt.$data && def.validate) {
+        (0, keyword_1.funcKeywordCode)(cxt, def);
+      } else if ("macro" in def) {
+        (0, keyword_1.macroKeywordCode)(cxt, def);
+      } else if (def.compile || def.validate) {
+        (0, keyword_1.funcKeywordCode)(cxt, def);
+      }
+    }
+    var JSON_POINTER = /^\/(?:[^~]|~0|~1)*$/;
+    var RELATIVE_JSON_POINTER = /^([0-9]+)(#|\/(?:[^~]|~0|~1)*)?$/;
+    function getData($data, { dataLevel, dataNames, dataPathArr }) {
+      let jsonPointer;
+      let data;
+      if ($data === "")
+        return names_1.default.rootData;
+      if ($data[0] === "/") {
+        if (!JSON_POINTER.test($data))
+          throw new Error(`Invalid JSON-pointer: ${$data}`);
+        jsonPointer = $data;
+        data = names_1.default.rootData;
+      } else {
+        const matches = RELATIVE_JSON_POINTER.exec($data);
+        if (!matches)
+          throw new Error(`Invalid JSON-pointer: ${$data}`);
+        const up = +matches[1];
+        jsonPointer = matches[2];
+        if (jsonPointer === "#") {
+          if (up >= dataLevel)
+            throw new Error(errorMsg("property/index", up));
+          return dataPathArr[dataLevel - up];
+        }
+        if (up > dataLevel)
+          throw new Error(errorMsg("data", up));
+        data = dataNames[dataLevel - up];
+        if (!jsonPointer)
+          return data;
+      }
+      let expr = data;
+      const segments = jsonPointer.split("/");
+      for (const segment of segments) {
+        if (segment) {
+          data = (0, codegen_1._)`${data}${(0, codegen_1.getProperty)((0, util_1.unescapeJsonPointer)(segment))}`;
+          expr = (0, codegen_1._)`${expr} && ${data}`;
+        }
+      }
+      return expr;
+      function errorMsg(pointerType, up) {
+        return `Cannot access ${pointerType} ${up} levels up, current level is ${dataLevel}`;
+      }
+    }
+    exports.getData = getData;
+  }
+});
+
+// node_modules/ajv/dist/runtime/validation_error.js
+var require_validation_error = __commonJS({
+  "node_modules/ajv/dist/runtime/validation_error.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ValidationError = class extends Error {
+      constructor(errors) {
+        super("validation failed");
+        this.errors = errors;
+        this.ajv = this.validation = true;
+      }
+    };
+    exports.default = ValidationError;
+  }
+});
+
+// node_modules/ajv/dist/compile/ref_error.js
+var require_ref_error = __commonJS({
+  "node_modules/ajv/dist/compile/ref_error.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var resolve_1 = require_resolve();
+    var MissingRefError = class extends Error {
+      constructor(resolver, baseId, ref, msg) {
+        super(msg || `can't resolve reference ${ref} from id ${baseId}`);
+        this.missingRef = (0, resolve_1.resolveUrl)(resolver, baseId, ref);
+        this.missingSchema = (0, resolve_1.normalizeId)((0, resolve_1.getFullPath)(resolver, this.missingRef));
+      }
+    };
+    exports.default = MissingRefError;
+  }
+});
+
+// node_modules/ajv/dist/compile/index.js
+var require_compile = __commonJS({
+  "node_modules/ajv/dist/compile/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.resolveSchema = exports.getCompilingSchema = exports.resolveRef = exports.compileSchema = exports.SchemaEnv = void 0;
+    var codegen_1 = require_codegen();
+    var validation_error_1 = require_validation_error();
+    var names_1 = require_names();
+    var resolve_1 = require_resolve();
+    var util_1 = require_util2();
+    var validate_1 = require_validate();
+    var SchemaEnv = class {
+      constructor(env) {
+        var _a;
+        this.refs = {};
+        this.dynamicAnchors = {};
+        let schema2;
+        if (typeof env.schema == "object")
+          schema2 = env.schema;
+        this.schema = env.schema;
+        this.schemaId = env.schemaId;
+        this.root = env.root || this;
+        this.baseId = (_a = env.baseId) !== null && _a !== void 0 ? _a : (0, resolve_1.normalizeId)(schema2 === null || schema2 === void 0 ? void 0 : schema2[env.schemaId || "$id"]);
+        this.schemaPath = env.schemaPath;
+        this.localRefs = env.localRefs;
+        this.meta = env.meta;
+        this.$async = schema2 === null || schema2 === void 0 ? void 0 : schema2.$async;
+        this.refs = {};
+      }
+    };
+    exports.SchemaEnv = SchemaEnv;
+    function compileSchema(sch) {
+      const _sch = getCompilingSchema.call(this, sch);
+      if (_sch)
+        return _sch;
+      const rootId = (0, resolve_1.getFullPath)(this.opts.uriResolver, sch.root.baseId);
+      const { es5, lines } = this.opts.code;
+      const { ownProperties } = this.opts;
+      const gen = new codegen_1.CodeGen(this.scope, { es5, lines, ownProperties });
+      let _ValidationError;
+      if (sch.$async) {
+        _ValidationError = gen.scopeValue("Error", {
+          ref: validation_error_1.default,
+          code: (0, codegen_1._)`require("ajv/dist/runtime/validation_error").default`
+        });
+      }
+      const validateName = gen.scopeName("validate");
+      sch.validateName = validateName;
+      const schemaCxt = {
+        gen,
+        allErrors: this.opts.allErrors,
+        data: names_1.default.data,
+        parentData: names_1.default.parentData,
+        parentDataProperty: names_1.default.parentDataProperty,
+        dataNames: [names_1.default.data],
+        dataPathArr: [codegen_1.nil],
+        // TODO can its length be used as dataLevel if nil is removed?
+        dataLevel: 0,
+        dataTypes: [],
+        definedProperties: /* @__PURE__ */ new Set(),
+        topSchemaRef: gen.scopeValue("schema", this.opts.code.source === true ? { ref: sch.schema, code: (0, codegen_1.stringify)(sch.schema) } : { ref: sch.schema }),
+        validateName,
+        ValidationError: _ValidationError,
+        schema: sch.schema,
+        schemaEnv: sch,
+        rootId,
+        baseId: sch.baseId || rootId,
+        schemaPath: codegen_1.nil,
+        errSchemaPath: sch.schemaPath || (this.opts.jtd ? "" : "#"),
+        errorPath: (0, codegen_1._)`""`,
+        opts: this.opts,
+        self: this
+      };
+      let sourceCode;
+      try {
+        this._compilations.add(sch);
+        (0, validate_1.validateFunctionCode)(schemaCxt);
+        gen.optimize(this.opts.code.optimize);
+        const validateCode = gen.toString();
+        sourceCode = `${gen.scopeRefs(names_1.default.scope)}return ${validateCode}`;
+        if (this.opts.code.process)
+          sourceCode = this.opts.code.process(sourceCode, sch);
+        const makeValidate = new Function(`${names_1.default.self}`, `${names_1.default.scope}`, sourceCode);
+        const validate = makeValidate(this, this.scope.get());
+        this.scope.value(validateName, { ref: validate });
+        validate.errors = null;
+        validate.schema = sch.schema;
+        validate.schemaEnv = sch;
+        if (sch.$async)
+          validate.$async = true;
+        if (this.opts.code.source === true) {
+          validate.source = { validateName, validateCode, scopeValues: gen._values };
+        }
+        if (this.opts.unevaluated) {
+          const { props, items } = schemaCxt;
+          validate.evaluated = {
+            props: props instanceof codegen_1.Name ? void 0 : props,
+            items: items instanceof codegen_1.Name ? void 0 : items,
+            dynamicProps: props instanceof codegen_1.Name,
+            dynamicItems: items instanceof codegen_1.Name
+          };
+          if (validate.source)
+            validate.source.evaluated = (0, codegen_1.stringify)(validate.evaluated);
+        }
+        sch.validate = validate;
+        return sch;
+      } catch (e) {
+        delete sch.validate;
+        delete sch.validateName;
+        if (sourceCode)
+          this.logger.error("Error compiling schema, function code:", sourceCode);
+        throw e;
+      } finally {
+        this._compilations.delete(sch);
+      }
+    }
+    exports.compileSchema = compileSchema;
+    function resolveRef(root, baseId, ref) {
+      var _a;
+      ref = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, ref);
+      const schOrFunc = root.refs[ref];
+      if (schOrFunc)
+        return schOrFunc;
+      let _sch = resolve3.call(this, root, ref);
+      if (_sch === void 0) {
+        const schema2 = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
+        const { schemaId } = this.opts;
+        if (schema2)
+          _sch = new SchemaEnv({ schema: schema2, schemaId, root, baseId });
+      }
+      if (_sch === void 0)
+        return;
+      return root.refs[ref] = inlineOrCompile.call(this, _sch);
+    }
+    exports.resolveRef = resolveRef;
+    function inlineOrCompile(sch) {
+      if ((0, resolve_1.inlineRef)(sch.schema, this.opts.inlineRefs))
+        return sch.schema;
+      return sch.validate ? sch : compileSchema.call(this, sch);
+    }
+    function getCompilingSchema(schEnv) {
+      for (const sch of this._compilations) {
+        if (sameSchemaEnv(sch, schEnv))
+          return sch;
+      }
+    }
+    exports.getCompilingSchema = getCompilingSchema;
+    function sameSchemaEnv(s1, s2) {
+      return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
+    }
+    function resolve3(root, ref) {
+      let sch;
+      while (typeof (sch = this.refs[ref]) == "string")
+        ref = sch;
+      return sch || this.schemas[ref] || resolveSchema.call(this, root, ref);
+    }
+    function resolveSchema(root, ref) {
+      const p = this.opts.uriResolver.parse(ref);
+      const refPath = (0, resolve_1._getFullPath)(this.opts.uriResolver, p);
+      let baseId = (0, resolve_1.getFullPath)(this.opts.uriResolver, root.baseId, void 0);
+      if (Object.keys(root.schema).length > 0 && refPath === baseId) {
+        return getJsonPointer.call(this, p, root);
+      }
+      const id = (0, resolve_1.normalizeId)(refPath);
+      const schOrRef = this.refs[id] || this.schemas[id];
+      if (typeof schOrRef == "string") {
+        const sch = resolveSchema.call(this, root, schOrRef);
+        if (typeof (sch === null || sch === void 0 ? void 0 : sch.schema) !== "object")
+          return;
+        return getJsonPointer.call(this, p, sch);
+      }
+      if (typeof (schOrRef === null || schOrRef === void 0 ? void 0 : schOrRef.schema) !== "object")
+        return;
+      if (!schOrRef.validate)
+        compileSchema.call(this, schOrRef);
+      if (id === (0, resolve_1.normalizeId)(ref)) {
+        const { schema: schema2 } = schOrRef;
+        const { schemaId } = this.opts;
+        const schId = schema2[schemaId];
+        if (schId)
+          baseId = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schId);
+        return new SchemaEnv({ schema: schema2, schemaId, root, baseId });
+      }
+      return getJsonPointer.call(this, p, schOrRef);
+    }
+    exports.resolveSchema = resolveSchema;
+    var PREVENT_SCOPE_CHANGE = /* @__PURE__ */ new Set([
+      "properties",
+      "patternProperties",
+      "enum",
+      "dependencies",
+      "definitions"
+    ]);
+    function getJsonPointer(parsedRef, { baseId, schema: schema2, root }) {
+      var _a;
+      if (((_a = parsedRef.fragment) === null || _a === void 0 ? void 0 : _a[0]) !== "/")
+        return;
+      for (const part of parsedRef.fragment.slice(1).split("/")) {
+        if (typeof schema2 === "boolean")
+          return;
+        const partSchema = schema2[(0, util_1.unescapeFragment)(part)];
+        if (partSchema === void 0)
+          return;
+        schema2 = partSchema;
+        const schId = typeof schema2 === "object" && schema2[this.opts.schemaId];
+        if (!PREVENT_SCOPE_CHANGE.has(part) && schId) {
+          baseId = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schId);
+        }
+      }
+      let env;
+      if (typeof schema2 != "boolean" && schema2.$ref && !(0, util_1.schemaHasRulesButRef)(schema2, this.RULES)) {
+        const $ref = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schema2.$ref);
+        env = resolveSchema.call(this, root, $ref);
+      }
+      const { schemaId } = this.opts;
+      env = env || new SchemaEnv({ schema: schema2, schemaId, root, baseId });
+      if (env.schema !== env.root.schema)
+        return env;
+      return void 0;
+    }
+  }
+});
+
+// node_modules/ajv/dist/refs/data.json
+var require_data = __commonJS({
+  "node_modules/ajv/dist/refs/data.json"(exports, module) {
+    module.exports = {
+      $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
+      description: "Meta-schema for $data reference (JSON AnySchema extension proposal)",
+      type: "object",
+      required: ["$data"],
+      properties: {
+        $data: {
+          type: "string",
+          anyOf: [{ format: "relative-json-pointer" }, { format: "json-pointer" }]
+        }
+      },
+      additionalProperties: false
+    };
+  }
+});
+
+// node_modules/fast-uri/lib/utils.js
+var require_utils = __commonJS({
+  "node_modules/fast-uri/lib/utils.js"(exports, module) {
+    "use strict";
+    var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
+    var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
+    var isPort = RegExp.prototype.test.bind(/^\d*$/u);
+    var isHexPair = RegExp.prototype.test.bind(/^[\da-f]{2}$/iu);
+    var isUnreserved = RegExp.prototype.test.bind(/^[\da-z\-._~]$/iu);
+    var isPathCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:@/]$/u);
+    var isQueryFragmentCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:@/?]$/u);
+    var isUserinfoCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:]$/u);
+    var BYTE_HEX = new Array(256);
+    {
+      const HEX_DIGITS = "0123456789ABCDEF";
+      for (let i = 0; i < 256; i++) {
+        BYTE_HEX[i] = "%" + HEX_DIGITS[i >> 4] + HEX_DIGITS[i & 15];
+      }
+    }
+    function percentEncodeNonAscii(cp) {
+      if (cp < 2048) {
+        return BYTE_HEX[192 | cp >> 6] + BYTE_HEX[128 | cp & 63];
+      }
+      if (cp < 65536) {
+        return BYTE_HEX[224 | cp >> 12] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+      }
+      return BYTE_HEX[240 | cp >> 18] + BYTE_HEX[128 | cp >> 12 & 63] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+    }
+    function stringArrayToHexStripped(input2) {
+      let acc = "";
+      let code = 0;
+      let i = 0;
+      for (i = 0; i < input2.length; i++) {
+        code = input2[i].charCodeAt(0);
+        if (code === 48) {
+          continue;
+        }
+        if (!(code >= 48 && code <= 57 || code >= 65 && code <= 70 || code >= 97 && code <= 102)) {
+          return "";
+        }
+        acc += input2[i];
+        break;
+      }
+      for (i += 1; i < input2.length; i++) {
+        code = input2[i].charCodeAt(0);
+        if (!(code >= 48 && code <= 57 || code >= 65 && code <= 70 || code >= 97 && code <= 102)) {
+          return "";
+        }
+        acc += input2[i];
+      }
+      return acc;
+    }
+    var isHextet = RegExp.prototype.test.bind(/^[\dA-Fa-f]{1,4}$/);
+    var isIPvFuture = RegExp.prototype.test.bind(/^[vV][\dA-Fa-f]+\.[A-Za-z\d\-._~!$&'()*+,;=:]+$/);
+    var isZoneCharacter = RegExp.prototype.test.bind(/^[A-Za-z\d\-._~]$/);
+    var nonSimpleDomain = RegExp.prototype.test.bind(/[^!"$&'()*+,\-.;=_`a-z{}~]/u);
+    function isZoneIdentifier(zone) {
+      if (zone.length === 0) return false;
+      for (let i = 0; i < zone.length; i++) {
+        if (isZoneCharacter(zone[i])) continue;
+        if (zone[i] === "%" && i + 2 < zone.length && isHexPair(zone.slice(i + 1, i + 3))) {
+          i += 2;
+          continue;
+        }
+        return false;
+      }
+      return true;
+    }
+    function compressIPv6ZeroRun(hextets) {
+      let bestStart = -1;
+      let bestLength = 0;
+      let runStart = -1;
+      let runLength = 0;
+      for (let i = 0; i < hextets.length; i++) {
+        if (hextets[i] === "0") {
+          if (runStart === -1) runStart = i;
+          runLength++;
+          if (runLength > bestLength) {
+            bestLength = runLength;
+            bestStart = runStart;
+          }
+        } else {
+          runStart = -1;
+          runLength = 0;
+        }
+      }
+      if (bestLength < 2) return hextets.join(":");
+      const head = hextets.slice(0, bestStart).join(":");
+      const tail = hextets.slice(bestStart + bestLength).join(":");
+      return head + "::" + tail;
+    }
+    function normalizeIPv6Address(input2) {
+      const compression = input2.indexOf("::");
+      if (compression !== -1 && input2.indexOf("::", compression + 1) !== -1) return void 0;
+      const left = compression === -1 ? input2.split(":") : input2.slice(0, compression).split(":");
+      const right = compression === -1 ? [] : input2.slice(compression + 2).split(":");
+      if (compression !== -1) {
+        if (left.length === 1 && left[0] === "") left.length = 0;
+        if (right.length === 1 && right[0] === "") right.length = 0;
+      }
+      const parts = left.concat(right);
+      let hextetCount = 0;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        if (part === "") return void 0;
+        if (part.indexOf(".") !== -1) {
+          if (i !== parts.length - 1 || compression !== -1 && right.length === 0 || !isIPv4(part)) return void 0;
+          hextetCount += 2;
+          continue;
+        }
+        if (!isHextet(part)) return void 0;
+        parts[i] = parseInt(part, 16).toString(16);
+        hextetCount++;
+      }
+      if (compression === -1) {
+        if (hextetCount !== 8) return void 0;
+        return compressIPv6ZeroRun(parts);
+      }
+      if (hextetCount >= 8) return void 0;
+      const expanded = parts.slice(0, left.length);
+      for (let i = hextetCount; i < 8; i++) expanded.push("0");
+      for (let i = left.length; i < parts.length; i++) expanded.push(parts[i]);
+      return compressIPv6ZeroRun(expanded);
+    }
+    function normalizeIPv6(host) {
+      const bracketed = host[0] === "[" && host[host.length - 1] === "]";
+      const hasBracket = host[0] === "[" || host[host.length - 1] === "]";
+      if (hasBracket && !bracketed) return { host, isIPV6: false, error: true };
+      let input2 = bracketed ? host.slice(1, -1) : host;
+      if (bracketed && isIPvFuture(input2)) {
+        input2 = input2.toLowerCase();
+        return { host: `[${input2}]`, escapedHost: input2, isIPV6: false, isIPVFuture: true };
+      }
+      if (findToken(input2, ":") < 2) {
+        return { host, isIPV6: false, error: bracketed };
+      }
+      let zoneIdentifier = "";
+      const zoneSeparator = input2.indexOf("%");
+      if (zoneSeparator !== -1) {
+        const separatorLength = input2.slice(zoneSeparator, zoneSeparator + 3).toLowerCase() === "%25" ? 3 : 1;
+        zoneIdentifier = input2.slice(zoneSeparator + separatorLength);
+        if (!isZoneIdentifier(zoneIdentifier)) return { host, isIPV6: false, error: true };
+        input2 = input2.slice(0, zoneSeparator);
+      }
+      const address = normalizeIPv6Address(input2);
+      if (address === void 0) return { host, isIPV6: false, error: true };
+      return {
+        host: address + (zoneIdentifier ? "%" + zoneIdentifier : ""),
+        escapedHost: address + (zoneIdentifier ? "%25" + zoneIdentifier : ""),
+        isIPV6: true
+      };
+    }
+    function findToken(str2, token) {
+      let ind = 0;
+      for (let i = 0; i < str2.length; i++) {
+        if (str2[i] === token) ind++;
+      }
+      return ind;
+    }
+    function removeDotSegments(path) {
+      let input2 = path;
+      const output = [];
+      let nextSlash = -1;
+      let len = 0;
+      while (len = input2.length) {
+        if (len === 1) {
+          if (input2 === ".") {
+            break;
+          } else if (input2 === "/") {
+            output.push("/");
+            break;
+          } else {
+            output.push(input2);
+            break;
+          }
+        } else if (len === 2) {
+          if (input2[0] === ".") {
+            if (input2[1] === ".") {
+              break;
+            } else if (input2[1] === "/") {
+              input2 = input2.slice(2);
+              continue;
+            }
+          } else if (input2[0] === "/") {
+            if (input2[1] === "." || input2[1] === "/") {
+              output.push("/");
+              break;
+            }
+          }
+        } else if (len === 3) {
+          if (input2 === "/..") {
+            if (output.length !== 0) {
+              output.pop();
+            }
+            output.push("/");
+            break;
+          }
+        }
+        if (input2[0] === ".") {
+          if (input2[1] === ".") {
+            if (input2[2] === "/") {
+              input2 = input2.slice(3);
+              continue;
+            }
+          } else if (input2[1] === "/") {
+            input2 = input2.slice(2);
+            continue;
+          }
+        } else if (input2[0] === "/") {
+          if (input2[1] === ".") {
+            if (input2[2] === "/") {
+              input2 = input2.slice(2);
+              continue;
+            } else if (input2[2] === ".") {
+              if (input2[3] === "/") {
+                input2 = input2.slice(3);
+                if (output.length !== 0) {
+                  output.pop();
+                }
+                continue;
+              }
+            }
+          }
+        }
+        if ((nextSlash = input2.indexOf("/", 1)) === -1) {
+          output.push(input2);
+          break;
+        } else {
+          output.push(input2.slice(0, nextSlash));
+          input2 = input2.slice(nextSlash);
+        }
+      }
+      return output.join("");
+    }
+    var HOST_DELIMS = { "@": "%40", "/": "%2F", "?": "%3F", "#": "%23", ":": "%3A" };
+    var HOST_DELIM_RE = /[@/?#:]/g;
+    var HOST_DELIM_NO_COLON_RE = /[@/?#]/g;
+    function reescapeHostDelimiters(host, isIP) {
+      const re = isIP ? HOST_DELIM_NO_COLON_RE : HOST_DELIM_RE;
+      re.lastIndex = 0;
+      return host.replace(re, (ch) => HOST_DELIMS[ch]);
+    }
+    function normalizePercentEncoding(input2, decodeUnreserved = false) {
+      if (input2.indexOf("%") === -1) {
+        return input2;
+      }
+      let output = "";
+      for (let i = 0; i < input2.length; i++) {
+        if (input2[i] === "%" && i + 2 < input2.length) {
+          const hex = input2.slice(i + 1, i + 3);
+          if (isHexPair(hex)) {
+            const normalizedHex = hex.toUpperCase();
+            const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+            if (decodeUnreserved && isUnreserved(decoded)) {
+              output += decoded;
+            } else {
+              output += "%" + normalizedHex;
+            }
+            i += 2;
+            continue;
+          }
+        }
+        output += input2[i];
+      }
+      return output;
+    }
+    function normalizePathEncoding(input2) {
+      let output = "";
+      for (let i = 0; i < input2.length; i++) {
+        const ch = input2[i];
+        if (ch === "%" && i + 2 < input2.length) {
+          const hex = input2.slice(i + 1, i + 3);
+          if (isHexPair(hex)) {
+            const normalizedHex = hex.toUpperCase();
+            const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+            if (decoded !== "." && isUnreserved(decoded)) {
+              output += decoded;
+            } else {
+              output += "%" + normalizedHex;
+            }
+            i += 2;
+            continue;
+          }
+        }
+        if (isPathCharacter(ch)) {
+          output += ch;
+        } else {
+          const code = input2.charCodeAt(i);
+          if (code < 128) {
+            output += isEscapeSafe(code) ? ch : BYTE_HEX[code];
+          } else if (code < 55296 || code > 57343) {
+            output += percentEncodeNonAscii(code);
+          } else if (code <= 56319 && i + 1 < input2.length) {
+            const low = input2.charCodeAt(i + 1);
+            if (low >= 56320 && low <= 57343) {
+              output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+              i++;
+            } else {
+              output += percentEncodeNonAscii(65533);
+            }
+          } else {
+            output += percentEncodeNonAscii(65533);
+          }
+        }
+      }
+      return output;
+    }
+    function serializePathEncoding(input2, pathNoScheme = false) {
+      let output = "";
+      let firstSegment = pathNoScheme && input2[0] !== "/";
+      for (let i = 0; i < input2.length; i++) {
+        const ch = input2[i];
+        if (ch === "%" && i + 2 < input2.length) {
+          const hex = input2.slice(i + 1, i + 3);
+          if (isHexPair(hex)) {
+            output += "%" + hex.toUpperCase();
+            i += 2;
+            continue;
+          }
+        }
+        if (ch === "/") {
+          firstSegment = false;
+        }
+        if (isPathCharacter(ch) && (ch !== ":" || !firstSegment)) {
+          output += ch;
+        } else {
+          const code = input2.charCodeAt(i);
+          if (code < 128) {
+            output += BYTE_HEX[code];
+          } else if (code < 55296 || code > 57343) {
+            output += percentEncodeNonAscii(code);
+          } else if (code <= 56319 && i + 1 < input2.length) {
+            const low = input2.charCodeAt(i + 1);
+            if (low >= 56320 && low <= 57343) {
+              output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+              i++;
+            } else {
+              output += percentEncodeNonAscii(65533);
+            }
+          } else {
+            output += percentEncodeNonAscii(65533);
+          }
+        }
+      }
+      return output;
+    }
+    function encodeComponent(input2, isAllowed) {
+      let output = "";
+      for (let i = 0; i < input2.length; i++) {
+        const ch = input2[i];
+        if (ch === "%" && i + 2 < input2.length) {
+          const hex = input2.slice(i + 1, i + 3);
+          if (isHexPair(hex)) {
+            output += "%" + hex.toUpperCase();
+            i += 2;
+            continue;
+          }
+        }
+        if (isAllowed(ch)) {
+          output += ch;
+        } else {
+          const code = input2.charCodeAt(i);
+          if (code < 128) {
+            output += BYTE_HEX[code];
+          } else if (code < 55296 || code > 57343) {
+            output += percentEncodeNonAscii(code);
+          } else if (code <= 56319 && i + 1 < input2.length) {
+            const low = input2.charCodeAt(i + 1);
+            if (low >= 56320 && low <= 57343) {
+              output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+              i++;
+            } else {
+              output += percentEncodeNonAscii(65533);
+            }
+          } else {
+            output += percentEncodeNonAscii(65533);
+          }
+        }
+      }
+      return output;
+    }
+    function encodeUserinfo(input2) {
+      return encodeComponent(input2, isUserinfoCharacter);
+    }
+    function encodeQuery(input2) {
+      return encodeComponent(input2, isQueryFragmentCharacter);
+    }
+    function encodeFragment(input2) {
+      return encodeComponent(input2, isQueryFragmentCharacter);
+    }
+    function isEscapeSafe(cp) {
+      return cp >= 48 && cp <= 57 || cp >= 65 && cp <= 90 || cp >= 97 && cp <= 122 || cp === 42 || cp === 43 || cp === 45 || cp === 46 || cp === 47 || cp === 64 || cp === 95;
+    }
+    function normalizeQueryFragmentEncoding(input2) {
+      let output = "";
+      for (let i = 0; i < input2.length; i++) {
+        const ch = input2[i];
+        if (ch === "%" && i + 2 < input2.length) {
+          const hex = input2.slice(i + 1, i + 3);
+          if (isHexPair(hex)) {
+            const normalizedHex = hex.toUpperCase();
+            const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+            if (isUnreserved(decoded)) {
+              output += decoded;
+            } else {
+              output += "%" + normalizedHex;
+            }
+            i += 2;
+            continue;
+          }
+        }
+        if (isQueryFragmentCharacter(ch)) {
+          output += ch;
+        } else {
+          const code = input2.charCodeAt(i);
+          if (code < 128) {
+            output += isEscapeSafe(code) ? ch : BYTE_HEX[code];
+          } else if (code < 55296 || code > 57343) {
+            output += percentEncodeNonAscii(code);
+          } else if (code <= 56319 && i + 1 < input2.length) {
+            const low = input2.charCodeAt(i + 1);
+            if (low >= 56320 && low <= 57343) {
+              output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+              i++;
+            } else {
+              output += percentEncodeNonAscii(65533);
+            }
+          } else {
+            output += percentEncodeNonAscii(65533);
+          }
+        }
+      }
+      return output;
+    }
+    function escapePreservingEscapes(input2) {
+      let output = "";
+      for (let i = 0; i < input2.length; i++) {
+        if (input2[i] === "%" && i + 2 < input2.length) {
+          const hex = input2.slice(i + 1, i + 3);
+          if (isHexPair(hex)) {
+            output += "%" + hex.toUpperCase();
+            i += 2;
+            continue;
+          }
+        }
+        output += escape(input2[i]);
+      }
+      return output;
+    }
+    function recomposeAuthority(component) {
+      const uriTokens = [];
+      if (component.userinfo !== void 0) {
+        uriTokens.push(encodeUserinfo(component.userinfo));
+        uriTokens.push("@");
+      }
+      if (component.host !== void 0) {
+        let host = component.host;
+        if (!isIPv4(host)) {
+          let ipV6res = normalizeIPv6(host);
+          if (ipV6res.isIPV6 !== true && ipV6res.isIPVFuture !== true) {
+            host = normalizePercentEncoding(host, true);
+            ipV6res = normalizeIPv6(host);
+          }
+          if (ipV6res.isIPV6 === true || ipV6res.isIPVFuture === true) {
+            host = `[${ipV6res.escapedHost}]`;
+          } else {
+            host = reescapeHostDelimiters(host, false);
+          }
+        }
+        uriTokens.push(host);
+      }
+      if (typeof component.port === "number" || typeof component.port === "string") {
+        const port = String(component.port);
+        if (!isPort(port)) {
+          throw new TypeError("URI port is malformed.");
+        }
+        uriTokens.push(":");
+        uriTokens.push(port);
+      }
+      return uriTokens.length ? uriTokens.join("") : void 0;
+    }
+    module.exports = {
+      nonSimpleDomain,
+      recomposeAuthority,
+      reescapeHostDelimiters,
+      normalizePercentEncoding,
+      normalizePathEncoding,
+      serializePathEncoding,
+      normalizeQueryFragmentEncoding,
+      encodeUserinfo,
+      encodeQuery,
+      encodeFragment,
+      escapePreservingEscapes,
+      removeDotSegments,
+      isIPv4,
+      isUUID,
+      normalizeIPv6,
+      stringArrayToHexStripped
+    };
+  }
+});
+
+// node_modules/fast-uri/lib/schemes.js
+var require_schemes = __commonJS({
+  "node_modules/fast-uri/lib/schemes.js"(exports, module) {
+    "use strict";
+    var { isUUID } = require_utils();
+    var URN_REG = /^([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-./:;=@]|%[\da-f]{2})+)$/iu;
+    var supportedSchemeNames = (
+      /** @type {const} */
+      [
+        "http",
+        "https",
+        "ws",
+        "wss",
+        "urn",
+        "urn:uuid"
+      ]
+    );
+    function isValidSchemeName(name) {
+      return supportedSchemeNames.indexOf(
+        /** @type {*} */
+        name
+      ) !== -1;
+    }
+    function wsIsSecure(wsComponent) {
+      if (wsComponent.secure === true) {
+        return true;
+      } else if (wsComponent.secure === false) {
+        return false;
+      } else if (wsComponent.scheme) {
+        return wsComponent.scheme.length === 3 && (wsComponent.scheme[0] === "w" || wsComponent.scheme[0] === "W") && (wsComponent.scheme[1] === "s" || wsComponent.scheme[1] === "S") && (wsComponent.scheme[2] === "s" || wsComponent.scheme[2] === "S");
+      } else {
+        return false;
+      }
+    }
+    function httpParse(component) {
+      if (!component.host) {
+        component.error = component.error || "HTTP URIs must have a host.";
+      }
+      return component;
+    }
+    function httpSerialize(component) {
+      const secure = String(component.scheme).toLowerCase() === "https";
+      if (component.port === (secure ? 443 : 80) || component.port === "") {
+        component.port = void 0;
+      }
+      if (!component.path) {
+        component.path = "/";
+      }
+      return component;
+    }
+    function wsParse(wsComponent) {
+      wsComponent.secure = wsIsSecure(wsComponent);
+      wsComponent.resourceName = (wsComponent.path || "/") + (wsComponent.query ? "?" + wsComponent.query : "");
+      wsComponent.path = void 0;
+      wsComponent.query = void 0;
+      return wsComponent;
+    }
+    function wsSerialize(wsComponent) {
+      if (wsComponent.port === (wsIsSecure(wsComponent) ? 443 : 80) || wsComponent.port === "") {
+        wsComponent.port = void 0;
+      }
+      if (typeof wsComponent.secure === "boolean") {
+        wsComponent.scheme = wsComponent.secure ? "wss" : "ws";
+        wsComponent.secure = void 0;
+      }
+      if (wsComponent.resourceName) {
+        const queryIndex = wsComponent.resourceName.indexOf("?");
+        const path = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path && path !== "/" ? path : void 0;
+        wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
+        wsComponent.resourceName = void 0;
+      }
+      wsComponent.fragment = void 0;
+      return wsComponent;
+    }
+    function urnParse(urnComponent, options) {
+      if (!urnComponent.path) {
+        urnComponent.error = "URN can not be parsed";
+        return urnComponent;
+      }
+      const matches = urnComponent.path.match(URN_REG);
+      if (matches && matches[0] === urnComponent.path) {
+        const scheme = options.scheme || urnComponent.scheme || "urn";
+        urnComponent.nid = matches[1].toLowerCase();
+        urnComponent.nss = matches[2];
+        const urnScheme = `${scheme}:${options.nid || urnComponent.nid}`;
+        const schemeHandler = getSchemeHandler(urnScheme);
+        urnComponent.path = void 0;
+        if (schemeHandler) {
+          urnComponent = schemeHandler.parse(urnComponent, options);
+        }
+      } else {
+        urnComponent.error = urnComponent.error || "URN can not be parsed.";
+      }
+      return urnComponent;
+    }
+    function urnSerialize(urnComponent, options) {
+      if (urnComponent.nid === void 0) {
+        throw new Error("URN without nid cannot be serialized");
+      }
+      const scheme = options.scheme || urnComponent.scheme || "urn";
+      const nid = urnComponent.nid.toLowerCase();
+      const urnScheme = `${scheme}:${options.nid || nid}`;
+      const schemeHandler = getSchemeHandler(urnScheme);
+      if (schemeHandler) {
+        urnComponent = schemeHandler.serialize(urnComponent, options);
+      }
+      const uriComponent = urnComponent;
+      const nss = urnComponent.nss;
+      uriComponent.path = `${nid || options.nid}:${nss}`;
+      options.skipEscape = true;
+      return uriComponent;
+    }
+    function urnuuidParse(urnComponent, options) {
+      const uuidComponent = urnComponent;
+      uuidComponent.uuid = uuidComponent.nss;
+      uuidComponent.nss = void 0;
+      if (!options.tolerant && (!uuidComponent.uuid || !isUUID(uuidComponent.uuid))) {
+        uuidComponent.error = uuidComponent.error || "UUID is not valid.";
+      }
+      return uuidComponent;
+    }
+    function urnuuidSerialize(uuidComponent) {
+      const urnComponent = uuidComponent;
+      urnComponent.nss = (uuidComponent.uuid || "").toLowerCase();
+      return urnComponent;
+    }
+    var http = (
+      /** @type {SchemeHandler} */
+      {
+        scheme: "http",
+        domainHost: true,
+        parse: httpParse,
+        serialize: httpSerialize
+      }
+    );
+    var https = (
+      /** @type {SchemeHandler} */
+      {
+        scheme: "https",
+        domainHost: http.domainHost,
+        parse: httpParse,
+        serialize: httpSerialize
+      }
+    );
+    var ws = (
+      /** @type {SchemeHandler} */
+      {
+        scheme: "ws",
+        domainHost: true,
+        parse: wsParse,
+        serialize: wsSerialize
+      }
+    );
+    var wss = (
+      /** @type {SchemeHandler} */
+      {
+        scheme: "wss",
+        domainHost: ws.domainHost,
+        parse: ws.parse,
+        serialize: ws.serialize
+      }
+    );
+    var urn = (
+      /** @type {SchemeHandler} */
+      {
+        scheme: "urn",
+        parse: urnParse,
+        serialize: urnSerialize,
+        skipNormalize: true
+      }
+    );
+    var urnuuid = (
+      /** @type {SchemeHandler} */
+      {
+        scheme: "urn:uuid",
+        parse: urnuuidParse,
+        serialize: urnuuidSerialize,
+        skipNormalize: true
+      }
+    );
+    var SCHEMES = (
+      /** @type {Record<SchemeName, SchemeHandler>} */
+      {
+        http,
+        https,
+        ws,
+        wss,
+        urn,
+        "urn:uuid": urnuuid
+      }
+    );
+    Object.setPrototypeOf(SCHEMES, null);
+    function getSchemeHandler(scheme) {
+      return scheme && (SCHEMES[
+        /** @type {SchemeName} */
+        scheme
+      ] || SCHEMES[
+        /** @type {SchemeName} */
+        scheme.toLowerCase()
+      ]) || void 0;
+    }
+    module.exports = {
+      wsIsSecure,
+      SCHEMES,
+      isValidSchemeName,
+      getSchemeHandler
+    };
+  }
+});
+
+// node_modules/fast-uri/index.js
+var require_fast_uri = __commonJS({
+  "node_modules/fast-uri/index.js"(exports, module) {
+    "use strict";
+    var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
+    var { SCHEMES, getSchemeHandler } = require_schemes();
+    var VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u;
+    var MALFORMED_SCHEME_ERROR = "URI scheme is malformed.";
+    function decodeValidScheme(scheme) {
+      const decodedScheme = unescape(String(scheme));
+      if (!VALID_SCHEME.test(decodedScheme)) {
+        throw new TypeError(MALFORMED_SCHEME_ERROR);
+      }
+      return decodedScheme;
+    }
+    function normalize(uri, options) {
+      if (typeof uri === "string") {
+        uri = /** @type {T} */
+        normalizeString(uri, options);
+      } else if (typeof uri === "object") {
+        uri = /** @type {T} */
+        parse4(serialize(uri, options), options);
+      }
+      return uri;
+    }
+    function resolve3(baseURI, relativeURI, options) {
+      const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
+      const {
+        parsed: baseParsed,
+        malformedAuthorityOrPort: baseMalformed,
+        malformedPercentEncoding: baseMalformedPercentEncoding,
+        malformedSchemeSpecific: baseMalformedSchemeSpecific,
+        malformedHost: baseMalformedHost,
+        malformedScheme: baseMalformedScheme
+      } = parseWithStatus(baseURI, schemelessOptions);
+      const {
+        parsed: relativeParsed,
+        malformedAuthorityOrPort: relativeMalformed,
+        malformedPercentEncoding: relativeMalformedPercentEncoding,
+        malformedSchemeSpecific: relativeMalformedSchemeSpecific,
+        malformedHost: relativeMalformedHost,
+        malformedScheme: relativeMalformedScheme
+      } = parseWithStatus(relativeURI, schemelessOptions);
+      if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding || baseMalformedSchemeSpecific || relativeMalformedSchemeSpecific || baseMalformedHost || relativeMalformedHost || baseMalformedScheme || relativeMalformedScheme) {
+        throw new Error(baseParsed.error || relativeParsed.error || "URI is malformed.");
+      }
+      const resolved = resolveComponent(baseParsed, relativeParsed, schemelessOptions, true);
+      const resolvedSchemeHandler = getSchemeHandler(options && options.scheme || resolved.scheme);
+      const resolvedHost = resolved.host;
+      const resolvedHostIsIP = resolvedHost !== void 0 && resolvedHost !== "" && (isIPv4(resolvedHost) || normalizeIPv6(resolvedHost).isIPV6);
+      canonicalizeHost(resolved, options || {}, resolvedSchemeHandler, resolvedHostIsIP);
+      const encodedASCIIHost = resolvedHost && resolvedHost.indexOf("%") !== -1 && !new RegExp("\\P{ASCII}", "u").test(resolvedHost);
+      if (resolved.error && !encodedASCIIHost) {
+        throw new Error(resolved.error);
+      }
+      schemelessOptions.skipEscape = true;
+      return serialize(resolved, schemelessOptions);
+    }
+    function resolveComponent(base, relative, options, skipNormalization) {
+      const target = {};
+      if (!skipNormalization) {
+        base = parse4(serialize(base, options), options);
+        relative = parse4(serialize(relative, options), options);
+      }
+      options = options || {};
+      if (!options.tolerant && relative.scheme) {
+        target.scheme = relative.scheme;
+        target.userinfo = relative.userinfo;
+        target.host = relative.host;
+        target.port = relative.port;
+        target.path = removeDotSegments(relative.path || "");
+        target.query = relative.query;
+      } else {
+        if (relative.userinfo !== void 0 || relative.host !== void 0 || relative.port !== void 0) {
+          target.userinfo = relative.userinfo;
+          target.host = relative.host;
+          target.port = relative.port;
+          target.path = removeDotSegments(relative.path || "");
+          target.query = relative.query;
+        } else {
+          if (!relative.path) {
+            target.path = base.path;
+            if (relative.query !== void 0) {
+              target.query = relative.query;
+            } else {
+              target.query = base.query;
+            }
+          } else {
+            if (relative.path[0] === "/") {
+              target.path = removeDotSegments(relative.path);
+            } else {
+              if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
+                target.path = "/" + relative.path;
+              } else if (!base.path) {
+                target.path = relative.path;
+              } else {
+                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative.path;
+              }
+              target.path = removeDotSegments(target.path);
+            }
+            target.query = relative.query;
+          }
+          target.userinfo = base.userinfo;
+          target.host = base.host;
+          target.port = base.port;
+        }
+        target.scheme = base.scheme;
+      }
+      target.fragment = relative.fragment;
+      return target;
+    }
+    function equal(uriA, uriB, options) {
+      const normalizedA = normalizeComparableURI(uriA, options);
+      const normalizedB = normalizeComparableURI(uriB, options);
+      return normalizedA !== void 0 && normalizedB !== void 0 && normalizedA === normalizedB;
+    }
+    function serialize(cmpts, opts) {
+      const component = {
+        host: cmpts.host,
+        scheme: cmpts.scheme,
+        userinfo: cmpts.userinfo,
+        port: cmpts.port,
+        path: cmpts.path,
+        query: cmpts.query,
+        nid: cmpts.nid,
+        nss: cmpts.nss,
+        uuid: cmpts.uuid,
+        fragment: cmpts.fragment,
+        reference: cmpts.reference,
+        resourceName: cmpts.resourceName,
+        secure: cmpts.secure,
+        error: ""
+      };
+      const options = Object.assign({}, opts);
+      const uriTokens = [];
+      if (component.scheme) {
+        component.scheme = decodeValidScheme(component.scheme);
+      }
+      const schemeHandler = getSchemeHandler(options.scheme || component.scheme);
+      if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(component, options);
+      const hasAuthority = component.userinfo !== void 0 || component.host !== void 0 || component.port !== void 0;
+      const pathNoScheme = !options.skipEscape && component.scheme === void 0 && !hasAuthority;
+      if (component.path !== void 0) {
+        if (!options.skipEscape) {
+          component.path = serializePathEncoding(component.path, pathNoScheme);
+        } else {
+          component.path = normalizePercentEncoding(component.path);
+        }
+      }
+      if (options.reference !== "suffix" && component.scheme) {
+        component.scheme = decodeValidScheme(component.scheme);
+        uriTokens.push(component.scheme, ":");
+      }
+      const authority = recomposeAuthority(component);
+      if (authority !== void 0) {
+        if (options.reference !== "suffix") {
+          uriTokens.push("//");
+        }
+        uriTokens.push(authority);
+        if (component.path && component.path[0] !== "/") {
+          uriTokens.push("/");
+        }
+      }
+      if (component.path !== void 0) {
+        let s = component.path;
+        if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) {
+          s = removeDotSegments(s);
+        }
+        if (pathNoScheme) {
+          s = serializePathEncoding(s, true);
+        }
+        if (authority === void 0 && s[0] === "/" && s[1] === "/") {
+          s = "/%2F" + s.slice(2);
+        }
+        uriTokens.push(s);
+      }
+      if (component.query !== void 0) {
+        uriTokens.push("?", encodeQuery(component.query));
+      }
+      if (component.fragment !== void 0) {
+        uriTokens.push("#", encodeFragment(component.fragment));
+      }
+      return uriTokens.join("");
+    }
+    var URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u;
+    var AUTHORITY_PREFIX = /^(?:[^#/:?]+:)?\/\/([^/?#]*)/;
+    var AUTHORITY_INTRODUCER_REGION = /^(?:[^#/:?]+:)?([/\\\t\n\r]*)/;
+    function getParseError(parsed, matches) {
+      if (matches[2] !== void 0 && parsed.path && parsed.path[0] !== "/") {
+        return 'URI path must start with "/" when authority is present.';
+      }
+      if (typeof parsed.port === "number" && (parsed.port < 0 || parsed.port > 65535)) {
+        return "URI port is malformed.";
+      }
+      return void 0;
+    }
+    function hasMalformedPercentEncoding(component) {
+      if (component === void 0) return false;
+      let percent = component.indexOf("%");
+      while (percent !== -1) {
+        if (percent + 2 >= component.length || !/^[\da-f]{2}$/iu.test(component.slice(percent + 1, percent + 3))) {
+          return true;
+        }
+        percent = component.indexOf("%", percent + 3);
+      }
+      return false;
+    }
+    function isIPLiteral(host) {
+      return host[0] === "[" && host[host.length - 1] === "]";
+    }
+    function hasMalformedComponentPercentEncoding(matches) {
+      const host = matches[4];
+      return hasMalformedPercentEncoding(matches[3]) || host !== void 0 && !isIPLiteral(host) && hasMalformedPercentEncoding(host) || hasMalformedPercentEncoding(matches[6]) || hasMalformedPercentEncoding(matches[7]) || hasMalformedPercentEncoding(matches[8]);
+    }
+    function canonicalizeHost(parsed, options, schemeHandler, isIP) {
+      if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport) && parsed.host && !isIPLiteral(parsed.host) && (options.domainHost || schemeHandler && schemeHandler.domainHost) && isIP === false && nonSimpleDomain(parsed.host)) {
+        try {
+          parsed.host = new URL("http://" + parsed.host).hostname;
+        } catch (e) {
+          parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e;
+          return true;
+        }
+      }
+      return false;
+    }
+    function parseWithStatus(uri, opts) {
+      const options = Object.assign({}, opts);
+      const parsed = {
+        scheme: void 0,
+        userinfo: void 0,
+        host: "",
+        port: void 0,
+        path: "",
+        query: void 0,
+        fragment: void 0
+      };
+      let malformedAuthorityOrPort = false;
+      let malformedPercentEncoding = false;
+      let malformedSchemeSpecific = false;
+      let malformedHost = false;
+      let malformedIPLiteral = false;
+      let malformedScheme = false;
+      let isIP = false;
+      if (options.reference === "suffix") {
+        if (options.scheme) {
+          uri = options.scheme + ":" + uri;
+        } else {
+          uri = "//" + uri;
+        }
+      }
+      const authorityMatch = uri.match(AUTHORITY_PREFIX);
+      if (authorityMatch !== null && authorityMatch[1].indexOf("\\") !== -1) {
+        parsed.error = "URI authority must not contain a literal backslash.";
+        malformedAuthorityOrPort = true;
+      }
+      const introducerMatch = uri.match(AUTHORITY_INTRODUCER_REGION);
+      if (introducerMatch !== null) {
+        const region = introducerMatch[1];
+        const normalizedRegion = region.replace(/[\t\n\r]/g, "");
+        if (normalizedRegion.length >= 2) {
+          if (normalizedRegion.slice(0, 2) !== "//") {
+            parsed.error = parsed.error || "URI authority must not contain a literal backslash.";
+            malformedAuthorityOrPort = true;
+          } else if (region.length !== normalizedRegion.length) {
+            parsed.error = parsed.error || "URI authority introducer must not contain whitespace.";
+            malformedAuthorityOrPort = true;
+          }
+        }
+      }
+      const matches = uri.match(URI_PARSE);
+      if (matches) {
+        parsed.scheme = matches[1];
+        parsed.userinfo = matches[3];
+        parsed.host = matches[4];
+        parsed.port = parseInt(matches[5], 10);
+        parsed.path = matches[6] || "";
+        parsed.query = matches[7];
+        parsed.fragment = matches[8];
+        if (parsed.scheme !== void 0) {
+          const decodedScheme = unescape(parsed.scheme);
+          if (VALID_SCHEME.test(decodedScheme)) {
+            parsed.scheme = decodedScheme.toLowerCase();
+          } else {
+            parsed.error = parsed.error || MALFORMED_SCHEME_ERROR;
+            malformedScheme = true;
+          }
+        }
+        malformedPercentEncoding = hasMalformedComponentPercentEncoding(matches);
+        if (malformedPercentEncoding) {
+          parsed.error = parsed.error || "URI contains malformed percent-encoding.";
+        }
+        if (isNaN(parsed.port)) {
+          parsed.port = matches[5];
+        }
+        const parseError = getParseError(parsed, matches);
+        if (parseError !== void 0) {
+          parsed.error = parsed.error || parseError;
+          malformedAuthorityOrPort = true;
+        }
+        if (parsed.host) {
+          const ipv4result = isIPv4(parsed.host);
+          if (ipv4result === false) {
+            const bracketedIPLiteral = isIPLiteral(parsed.host);
+            const hasIPLiteralBracket = parsed.host.indexOf("[") !== -1 || parsed.host.indexOf("]") !== -1;
+            const ipv6result = normalizeIPv6(parsed.host);
+            isIP = ipv6result.isIPV6 || ipv6result.isIPVFuture === true;
+            malformedIPLiteral = hasIPLiteralBracket && (!bracketedIPLiteral || ipv6result.error === true);
+            parsed.host = isIP ? ipv6result.host : ipv6result.host.toLowerCase();
+            if (malformedIPLiteral) {
+              parsed.error = parsed.error || "URI host is malformed.";
+              malformedAuthorityOrPort = true;
+            }
+          } else {
+            isIP = true;
+          }
+        }
+        if (parsed.scheme === void 0 && parsed.userinfo === void 0 && parsed.host === void 0 && parsed.port === void 0 && parsed.query === void 0 && !parsed.path) {
+          parsed.reference = "same-document";
+        } else if (parsed.scheme === void 0) {
+          parsed.reference = "relative";
+        } else if (parsed.fragment === void 0) {
+          parsed.reference = "absolute";
+        } else {
+          parsed.reference = "uri";
+        }
+        if (options.reference && options.reference !== "suffix" && options.reference !== parsed.reference) {
+          parsed.error = parsed.error || "URI is not a " + options.reference + " reference.";
+        }
+        const schemeHandler = getSchemeHandler(options.scheme || parsed.scheme);
+        if (!malformedIPLiteral) {
+          malformedHost = canonicalizeHost(parsed, options, schemeHandler, isIP);
+        }
+        if (uri.indexOf("%") !== -1 && parsed.host !== void 0 && !malformedIPLiteral) {
+          let host = isIP ? parsed.host : normalizePercentEncoding(parsed.host, true);
+          if (!isIP) {
+            host = normalizePercentEncoding(host.toLowerCase());
+          }
+          parsed.host = reescapeHostDelimiters(host, isIP);
+        }
+        if (!schemeHandler || schemeHandler && !schemeHandler.skipNormalize) {
+          if (parsed.path) {
+            parsed.path = normalizePathEncoding(parsed.path);
+          }
+          if (parsed.query) {
+            parsed.query = normalizeQueryFragmentEncoding(parsed.query);
+          }
+          if (parsed.fragment) {
+            parsed.fragment = normalizeQueryFragmentEncoding(parsed.fragment);
+          }
+        }
+        if (schemeHandler && schemeHandler.parse) {
+          schemeHandler.parse(parsed, options);
+          if (schemeHandler === SCHEMES.urn && parsed.nid === void 0) {
+            malformedSchemeSpecific = true;
+          }
+        }
+      } else {
+        parsed.error = parsed.error || "URI can not be parsed.";
+      }
+      return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme };
+    }
+    function parse4(uri, opts) {
+      return parseWithStatus(uri, opts).parsed;
+    }
+    function normalizeString(uri, opts) {
+      return normalizeStringWithStatus(uri, opts).normalized;
+    }
+    function normalizeStringWithStatus(uri, opts) {
+      const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = parseWithStatus(uri, opts);
+      return {
+        normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? uri : serialize(parsed, opts),
+        malformedAuthorityOrPort,
+        malformedPercentEncoding,
+        malformedSchemeSpecific,
+        malformedHost,
+        malformedScheme
+      };
+    }
+    function normalizeComparableURI(uri, opts) {
+      if (typeof uri !== "string" && typeof uri !== "object") {
+        return void 0;
+      }
+      let value;
+      try {
+        value = typeof uri === "string" ? uri : serialize(uri, opts);
+      } catch {
+        return void 0;
+      }
+      const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, opts);
+      return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? void 0 : normalized;
+    }
+    var fastUri = {
+      SCHEMES,
+      normalize,
+      resolve: resolve3,
+      resolveComponent,
+      equal,
+      serialize,
+      parse: parse4
+    };
+    module.exports = fastUri;
+    module.exports.default = fastUri;
+    module.exports.fastUri = fastUri;
+  }
+});
+
+// node_modules/ajv/dist/runtime/uri.js
+var require_uri = __commonJS({
+  "node_modules/ajv/dist/runtime/uri.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var uri = require_fast_uri();
+    uri.code = 'require("ajv/dist/runtime/uri").default';
+    exports.default = uri;
+  }
+});
+
+// node_modules/ajv/dist/core.js
+var require_core = __commonJS({
+  "node_modules/ajv/dist/core.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
+    var validate_1 = require_validate();
+    Object.defineProperty(exports, "KeywordCxt", { enumerable: true, get: function() {
+      return validate_1.KeywordCxt;
+    } });
+    var codegen_1 = require_codegen();
+    Object.defineProperty(exports, "_", { enumerable: true, get: function() {
+      return codegen_1._;
+    } });
+    Object.defineProperty(exports, "str", { enumerable: true, get: function() {
+      return codegen_1.str;
+    } });
+    Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
+      return codegen_1.stringify;
+    } });
+    Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
+      return codegen_1.nil;
+    } });
+    Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
+      return codegen_1.Name;
+    } });
+    Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function() {
+      return codegen_1.CodeGen;
+    } });
+    var validation_error_1 = require_validation_error();
+    var ref_error_1 = require_ref_error();
+    var rules_1 = require_rules();
+    var compile_1 = require_compile();
+    var codegen_2 = require_codegen();
+    var resolve_1 = require_resolve();
+    var dataType_1 = require_dataType();
+    var util_1 = require_util2();
+    var $dataRefSchema = require_data();
+    var uri_1 = require_uri();
+    var defaultRegExp = (str2, flags) => new RegExp(str2, flags);
+    defaultRegExp.code = "new RegExp";
+    var META_IGNORE_OPTIONS = ["removeAdditional", "useDefaults", "coerceTypes"];
+    var EXT_SCOPE_NAMES = /* @__PURE__ */ new Set([
+      "validate",
+      "serialize",
+      "parse",
+      "wrapper",
+      "root",
+      "schema",
+      "keyword",
+      "pattern",
+      "formats",
+      "validate$data",
+      "func",
+      "obj",
+      "Error"
+    ]);
+    var removedOptions = {
+      errorDataPath: "",
+      format: "`validateFormats: false` can be used instead.",
+      nullable: '"nullable" keyword is supported by default.',
+      jsonPointers: "Deprecated jsPropertySyntax can be used instead.",
+      extendRefs: "Deprecated ignoreKeywordsWithRef can be used instead.",
+      missingRefs: "Pass empty schema with $id that should be ignored to ajv.addSchema.",
+      processCode: "Use option `code: {process: (code, schemaEnv: object) => string}`",
+      sourceCode: "Use option `code: {source: true}`",
+      strictDefaults: "It is default now, see option `strict`.",
+      strictKeywords: "It is default now, see option `strict`.",
+      uniqueItems: '"uniqueItems" keyword is always validated.',
+      unknownFormats: "Disable strict mode or pass `true` to `ajv.addFormat` (or `formats` option).",
+      cache: "Map is used as cache, schema object as key.",
+      serialize: "Map is used as cache, schema object as key.",
+      ajvErrors: "It is default now."
+    };
+    var deprecatedOptions = {
+      ignoreKeywordsWithRef: "",
+      jsPropertySyntax: "",
+      unicode: '"minLength"/"maxLength" account for unicode characters by default.'
+    };
+    var MAX_EXPRESSION = 200;
+    function requiredOptions(o) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
+      const s = o.strict;
+      const _optz = (_a = o.code) === null || _a === void 0 ? void 0 : _a.optimize;
+      const optimize = _optz === true || _optz === void 0 ? 1 : _optz || 0;
+      const regExp = (_c = (_b = o.code) === null || _b === void 0 ? void 0 : _b.regExp) !== null && _c !== void 0 ? _c : defaultRegExp;
+      const uriResolver = (_d = o.uriResolver) !== null && _d !== void 0 ? _d : uri_1.default;
+      return {
+        strictSchema: (_f = (_e = o.strictSchema) !== null && _e !== void 0 ? _e : s) !== null && _f !== void 0 ? _f : true,
+        strictNumbers: (_h = (_g = o.strictNumbers) !== null && _g !== void 0 ? _g : s) !== null && _h !== void 0 ? _h : true,
+        strictTypes: (_k = (_j = o.strictTypes) !== null && _j !== void 0 ? _j : s) !== null && _k !== void 0 ? _k : "log",
+        strictTuples: (_m = (_l = o.strictTuples) !== null && _l !== void 0 ? _l : s) !== null && _m !== void 0 ? _m : "log",
+        strictRequired: (_p = (_o = o.strictRequired) !== null && _o !== void 0 ? _o : s) !== null && _p !== void 0 ? _p : false,
+        code: o.code ? { ...o.code, optimize, regExp } : { optimize, regExp },
+        loopRequired: (_q = o.loopRequired) !== null && _q !== void 0 ? _q : MAX_EXPRESSION,
+        loopEnum: (_r = o.loopEnum) !== null && _r !== void 0 ? _r : MAX_EXPRESSION,
+        meta: (_s = o.meta) !== null && _s !== void 0 ? _s : true,
+        messages: (_t = o.messages) !== null && _t !== void 0 ? _t : true,
+        inlineRefs: (_u = o.inlineRefs) !== null && _u !== void 0 ? _u : true,
+        schemaId: (_v = o.schemaId) !== null && _v !== void 0 ? _v : "$id",
+        addUsedSchema: (_w = o.addUsedSchema) !== null && _w !== void 0 ? _w : true,
+        validateSchema: (_x = o.validateSchema) !== null && _x !== void 0 ? _x : true,
+        validateFormats: (_y = o.validateFormats) !== null && _y !== void 0 ? _y : true,
+        unicodeRegExp: (_z = o.unicodeRegExp) !== null && _z !== void 0 ? _z : true,
+        int32range: (_0 = o.int32range) !== null && _0 !== void 0 ? _0 : true,
+        uriResolver
+      };
+    }
+    var Ajv = class {
+      constructor(opts = {}) {
+        this.schemas = {};
+        this.refs = {};
+        this.formats = /* @__PURE__ */ Object.create(null);
+        this._compilations = /* @__PURE__ */ new Set();
+        this._loading = {};
+        this._cache = /* @__PURE__ */ new Map();
+        opts = this.opts = { ...opts, ...requiredOptions(opts) };
+        const { es5, lines } = this.opts.code;
+        this.scope = new codegen_2.ValueScope({ scope: {}, prefixes: EXT_SCOPE_NAMES, es5, lines });
+        this.logger = getLogger(opts.logger);
+        const formatOpt = opts.validateFormats;
+        opts.validateFormats = false;
+        this.RULES = (0, rules_1.getRules)();
+        checkOptions.call(this, removedOptions, opts, "NOT SUPPORTED");
+        checkOptions.call(this, deprecatedOptions, opts, "DEPRECATED", "warn");
+        this._metaOpts = getMetaSchemaOptions.call(this);
+        if (opts.formats)
+          addInitialFormats.call(this);
+        this._addVocabularies();
+        this._addDefaultMetaSchema();
+        if (opts.keywords)
+          addInitialKeywords.call(this, opts.keywords);
+        if (typeof opts.meta == "object")
+          this.addMetaSchema(opts.meta);
+        addInitialSchemas.call(this);
+        opts.validateFormats = formatOpt;
+      }
+      _addVocabularies() {
+        this.addKeyword("$async");
+      }
+      _addDefaultMetaSchema() {
+        const { $data, meta, schemaId } = this.opts;
+        let _dataRefSchema = $dataRefSchema;
+        if (schemaId === "id") {
+          _dataRefSchema = { ...$dataRefSchema };
+          _dataRefSchema.id = _dataRefSchema.$id;
+          delete _dataRefSchema.$id;
+        }
+        if (meta && $data)
+          this.addMetaSchema(_dataRefSchema, _dataRefSchema[schemaId], false);
+      }
+      defaultMeta() {
+        const { meta, schemaId } = this.opts;
+        return this.opts.defaultMeta = typeof meta == "object" ? meta[schemaId] || meta : void 0;
+      }
+      validate(schemaKeyRef, data) {
+        let v;
+        if (typeof schemaKeyRef == "string") {
+          v = this.getSchema(schemaKeyRef);
+          if (!v)
+            throw new Error(`no schema with key or ref "${schemaKeyRef}"`);
+        } else {
+          v = this.compile(schemaKeyRef);
+        }
+        const valid = v(data);
+        if (!("$async" in v))
+          this.errors = v.errors;
+        return valid;
+      }
+      compile(schema2, _meta) {
+        const sch = this._addSchema(schema2, _meta);
+        return sch.validate || this._compileSchemaEnv(sch);
+      }
+      compileAsync(schema2, meta) {
+        if (typeof this.opts.loadSchema != "function") {
+          throw new Error("options.loadSchema should be a function");
+        }
+        const { loadSchema } = this.opts;
+        return runCompileAsync.call(this, schema2, meta);
+        async function runCompileAsync(_schema, _meta) {
+          await loadMetaSchema.call(this, _schema.$schema);
+          const sch = this._addSchema(_schema, _meta);
+          return sch.validate || _compileAsync.call(this, sch);
+        }
+        async function loadMetaSchema($ref) {
+          if ($ref && !this.getSchema($ref)) {
+            await runCompileAsync.call(this, { $ref }, true);
+          }
+        }
+        async function _compileAsync(sch) {
+          try {
+            return this._compileSchemaEnv(sch);
+          } catch (e) {
+            if (!(e instanceof ref_error_1.default))
+              throw e;
+            checkLoaded.call(this, e);
+            await loadMissingSchema.call(this, e.missingSchema);
+            return _compileAsync.call(this, sch);
+          }
+        }
+        function checkLoaded({ missingSchema: ref, missingRef }) {
+          if (this.refs[ref]) {
+            throw new Error(`AnySchema ${ref} is loaded but ${missingRef} cannot be resolved`);
+          }
+        }
+        async function loadMissingSchema(ref) {
+          const _schema = await _loadSchema.call(this, ref);
+          if (!this.refs[ref])
+            await loadMetaSchema.call(this, _schema.$schema);
+          if (!this.refs[ref])
+            this.addSchema(_schema, ref, meta);
+        }
+        async function _loadSchema(ref) {
+          const p = this._loading[ref];
+          if (p)
+            return p;
+          try {
+            return await (this._loading[ref] = loadSchema(ref));
+          } finally {
+            delete this._loading[ref];
+          }
+        }
+      }
+      // Adds schema to the instance
+      addSchema(schema2, key, _meta, _validateSchema = this.opts.validateSchema) {
+        if (Array.isArray(schema2)) {
+          for (const sch of schema2)
+            this.addSchema(sch, void 0, _meta, _validateSchema);
+          return this;
+        }
+        let id;
+        if (typeof schema2 === "object") {
+          const { schemaId } = this.opts;
+          id = schema2[schemaId];
+          if (id !== void 0 && typeof id != "string") {
+            throw new Error(`schema ${schemaId} must be string`);
+          }
+        }
+        key = (0, resolve_1.normalizeId)(key || id);
+        this._checkUnique(key);
+        this.schemas[key] = this._addSchema(schema2, _meta, key, _validateSchema, true);
+        return this;
+      }
+      // Add schema that will be used to validate other schemas
+      // options in META_IGNORE_OPTIONS are alway set to false
+      addMetaSchema(schema2, key, _validateSchema = this.opts.validateSchema) {
+        this.addSchema(schema2, key, true, _validateSchema);
+        return this;
+      }
+      //  Validate schema against its meta-schema
+      validateSchema(schema2, throwOrLogError) {
+        if (typeof schema2 == "boolean")
+          return true;
+        let $schema;
+        $schema = schema2.$schema;
+        if ($schema !== void 0 && typeof $schema != "string") {
+          throw new Error("$schema must be a string");
+        }
+        $schema = $schema || this.opts.defaultMeta || this.defaultMeta();
+        if (!$schema) {
+          this.logger.warn("meta-schema not available");
+          this.errors = null;
+          return true;
+        }
+        const valid = this.validate($schema, schema2);
+        if (!valid && throwOrLogError) {
+          const message = "schema is invalid: " + this.errorsText();
+          if (this.opts.validateSchema === "log")
+            this.logger.error(message);
+          else
+            throw new Error(message);
+        }
+        return valid;
+      }
+      // Get compiled schema by `key` or `ref`.
+      // (`key` that was passed to `addSchema` or full schema reference - `schema.$id` or resolved id)
+      getSchema(keyRef) {
+        let sch;
+        while (typeof (sch = getSchEnv.call(this, keyRef)) == "string")
+          keyRef = sch;
+        if (sch === void 0) {
+          const { schemaId } = this.opts;
+          const root = new compile_1.SchemaEnv({ schema: {}, schemaId });
+          sch = compile_1.resolveSchema.call(this, root, keyRef);
+          if (!sch)
+            return;
+          this.refs[keyRef] = sch;
+        }
+        return sch.validate || this._compileSchemaEnv(sch);
+      }
+      // Remove cached schema(s).
+      // If no parameter is passed all schemas but meta-schemas are removed.
+      // If RegExp is passed all schemas with key/id matching pattern but meta-schemas are removed.
+      // Even if schema is referenced by other schemas it still can be removed as other schemas have local references.
+      removeSchema(schemaKeyRef) {
+        if (schemaKeyRef instanceof RegExp) {
+          this._removeAllSchemas(this.schemas, schemaKeyRef);
+          this._removeAllSchemas(this.refs, schemaKeyRef);
+          return this;
+        }
+        switch (typeof schemaKeyRef) {
+          case "undefined":
+            this._removeAllSchemas(this.schemas);
+            this._removeAllSchemas(this.refs);
+            this._cache.clear();
+            return this;
+          case "string": {
+            const sch = getSchEnv.call(this, schemaKeyRef);
+            if (typeof sch == "object")
+              this._cache.delete(sch.schema);
+            delete this.schemas[schemaKeyRef];
+            delete this.refs[schemaKeyRef];
+            return this;
+          }
+          case "object": {
+            const cacheKey = schemaKeyRef;
+            this._cache.delete(cacheKey);
+            let id = schemaKeyRef[this.opts.schemaId];
+            if (id) {
+              id = (0, resolve_1.normalizeId)(id);
+              delete this.schemas[id];
+              delete this.refs[id];
+            }
+            return this;
+          }
+          default:
+            throw new Error("ajv.removeSchema: invalid parameter");
+        }
+      }
+      // add "vocabulary" - a collection of keywords
+      addVocabulary(definitions) {
+        for (const def of definitions)
+          this.addKeyword(def);
+        return this;
+      }
+      addKeyword(kwdOrDef, def) {
+        let keyword;
+        if (typeof kwdOrDef == "string") {
+          keyword = kwdOrDef;
+          if (typeof def == "object") {
+            this.logger.warn("these parameters are deprecated, see docs for addKeyword");
+            def.keyword = keyword;
+          }
+        } else if (typeof kwdOrDef == "object" && def === void 0) {
+          def = kwdOrDef;
+          keyword = def.keyword;
+          if (Array.isArray(keyword) && !keyword.length) {
+            throw new Error("addKeywords: keyword must be string or non-empty array");
+          }
+        } else {
+          throw new Error("invalid addKeywords parameters");
+        }
+        checkKeyword.call(this, keyword, def);
+        if (!def) {
+          (0, util_1.eachItem)(keyword, (kwd) => addRule.call(this, kwd));
+          return this;
+        }
+        keywordMetaschema.call(this, def);
+        const definition = {
+          ...def,
+          type: (0, dataType_1.getJSONTypes)(def.type),
+          schemaType: (0, dataType_1.getJSONTypes)(def.schemaType)
+        };
+        (0, util_1.eachItem)(keyword, definition.type.length === 0 ? (k) => addRule.call(this, k, definition) : (k) => definition.type.forEach((t) => addRule.call(this, k, definition, t)));
+        return this;
+      }
+      getKeyword(keyword) {
+        const rule = this.RULES.all[keyword];
+        return typeof rule == "object" ? rule.definition : !!rule;
+      }
+      // Remove keyword
+      removeKeyword(keyword) {
+        const { RULES } = this;
+        delete RULES.keywords[keyword];
+        delete RULES.all[keyword];
+        for (const group of RULES.rules) {
+          const i = group.rules.findIndex((rule) => rule.keyword === keyword);
+          if (i >= 0)
+            group.rules.splice(i, 1);
+        }
+        return this;
+      }
+      // Add format
+      addFormat(name, format) {
+        if (typeof format == "string")
+          format = new RegExp(format);
+        this.formats[name] = format;
+        return this;
+      }
+      errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
+        if (!errors || errors.length === 0)
+          return "No errors";
+        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text, msg) => text + separator + msg);
+      }
+      $dataMetaSchema(metaSchema, keywordsJsonPointers) {
+        const rules = this.RULES.all;
+        metaSchema = JSON.parse(JSON.stringify(metaSchema));
+        for (const jsonPointer of keywordsJsonPointers) {
+          const segments = jsonPointer.split("/").slice(1);
+          let keywords = metaSchema;
+          for (const seg of segments)
+            keywords = keywords[seg];
+          for (const key in rules) {
+            const rule = rules[key];
+            if (typeof rule != "object")
+              continue;
+            const { $data } = rule.definition;
+            const schema2 = keywords[key];
+            if ($data && schema2)
+              keywords[key] = schemaOrData(schema2);
+          }
+        }
+        return metaSchema;
+      }
+      _removeAllSchemas(schemas, regex) {
+        for (const keyRef in schemas) {
+          const sch = schemas[keyRef];
+          if (!regex || regex.test(keyRef)) {
+            if (typeof sch == "string") {
+              delete schemas[keyRef];
+            } else if (sch && !sch.meta) {
+              this._cache.delete(sch.schema);
+              delete schemas[keyRef];
+            }
+          }
+        }
+      }
+      _addSchema(schema2, meta, baseId, validateSchema = this.opts.validateSchema, addSchema = this.opts.addUsedSchema) {
+        let id;
+        const { schemaId } = this.opts;
+        if (typeof schema2 == "object") {
+          id = schema2[schemaId];
+        } else {
+          if (this.opts.jtd)
+            throw new Error("schema must be object");
+          else if (typeof schema2 != "boolean")
+            throw new Error("schema must be object or boolean");
+        }
+        let sch = this._cache.get(schema2);
+        if (sch !== void 0)
+          return sch;
+        baseId = (0, resolve_1.normalizeId)(id || baseId);
+        const localRefs = resolve_1.getSchemaRefs.call(this, schema2, baseId);
+        sch = new compile_1.SchemaEnv({ schema: schema2, schemaId, meta, baseId, localRefs });
+        this._cache.set(sch.schema, sch);
+        if (addSchema && !baseId.startsWith("#")) {
+          if (baseId)
+            this._checkUnique(baseId);
+          this.refs[baseId] = sch;
+        }
+        if (validateSchema)
+          this.validateSchema(schema2, true);
+        return sch;
+      }
+      _checkUnique(id) {
+        if (this.schemas[id] || this.refs[id]) {
+          throw new Error(`schema with key or id "${id}" already exists`);
+        }
+      }
+      _compileSchemaEnv(sch) {
+        if (sch.meta)
+          this._compileMetaSchema(sch);
+        else
+          compile_1.compileSchema.call(this, sch);
+        if (!sch.validate)
+          throw new Error("ajv implementation error");
+        return sch.validate;
+      }
+      _compileMetaSchema(sch) {
+        const currentOpts = this.opts;
+        this.opts = this._metaOpts;
+        try {
+          compile_1.compileSchema.call(this, sch);
+        } finally {
+          this.opts = currentOpts;
+        }
+      }
+    };
+    Ajv.ValidationError = validation_error_1.default;
+    Ajv.MissingRefError = ref_error_1.default;
+    exports.default = Ajv;
+    function checkOptions(checkOpts, options, msg, log = "error") {
+      for (const key in checkOpts) {
+        const opt = key;
+        if (opt in options)
+          this.logger[log](`${msg}: option ${key}. ${checkOpts[opt]}`);
+      }
+    }
+    function getSchEnv(keyRef) {
+      keyRef = (0, resolve_1.normalizeId)(keyRef);
+      return this.schemas[keyRef] || this.refs[keyRef];
+    }
+    function addInitialSchemas() {
+      const optsSchemas = this.opts.schemas;
+      if (!optsSchemas)
+        return;
+      if (Array.isArray(optsSchemas))
+        this.addSchema(optsSchemas);
+      else
+        for (const key in optsSchemas)
+          this.addSchema(optsSchemas[key], key);
+    }
+    function addInitialFormats() {
+      for (const name in this.opts.formats) {
+        const format = this.opts.formats[name];
+        if (format)
+          this.addFormat(name, format);
+      }
+    }
+    function addInitialKeywords(defs) {
+      if (Array.isArray(defs)) {
+        this.addVocabulary(defs);
+        return;
+      }
+      this.logger.warn("keywords option as map is deprecated, pass array");
+      for (const keyword in defs) {
+        const def = defs[keyword];
+        if (!def.keyword)
+          def.keyword = keyword;
+        this.addKeyword(def);
+      }
+    }
+    function getMetaSchemaOptions() {
+      const metaOpts = { ...this.opts };
+      for (const opt of META_IGNORE_OPTIONS)
+        delete metaOpts[opt];
+      return metaOpts;
+    }
+    var noLogs = { log() {
+    }, warn() {
+    }, error() {
+    } };
+    function getLogger(logger) {
+      if (logger === false)
+        return noLogs;
+      if (logger === void 0)
+        return console;
+      if (logger.log && logger.warn && logger.error)
+        return logger;
+      throw new Error("logger must implement log, warn and error methods");
+    }
+    var KEYWORD_NAME = /^[a-z_$][a-z0-9_$:-]*$/i;
+    function checkKeyword(keyword, def) {
+      const { RULES } = this;
+      (0, util_1.eachItem)(keyword, (kwd) => {
+        if (RULES.keywords[kwd])
+          throw new Error(`Keyword ${kwd} is already defined`);
+        if (!KEYWORD_NAME.test(kwd))
+          throw new Error(`Keyword ${kwd} has invalid name`);
+      });
+      if (!def)
+        return;
+      if (def.$data && !("code" in def || "validate" in def)) {
+        throw new Error('$data keyword must have "code" or "validate" function');
+      }
+    }
+    function addRule(keyword, definition, dataType) {
+      var _a;
+      const post = definition === null || definition === void 0 ? void 0 : definition.post;
+      if (dataType && post)
+        throw new Error('keyword with "post" flag cannot have "type"');
+      const { RULES } = this;
+      let ruleGroup = post ? RULES.post : RULES.rules.find(({ type: t }) => t === dataType);
+      if (!ruleGroup) {
+        ruleGroup = { type: dataType, rules: [] };
+        RULES.rules.push(ruleGroup);
+      }
+      RULES.keywords[keyword] = true;
+      if (!definition)
+        return;
+      const rule = {
+        keyword,
+        definition: {
+          ...definition,
+          type: (0, dataType_1.getJSONTypes)(definition.type),
+          schemaType: (0, dataType_1.getJSONTypes)(definition.schemaType)
+        }
+      };
+      if (definition.before)
+        addBeforeRule.call(this, ruleGroup, rule, definition.before);
+      else
+        ruleGroup.rules.push(rule);
+      RULES.all[keyword] = rule;
+      (_a = definition.implements) === null || _a === void 0 ? void 0 : _a.forEach((kwd) => this.addKeyword(kwd));
+    }
+    function addBeforeRule(ruleGroup, rule, before) {
+      const i = ruleGroup.rules.findIndex((_rule) => _rule.keyword === before);
+      if (i >= 0) {
+        ruleGroup.rules.splice(i, 0, rule);
+      } else {
+        ruleGroup.rules.push(rule);
+        this.logger.warn(`rule ${before} is not defined`);
+      }
+    }
+    function keywordMetaschema(def) {
+      let { metaSchema } = def;
+      if (metaSchema === void 0)
+        return;
+      if (def.$data && this.opts.$data)
+        metaSchema = schemaOrData(metaSchema);
+      def.validateSchema = this.compile(metaSchema, true);
+    }
+    var $dataRef = {
+      $ref: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#"
+    };
+    function schemaOrData(schema2) {
+      return { anyOf: [schema2, $dataRef] };
+    }
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/core/id.js
+var require_id = __commonJS({
+  "node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var def = {
+      keyword: "id",
+      code() {
+        throw new Error('NOT SUPPORTED: keyword "id", use "$id" for schema ID');
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/core/ref.js
+var require_ref = __commonJS({
+  "node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.callRef = exports.getValidate = void 0;
+    var ref_error_1 = require_ref_error();
+    var code_1 = require_code2();
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var compile_1 = require_compile();
+    var util_1 = require_util2();
+    var def = {
+      keyword: "$ref",
+      schemaType: "string",
+      code(cxt) {
+        const { gen, schema: $ref, it } = cxt;
+        const { baseId, schemaEnv: env, validateName, opts, self } = it;
+        const { root } = env;
+        if (($ref === "#" || $ref === "#/") && baseId === root.baseId)
+          return callRootRef();
+        const schOrEnv = compile_1.resolveRef.call(self, root, baseId, $ref);
+        if (schOrEnv === void 0)
+          throw new ref_error_1.default(it.opts.uriResolver, baseId, $ref);
+        if (schOrEnv instanceof compile_1.SchemaEnv)
+          return callValidate(schOrEnv);
+        return inlineRefSchema(schOrEnv);
+        function callRootRef() {
+          if (env === root)
+            return callRef(cxt, validateName, env, env.$async);
+          const rootName = gen.scopeValue("root", { ref: root });
+          return callRef(cxt, (0, codegen_1._)`${rootName}.validate`, root, root.$async);
+        }
+        function callValidate(sch) {
+          const v = getValidate(cxt, sch);
+          callRef(cxt, v, sch, sch.$async);
+        }
+        function inlineRefSchema(sch) {
+          const schName = gen.scopeValue("schema", opts.code.source === true ? { ref: sch, code: (0, codegen_1.stringify)(sch) } : { ref: sch });
+          const valid = gen.name("valid");
+          const schCxt = cxt.subschema({
+            schema: sch,
+            dataTypes: [],
+            schemaPath: codegen_1.nil,
+            topSchemaRef: schName,
+            errSchemaPath: $ref
+          }, valid);
+          cxt.mergeEvaluated(schCxt);
+          cxt.ok(valid);
+        }
+      }
+    };
+    function getValidate(cxt, sch) {
+      const { gen } = cxt;
+      return sch.validate ? gen.scopeValue("validate", { ref: sch.validate }) : (0, codegen_1._)`${gen.scopeValue("wrapper", { ref: sch })}.validate`;
+    }
+    exports.getValidate = getValidate;
+    function callRef(cxt, v, sch, $async) {
+      const { gen, it } = cxt;
+      const { allErrors, schemaEnv: env, opts } = it;
+      const passCxt = opts.passContext ? names_1.default.this : codegen_1.nil;
+      if ($async)
+        callAsyncRef();
+      else
+        callSyncRef();
+      function callAsyncRef() {
+        if (!env.$async)
+          throw new Error("async schema referenced by sync schema");
+        const valid = gen.let("valid");
+        gen.try(() => {
+          gen.code((0, codegen_1._)`await ${(0, code_1.callValidateCode)(cxt, v, passCxt)}`);
+          addEvaluatedFrom(v);
+          if (!allErrors)
+            gen.assign(valid, true);
+        }, (e) => {
+          gen.if((0, codegen_1._)`!(${e} instanceof ${it.ValidationError})`, () => gen.throw(e));
+          addErrorsFrom(e);
+          if (!allErrors)
+            gen.assign(valid, false);
+        });
+        cxt.ok(valid);
+      }
+      function callSyncRef() {
+        cxt.result((0, code_1.callValidateCode)(cxt, v, passCxt), () => addEvaluatedFrom(v), () => addErrorsFrom(v));
+      }
+      function addErrorsFrom(source) {
+        const errs = (0, codegen_1._)`${source}.errors`;
+        gen.assign(names_1.default.vErrors, (0, codegen_1._)`${names_1.default.vErrors} === null ? ${errs} : ${names_1.default.vErrors}.concat(${errs})`);
+        gen.assign(names_1.default.errors, (0, codegen_1._)`${names_1.default.vErrors}.length`);
+      }
+      function addEvaluatedFrom(source) {
+        var _a;
+        if (!it.opts.unevaluated)
+          return;
+        const schEvaluated = (_a = sch === null || sch === void 0 ? void 0 : sch.validate) === null || _a === void 0 ? void 0 : _a.evaluated;
+        if (it.props !== true) {
+          if (schEvaluated && !schEvaluated.dynamicProps) {
+            if (schEvaluated.props !== void 0) {
+              it.props = util_1.mergeEvaluated.props(gen, schEvaluated.props, it.props);
+            }
+          } else {
+            const props = gen.var("props", (0, codegen_1._)`${source}.evaluated.props`);
+            it.props = util_1.mergeEvaluated.props(gen, props, it.props, codegen_1.Name);
+          }
+        }
+        if (it.items !== true) {
+          if (schEvaluated && !schEvaluated.dynamicItems) {
+            if (schEvaluated.items !== void 0) {
+              it.items = util_1.mergeEvaluated.items(gen, schEvaluated.items, it.items);
+            }
+          } else {
+            const items = gen.var("items", (0, codegen_1._)`${source}.evaluated.items`);
+            it.items = util_1.mergeEvaluated.items(gen, items, it.items, codegen_1.Name);
+          }
+        }
+      }
+    }
+    exports.callRef = callRef;
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/core/index.js
+var require_core2 = __commonJS({
+  "node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var id_1 = require_id();
+    var ref_1 = require_ref();
+    var core2 = [
+      "$schema",
+      "$id",
+      "$defs",
+      "$vocabulary",
+      { keyword: "$comment" },
+      "definitions",
+      id_1.default,
+      ref_1.default
+    ];
+    exports.default = core2;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+var require_limitNumber = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var ops = codegen_1.operators;
+    var KWDs = {
+      maximum: { okStr: "<=", ok: ops.LTE, fail: ops.GT },
+      minimum: { okStr: ">=", ok: ops.GTE, fail: ops.LT },
+      exclusiveMaximum: { okStr: "<", ok: ops.LT, fail: ops.GTE },
+      exclusiveMinimum: { okStr: ">", ok: ops.GT, fail: ops.LTE }
+    };
+    var error = {
+      message: ({ keyword, schemaCode }) => (0, codegen_1.str)`must be ${KWDs[keyword].okStr} ${schemaCode}`,
+      params: ({ keyword, schemaCode }) => (0, codegen_1._)`{comparison: ${KWDs[keyword].okStr}, limit: ${schemaCode}}`
+    };
+    var def = {
+      keyword: Object.keys(KWDs),
+      type: "number",
+      schemaType: "number",
+      $data: true,
+      error,
+      code(cxt) {
+        const { keyword, data, schemaCode } = cxt;
+        cxt.fail$data((0, codegen_1._)`${data} ${KWDs[keyword].fail} ${schemaCode} || isNaN(${data})`);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+var require_multipleOf = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var error = {
+      message: ({ schemaCode }) => (0, codegen_1.str)`must be multiple of ${schemaCode}`,
+      params: ({ schemaCode }) => (0, codegen_1._)`{multipleOf: ${schemaCode}}`
+    };
+    var def = {
+      keyword: "multipleOf",
+      type: "number",
+      schemaType: "number",
+      $data: true,
+      error,
+      code(cxt) {
+        const { gen, data, schemaCode, it } = cxt;
+        const prec = it.opts.multipleOfPrecision;
+        const res = gen.let("res");
+        const invalid = prec ? (0, codegen_1._)`Math.abs(Math.round(${res}) - ${res}) > 1e-${prec}` : (0, codegen_1._)`${res} !== parseInt(${res})`;
+        cxt.fail$data((0, codegen_1._)`(${schemaCode} === 0 || (${res} = ${data}/${schemaCode}, ${invalid}))`);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/runtime/ucs2length.js
+var require_ucs2length = __commonJS({
+  "node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function ucs2length(str2) {
+      const len = str2.length;
+      let length = 0;
+      let pos = 0;
+      let value;
+      while (pos < len) {
+        length++;
+        value = str2.charCodeAt(pos++);
+        if (value >= 55296 && value <= 56319 && pos < len) {
+          value = str2.charCodeAt(pos);
+          if ((value & 64512) === 56320)
+            pos++;
+        }
+      }
+      return length;
+    }
+    exports.default = ucs2length;
+    ucs2length.code = 'require("ajv/dist/runtime/ucs2length").default';
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/limitLength.js
+var require_limitLength = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var ucs2length_1 = require_ucs2length();
+    var error = {
+      message({ keyword, schemaCode }) {
+        const comp = keyword === "maxLength" ? "more" : "fewer";
+        return (0, codegen_1.str)`must NOT have ${comp} than ${schemaCode} characters`;
+      },
+      params: ({ schemaCode }) => (0, codegen_1._)`{limit: ${schemaCode}}`
+    };
+    var def = {
+      keyword: ["maxLength", "minLength"],
+      type: "string",
+      schemaType: "number",
+      $data: true,
+      error,
+      code(cxt) {
+        const { keyword, data, schemaCode, it } = cxt;
+        const op = keyword === "maxLength" ? codegen_1.operators.GT : codegen_1.operators.LT;
+        const len = it.opts.unicode === false ? (0, codegen_1._)`${data}.length` : (0, codegen_1._)`${(0, util_1.useFunc)(cxt.gen, ucs2length_1.default)}(${data})`;
+        cxt.fail$data((0, codegen_1._)`${len} ${op} ${schemaCode}`);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/pattern.js
+var require_pattern = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var code_1 = require_code2();
+    var util_1 = require_util2();
+    var codegen_1 = require_codegen();
+    var error = {
+      message: ({ schemaCode }) => (0, codegen_1.str)`must match pattern "${schemaCode}"`,
+      params: ({ schemaCode }) => (0, codegen_1._)`{pattern: ${schemaCode}}`
+    };
+    var def = {
+      keyword: "pattern",
+      type: "string",
+      schemaType: "string",
+      $data: true,
+      error,
+      code(cxt) {
+        const { gen, data, $data, schema: schema2, schemaCode, it } = cxt;
+        const u = it.opts.unicodeRegExp ? "u" : "";
+        if ($data) {
+          const { regExp } = it.opts.code;
+          const regExpCode = regExp.code === "new RegExp" ? (0, codegen_1._)`new RegExp` : (0, util_1.useFunc)(gen, regExp);
+          const valid = gen.let("valid");
+          gen.try(() => gen.assign(valid, (0, codegen_1._)`${regExpCode}(${schemaCode}, ${u}).test(${data})`), () => gen.assign(valid, false));
+          cxt.fail$data((0, codegen_1._)`!${valid}`);
+        } else {
+          const regExp = (0, code_1.usePattern)(cxt, schema2);
+          cxt.fail$data((0, codegen_1._)`!${regExp}.test(${data})`);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+var require_limitProperties = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var error = {
+      message({ keyword, schemaCode }) {
+        const comp = keyword === "maxProperties" ? "more" : "fewer";
+        return (0, codegen_1.str)`must NOT have ${comp} than ${schemaCode} properties`;
+      },
+      params: ({ schemaCode }) => (0, codegen_1._)`{limit: ${schemaCode}}`
+    };
+    var def = {
+      keyword: ["maxProperties", "minProperties"],
+      type: "object",
+      schemaType: "number",
+      $data: true,
+      error,
+      code(cxt) {
+        const { keyword, data, schemaCode } = cxt;
+        const op = keyword === "maxProperties" ? codegen_1.operators.GT : codegen_1.operators.LT;
+        cxt.fail$data((0, codegen_1._)`Object.keys(${data}).length ${op} ${schemaCode}`);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/required.js
+var require_required = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var code_1 = require_code2();
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: ({ params: { missingProperty } }) => (0, codegen_1.str)`must have required property '${missingProperty}'`,
+      params: ({ params: { missingProperty } }) => (0, codegen_1._)`{missingProperty: ${missingProperty}}`
+    };
+    var def = {
+      keyword: "required",
+      type: "object",
+      schemaType: "array",
+      $data: true,
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, schemaCode, data, $data, it } = cxt;
+        const { opts } = it;
+        if (!$data && schema2.length === 0)
+          return;
+        const useLoop = schema2.length >= opts.loopRequired;
+        if (it.allErrors)
+          allErrorsMode();
+        else
+          exitOnErrorMode();
+        if (opts.strictRequired) {
+          const props = cxt.parentSchema.properties;
+          const { definedProperties } = cxt.it;
+          for (const requiredKey of schema2) {
+            if ((props === null || props === void 0 ? void 0 : props[requiredKey]) === void 0 && !definedProperties.has(requiredKey)) {
+              const schemaPath = it.schemaEnv.baseId + it.errSchemaPath;
+              const msg = `required property "${requiredKey}" is not defined at "${schemaPath}" (strictRequired)`;
+              (0, util_1.checkStrictMode)(it, msg, it.opts.strictRequired);
+            }
+          }
+        }
+        function allErrorsMode() {
+          if (useLoop || $data) {
+            cxt.block$data(codegen_1.nil, loopAllRequired);
+          } else {
+            for (const prop of schema2) {
+              (0, code_1.checkReportMissingProp)(cxt, prop);
+            }
+          }
+        }
+        function exitOnErrorMode() {
+          const missing = gen.let("missing");
+          if (useLoop || $data) {
+            const valid = gen.let("valid", true);
+            cxt.block$data(valid, () => loopUntilMissing(missing, valid));
+            cxt.ok(valid);
+          } else {
+            gen.if((0, code_1.checkMissingProp)(cxt, schema2, missing));
+            (0, code_1.reportMissingProp)(cxt, missing);
+            gen.else();
+          }
+        }
+        function loopAllRequired() {
+          gen.forOf("prop", schemaCode, (prop) => {
+            cxt.setParams({ missingProperty: prop });
+            gen.if((0, code_1.noPropertyInData)(gen, data, prop, opts.ownProperties), () => cxt.error());
+          });
+        }
+        function loopUntilMissing(missing, valid) {
+          cxt.setParams({ missingProperty: missing });
+          gen.forOf(missing, schemaCode, () => {
+            gen.assign(valid, (0, code_1.propertyInData)(gen, data, missing, opts.ownProperties));
+            gen.if((0, codegen_1.not)(valid), () => {
+              cxt.error();
+              gen.break();
+            });
+          }, codegen_1.nil);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/limitItems.js
+var require_limitItems = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var error = {
+      message({ keyword, schemaCode }) {
+        const comp = keyword === "maxItems" ? "more" : "fewer";
+        return (0, codegen_1.str)`must NOT have ${comp} than ${schemaCode} items`;
+      },
+      params: ({ schemaCode }) => (0, codegen_1._)`{limit: ${schemaCode}}`
+    };
+    var def = {
+      keyword: ["maxItems", "minItems"],
+      type: "array",
+      schemaType: "number",
+      $data: true,
+      error,
+      code(cxt) {
+        const { keyword, data, schemaCode } = cxt;
+        const op = keyword === "maxItems" ? codegen_1.operators.GT : codegen_1.operators.LT;
+        cxt.fail$data((0, codegen_1._)`${data}.length ${op} ${schemaCode}`);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/runtime/equal.js
+var require_equal = __commonJS({
+  "node_modules/ajv/dist/runtime/equal.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var equal = require_fast_deep_equal();
+    equal.code = 'require("ajv/dist/runtime/equal").default';
+    exports.default = equal;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+var require_uniqueItems = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dataType_1 = require_dataType();
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var equal_1 = require_equal();
+    var error = {
+      message: ({ params: { i, j } }) => (0, codegen_1.str)`must NOT have duplicate items (items ## ${j} and ${i} are identical)`,
+      params: ({ params: { i, j } }) => (0, codegen_1._)`{i: ${i}, j: ${j}}`
+    };
+    var def = {
+      keyword: "uniqueItems",
+      type: "array",
+      schemaType: "boolean",
+      $data: true,
+      error,
+      code(cxt) {
+        const { gen, data, $data, schema: schema2, parentSchema, schemaCode, it } = cxt;
+        if (!$data && !schema2)
+          return;
+        const valid = gen.let("valid");
+        const itemTypes = parentSchema.items ? (0, dataType_1.getSchemaTypes)(parentSchema.items) : [];
+        cxt.block$data(valid, validateUniqueItems, (0, codegen_1._)`${schemaCode} === false`);
+        cxt.ok(valid);
+        function validateUniqueItems() {
+          const i = gen.let("i", (0, codegen_1._)`${data}.length`);
+          const j = gen.let("j");
+          cxt.setParams({ i, j });
+          gen.assign(valid, true);
+          gen.if((0, codegen_1._)`${i} > 1`, () => (canOptimize() ? loopN : loopN2)(i, j));
+        }
+        function canOptimize() {
+          return itemTypes.length > 0 && !itemTypes.some((t) => t === "object" || t === "array");
+        }
+        function loopN(i, j) {
+          const item = gen.name("item");
+          const wrongType = (0, dataType_1.checkDataTypes)(itemTypes, item, it.opts.strictNumbers, dataType_1.DataType.Wrong);
+          const indices = gen.const("indices", (0, codegen_1._)`{}`);
+          gen.for((0, codegen_1._)`;${i}--;`, () => {
+            gen.let(item, (0, codegen_1._)`${data}[${i}]`);
+            gen.if(wrongType, (0, codegen_1._)`continue`);
+            if (itemTypes.length > 1)
+              gen.if((0, codegen_1._)`typeof ${item} == "string"`, (0, codegen_1._)`${item} += "_"`);
+            gen.if((0, codegen_1._)`typeof ${indices}[${item}] == "number"`, () => {
+              gen.assign(j, (0, codegen_1._)`${indices}[${item}]`);
+              cxt.error();
+              gen.assign(valid, false).break();
+            }).code((0, codegen_1._)`${indices}[${item}] = ${i}`);
+          });
+        }
+        function loopN2(i, j) {
+          const eql = (0, util_1.useFunc)(gen, equal_1.default);
+          const outer = gen.name("outer");
+          gen.label(outer).for((0, codegen_1._)`;${i}--;`, () => gen.for((0, codegen_1._)`${j} = ${i}; ${j}--;`, () => gen.if((0, codegen_1._)`${eql}(${data}[${i}], ${data}[${j}])`, () => {
+            cxt.error();
+            gen.assign(valid, false).break(outer);
+          })));
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/const.js
+var require_const = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var equal_1 = require_equal();
+    var error = {
+      message: "must be equal to constant",
+      params: ({ schemaCode }) => (0, codegen_1._)`{allowedValue: ${schemaCode}}`
+    };
+    var def = {
+      keyword: "const",
+      $data: true,
+      error,
+      code(cxt) {
+        const { gen, data, $data, schemaCode, schema: schema2 } = cxt;
+        if ($data || schema2 && typeof schema2 == "object") {
+          cxt.fail$data((0, codegen_1._)`!${(0, util_1.useFunc)(gen, equal_1.default)}(${data}, ${schemaCode})`);
+        } else {
+          cxt.fail((0, codegen_1._)`${schema2} !== ${data}`);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/enum.js
+var require_enum = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var equal_1 = require_equal();
+    var error = {
+      message: "must be equal to one of the allowed values",
+      params: ({ schemaCode }) => (0, codegen_1._)`{allowedValues: ${schemaCode}}`
+    };
+    var def = {
+      keyword: "enum",
+      schemaType: "array",
+      $data: true,
+      error,
+      code(cxt) {
+        const { gen, data, $data, schema: schema2, schemaCode, it } = cxt;
+        if (!$data && schema2.length === 0)
+          throw new Error("enum must have non-empty array");
+        const useLoop = schema2.length >= it.opts.loopEnum;
+        let eql;
+        const getEql = () => eql !== null && eql !== void 0 ? eql : eql = (0, util_1.useFunc)(gen, equal_1.default);
+        let valid;
+        if (useLoop || $data) {
+          valid = gen.let("valid");
+          cxt.block$data(valid, loopEnum);
+        } else {
+          if (!Array.isArray(schema2))
+            throw new Error("ajv implementation error");
+          const vSchema = gen.const("vSchema", schemaCode);
+          valid = (0, codegen_1.or)(...schema2.map((_x, i) => equalCode(vSchema, i)));
+        }
+        cxt.pass(valid);
+        function loopEnum() {
+          gen.assign(valid, false);
+          gen.forOf("v", schemaCode, (v) => gen.if((0, codegen_1._)`${getEql()}(${data}, ${v})`, () => gen.assign(valid, true).break()));
+        }
+        function equalCode(vSchema, i) {
+          const sch = schema2[i];
+          return typeof sch === "object" && sch !== null ? (0, codegen_1._)`${getEql()}(${data}, ${vSchema}[${i}])` : (0, codegen_1._)`${data} === ${sch}`;
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/index.js
+var require_validation = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var limitNumber_1 = require_limitNumber();
+    var multipleOf_1 = require_multipleOf();
+    var limitLength_1 = require_limitLength();
+    var pattern_1 = require_pattern();
+    var limitProperties_1 = require_limitProperties();
+    var required_1 = require_required();
+    var limitItems_1 = require_limitItems();
+    var uniqueItems_1 = require_uniqueItems();
+    var const_1 = require_const();
+    var enum_1 = require_enum();
+    var validation = [
+      // number
+      limitNumber_1.default,
+      multipleOf_1.default,
+      // string
+      limitLength_1.default,
+      pattern_1.default,
+      // object
+      limitProperties_1.default,
+      required_1.default,
+      // array
+      limitItems_1.default,
+      uniqueItems_1.default,
+      // any
+      { keyword: "type", schemaType: ["string", "array"] },
+      { keyword: "nullable", schemaType: "boolean" },
+      const_1.default,
+      enum_1.default
+    ];
+    exports.default = validation;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+var require_additionalItems = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.validateAdditionalItems = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: ({ params: { len } }) => (0, codegen_1.str)`must NOT have more than ${len} items`,
+      params: ({ params: { len } }) => (0, codegen_1._)`{limit: ${len}}`
+    };
+    var def = {
+      keyword: "additionalItems",
+      type: "array",
+      schemaType: ["boolean", "object"],
+      before: "uniqueItems",
+      error,
+      code(cxt) {
+        const { parentSchema, it } = cxt;
+        const { items } = parentSchema;
+        if (!Array.isArray(items)) {
+          (0, util_1.checkStrictMode)(it, '"additionalItems" is ignored when "items" is not an array of schemas');
+          return;
+        }
+        validateAdditionalItems(cxt, items);
+      }
+    };
+    function validateAdditionalItems(cxt, items) {
+      const { gen, schema: schema2, data, keyword, it } = cxt;
+      it.items = true;
+      const len = gen.const("len", (0, codegen_1._)`${data}.length`);
+      if (schema2 === false) {
+        cxt.setParams({ len: items.length });
+        cxt.pass((0, codegen_1._)`${len} <= ${items.length}`);
+      } else if (typeof schema2 == "object" && !(0, util_1.alwaysValidSchema)(it, schema2)) {
+        const valid = gen.var("valid", (0, codegen_1._)`${len} <= ${items.length}`);
+        gen.if((0, codegen_1.not)(valid), () => validateItems(valid));
+        cxt.ok(valid);
+      }
+      function validateItems(valid) {
+        gen.forRange("i", items.length, len, (i) => {
+          cxt.subschema({ keyword, dataProp: i, dataPropType: util_1.Type.Num }, valid);
+          if (!it.allErrors)
+            gen.if((0, codegen_1.not)(valid), () => gen.break());
+        });
+      }
+    }
+    exports.validateAdditionalItems = validateAdditionalItems;
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/items.js
+var require_items = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.validateTuple = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var code_1 = require_code2();
+    var def = {
+      keyword: "items",
+      type: "array",
+      schemaType: ["object", "array", "boolean"],
+      before: "uniqueItems",
+      code(cxt) {
+        const { schema: schema2, it } = cxt;
+        if (Array.isArray(schema2))
+          return validateTuple(cxt, "additionalItems", schema2);
+        it.items = true;
+        if ((0, util_1.alwaysValidSchema)(it, schema2))
+          return;
+        cxt.ok((0, code_1.validateArray)(cxt));
+      }
+    };
+    function validateTuple(cxt, extraItems, schArr = cxt.schema) {
+      const { gen, parentSchema, data, keyword, it } = cxt;
+      checkStrictTuple(parentSchema);
+      if (it.opts.unevaluated && schArr.length && it.items !== true) {
+        it.items = util_1.mergeEvaluated.items(gen, schArr.length, it.items);
+      }
+      const valid = gen.name("valid");
+      const len = gen.const("len", (0, codegen_1._)`${data}.length`);
+      schArr.forEach((sch, i) => {
+        if ((0, util_1.alwaysValidSchema)(it, sch))
+          return;
+        gen.if((0, codegen_1._)`${len} > ${i}`, () => cxt.subschema({
+          keyword,
+          schemaProp: i,
+          dataProp: i
+        }, valid));
+        cxt.ok(valid);
+      });
+      function checkStrictTuple(sch) {
+        const { opts, errSchemaPath } = it;
+        const l = schArr.length;
+        const fullTuple = l === sch.minItems && (l === sch.maxItems || sch[extraItems] === false);
+        if (opts.strictTuples && !fullTuple) {
+          const msg = `"${keyword}" is ${l}-tuple, but minItems or maxItems/${extraItems} are not specified or different at path "${errSchemaPath}"`;
+          (0, util_1.checkStrictMode)(it, msg, opts.strictTuples);
+        }
+      }
+    }
+    exports.validateTuple = validateTuple;
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+var require_prefixItems = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var items_1 = require_items();
+    var def = {
+      keyword: "prefixItems",
+      type: "array",
+      schemaType: ["array"],
+      before: "uniqueItems",
+      code: (cxt) => (0, items_1.validateTuple)(cxt, "items")
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/items2020.js
+var require_items2020 = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var code_1 = require_code2();
+    var additionalItems_1 = require_additionalItems();
+    var error = {
+      message: ({ params: { len } }) => (0, codegen_1.str)`must NOT have more than ${len} items`,
+      params: ({ params: { len } }) => (0, codegen_1._)`{limit: ${len}}`
+    };
+    var def = {
+      keyword: "items",
+      type: "array",
+      schemaType: ["object", "boolean"],
+      before: "uniqueItems",
+      error,
+      code(cxt) {
+        const { schema: schema2, parentSchema, it } = cxt;
+        const { prefixItems } = parentSchema;
+        it.items = true;
+        if ((0, util_1.alwaysValidSchema)(it, schema2))
+          return;
+        if (prefixItems)
+          (0, additionalItems_1.validateAdditionalItems)(cxt, prefixItems);
+        else
+          cxt.ok((0, code_1.validateArray)(cxt));
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/contains.js
+var require_contains = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: ({ params: { min, max } }) => max === void 0 ? (0, codegen_1.str)`must contain at least ${min} valid item(s)` : (0, codegen_1.str)`must contain at least ${min} and no more than ${max} valid item(s)`,
+      params: ({ params: { min, max } }) => max === void 0 ? (0, codegen_1._)`{minContains: ${min}}` : (0, codegen_1._)`{minContains: ${min}, maxContains: ${max}}`
+    };
+    var def = {
+      keyword: "contains",
+      type: "array",
+      schemaType: ["object", "boolean"],
+      before: "uniqueItems",
+      trackErrors: true,
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, parentSchema, data, it } = cxt;
+        let min;
+        let max;
+        const { minContains, maxContains } = parentSchema;
+        if (it.opts.next) {
+          min = minContains === void 0 ? 1 : minContains;
+          max = maxContains;
+        } else {
+          min = 1;
+        }
+        const len = gen.const("len", (0, codegen_1._)`${data}.length`);
+        cxt.setParams({ min, max });
+        if (max === void 0 && min === 0) {
+          (0, util_1.checkStrictMode)(it, `"minContains" == 0 without "maxContains": "contains" keyword ignored`);
+          return;
+        }
+        if (max !== void 0 && min > max) {
+          (0, util_1.checkStrictMode)(it, `"minContains" > "maxContains" is always invalid`);
+          cxt.fail();
+          return;
+        }
+        if ((0, util_1.alwaysValidSchema)(it, schema2)) {
+          let cond = (0, codegen_1._)`${len} >= ${min}`;
+          if (max !== void 0)
+            cond = (0, codegen_1._)`${cond} && ${len} <= ${max}`;
+          cxt.pass(cond);
+          return;
+        }
+        it.items = true;
+        const valid = gen.name("valid");
+        if (max === void 0 && min === 1) {
+          validateItems(valid, () => gen.if(valid, () => gen.break()));
+        } else if (min === 0) {
+          gen.let(valid, true);
+          if (max !== void 0)
+            gen.if((0, codegen_1._)`${data}.length > 0`, validateItemsWithCount);
+        } else {
+          gen.let(valid, false);
+          validateItemsWithCount();
+        }
+        cxt.result(valid, () => cxt.reset());
+        function validateItemsWithCount() {
+          const schValid = gen.name("_valid");
+          const count = gen.let("count", 0);
+          validateItems(schValid, () => gen.if(schValid, () => checkLimits(count)));
+        }
+        function validateItems(_valid, block) {
+          gen.forRange("i", 0, len, (i) => {
+            cxt.subschema({
+              keyword: "contains",
+              dataProp: i,
+              dataPropType: util_1.Type.Num,
+              compositeRule: true
+            }, _valid);
+            block();
+          });
+        }
+        function checkLimits(count) {
+          gen.code((0, codegen_1._)`${count}++`);
+          if (max === void 0) {
+            gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true).break());
+          } else {
+            gen.if((0, codegen_1._)`${count} > ${max}`, () => gen.assign(valid, false).break());
+            if (min === 1)
+              gen.assign(valid, true);
+            else
+              gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true));
+          }
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+var require_dependencies = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.validateSchemaDeps = exports.validatePropertyDeps = exports.error = void 0;
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var code_1 = require_code2();
+    exports.error = {
+      message: ({ params: { property, depsCount, deps } }) => {
+        const property_ies = depsCount === 1 ? "property" : "properties";
+        return (0, codegen_1.str)`must have ${property_ies} ${deps} when property ${property} is present`;
+      },
+      params: ({ params: { property, depsCount, deps, missingProperty } }) => (0, codegen_1._)`{property: ${property},
+    missingProperty: ${missingProperty},
+    depsCount: ${depsCount},
+    deps: ${deps}}`
+      // TODO change to reference
+    };
+    var def = {
+      keyword: "dependencies",
+      type: "object",
+      schemaType: "object",
+      error: exports.error,
+      code(cxt) {
+        const [propDeps, schDeps] = splitDependencies(cxt);
+        validatePropertyDeps(cxt, propDeps);
+        validateSchemaDeps(cxt, schDeps);
+      }
+    };
+    function splitDependencies({ schema: schema2 }) {
+      const propertyDeps = {};
+      const schemaDeps = {};
+      for (const key in schema2) {
+        if (key === "__proto__")
+          continue;
+        const deps = Array.isArray(schema2[key]) ? propertyDeps : schemaDeps;
+        deps[key] = schema2[key];
+      }
+      return [propertyDeps, schemaDeps];
+    }
+    function validatePropertyDeps(cxt, propertyDeps = cxt.schema) {
+      const { gen, data, it } = cxt;
+      if (Object.keys(propertyDeps).length === 0)
+        return;
+      const missing = gen.let("missing");
+      for (const prop in propertyDeps) {
+        const deps = propertyDeps[prop];
+        if (deps.length === 0)
+          continue;
+        const hasProperty = (0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties);
+        cxt.setParams({
+          property: prop,
+          depsCount: deps.length,
+          deps: deps.join(", ")
+        });
+        if (it.allErrors) {
+          gen.if(hasProperty, () => {
+            for (const depProp of deps) {
+              (0, code_1.checkReportMissingProp)(cxt, depProp);
+            }
+          });
+        } else {
+          gen.if((0, codegen_1._)`${hasProperty} && (${(0, code_1.checkMissingProp)(cxt, deps, missing)})`);
+          (0, code_1.reportMissingProp)(cxt, missing);
+          gen.else();
+        }
+      }
+    }
+    exports.validatePropertyDeps = validatePropertyDeps;
+    function validateSchemaDeps(cxt, schemaDeps = cxt.schema) {
+      const { gen, data, keyword, it } = cxt;
+      const valid = gen.name("valid");
+      for (const prop in schemaDeps) {
+        if ((0, util_1.alwaysValidSchema)(it, schemaDeps[prop]))
+          continue;
+        gen.if(
+          (0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties),
+          () => {
+            const schCxt = cxt.subschema({ keyword, schemaProp: prop }, valid);
+            cxt.mergeValidEvaluated(schCxt, valid);
+          },
+          () => gen.var(valid, true)
+          // TODO var
+        );
+        cxt.ok(valid);
+      }
+    }
+    exports.validateSchemaDeps = validateSchemaDeps;
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+var require_propertyNames = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: "property name must be valid",
+      params: ({ params }) => (0, codegen_1._)`{propertyName: ${params.propertyName}}`
+    };
+    var def = {
+      keyword: "propertyNames",
+      type: "object",
+      schemaType: ["object", "boolean"],
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, data, it } = cxt;
+        if ((0, util_1.alwaysValidSchema)(it, schema2))
+          return;
+        const valid = gen.name("valid");
+        gen.forIn("key", data, (key) => {
+          cxt.setParams({ propertyName: key });
+          cxt.subschema({
+            keyword: "propertyNames",
+            data: key,
+            dataTypes: ["string"],
+            propertyName: key,
+            compositeRule: true
+          }, valid);
+          gen.if((0, codegen_1.not)(valid), () => {
+            cxt.error(true);
+            if (!it.allErrors)
+              gen.break();
+          });
+        });
+        cxt.ok(valid);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+var require_additionalProperties = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var code_1 = require_code2();
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var util_1 = require_util2();
+    var error = {
+      message: "must NOT have additional properties",
+      params: ({ params }) => (0, codegen_1._)`{additionalProperty: ${params.additionalProperty}}`
+    };
+    var def = {
+      keyword: "additionalProperties",
+      type: ["object"],
+      schemaType: ["boolean", "object"],
+      allowUndefined: true,
+      trackErrors: true,
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, parentSchema, data, errsCount, it } = cxt;
+        if (!errsCount)
+          throw new Error("ajv implementation error");
+        const { allErrors, opts } = it;
+        it.props = true;
+        if (opts.removeAdditional !== "all" && (0, util_1.alwaysValidSchema)(it, schema2))
+          return;
+        const props = (0, code_1.allSchemaProperties)(parentSchema.properties);
+        const patProps = (0, code_1.allSchemaProperties)(parentSchema.patternProperties);
+        checkAdditionalProperties();
+        cxt.ok((0, codegen_1._)`${errsCount} === ${names_1.default.errors}`);
+        function checkAdditionalProperties() {
+          gen.forIn("key", data, (key) => {
+            if (!props.length && !patProps.length)
+              additionalPropertyCode(key);
+            else
+              gen.if(isAdditional(key), () => additionalPropertyCode(key));
+          });
+        }
+        function isAdditional(key) {
+          let definedProp;
+          if (props.length > 8) {
+            const propsSchema = (0, util_1.schemaRefOrVal)(it, parentSchema.properties, "properties");
+            definedProp = (0, code_1.isOwnProperty)(gen, propsSchema, key);
+          } else if (props.length) {
+            definedProp = (0, codegen_1.or)(...props.map((p) => (0, codegen_1._)`${key} === ${p}`));
+          } else {
+            definedProp = codegen_1.nil;
+          }
+          if (patProps.length) {
+            definedProp = (0, codegen_1.or)(definedProp, ...patProps.map((p) => (0, codegen_1._)`${(0, code_1.usePattern)(cxt, p)}.test(${key})`));
+          }
+          return (0, codegen_1.not)(definedProp);
+        }
+        function deleteAdditional(key) {
+          gen.code((0, codegen_1._)`delete ${data}[${key}]`);
+        }
+        function additionalPropertyCode(key) {
+          if (opts.removeAdditional === "all" || opts.removeAdditional && schema2 === false) {
+            deleteAdditional(key);
+            return;
+          }
+          if (schema2 === false) {
+            cxt.setParams({ additionalProperty: key });
+            cxt.error();
+            if (!allErrors)
+              gen.break();
+            return;
+          }
+          if (typeof schema2 == "object" && !(0, util_1.alwaysValidSchema)(it, schema2)) {
+            const valid = gen.name("valid");
+            if (opts.removeAdditional === "failing") {
+              applyAdditionalSchema(key, valid, false);
+              gen.if((0, codegen_1.not)(valid), () => {
+                cxt.reset();
+                deleteAdditional(key);
+              });
+            } else {
+              applyAdditionalSchema(key, valid);
+              if (!allErrors)
+                gen.if((0, codegen_1.not)(valid), () => gen.break());
+            }
+          }
+        }
+        function applyAdditionalSchema(key, valid, errors) {
+          const subschema = {
+            keyword: "additionalProperties",
+            dataProp: key,
+            dataPropType: util_1.Type.Str
+          };
+          if (errors === false) {
+            Object.assign(subschema, {
+              compositeRule: true,
+              createErrors: false,
+              allErrors: false
+            });
+          }
+          cxt.subschema(subschema, valid);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/properties.js
+var require_properties = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var validate_1 = require_validate();
+    var code_1 = require_code2();
+    var util_1 = require_util2();
+    var additionalProperties_1 = require_additionalProperties();
+    var def = {
+      keyword: "properties",
+      type: "object",
+      schemaType: "object",
+      code(cxt) {
+        const { gen, schema: schema2, parentSchema, data, it } = cxt;
+        if (it.opts.removeAdditional === "all" && parentSchema.additionalProperties === void 0) {
+          additionalProperties_1.default.code(new validate_1.KeywordCxt(it, additionalProperties_1.default, "additionalProperties"));
+        }
+        const allProps = (0, code_1.allSchemaProperties)(schema2);
+        for (const prop of allProps) {
+          it.definedProperties.add(prop);
+        }
+        if (it.opts.unevaluated && allProps.length && it.props !== true) {
+          it.props = util_1.mergeEvaluated.props(gen, (0, util_1.toHash)(allProps), it.props);
+        }
+        const properties = allProps.filter((p) => !(0, util_1.alwaysValidSchema)(it, schema2[p]));
+        if (properties.length === 0)
+          return;
+        const valid = gen.name("valid");
+        for (const prop of properties) {
+          if (hasDefault(prop)) {
+            applyPropertySchema(prop);
+          } else {
+            gen.if((0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties));
+            applyPropertySchema(prop);
+            if (!it.allErrors)
+              gen.else().var(valid, true);
+            gen.endIf();
+          }
+          cxt.it.definedProperties.add(prop);
+          cxt.ok(valid);
+        }
+        function hasDefault(prop) {
+          return it.opts.useDefaults && !it.compositeRule && schema2[prop].default !== void 0;
+        }
+        function applyPropertySchema(prop) {
+          cxt.subschema({
+            keyword: "properties",
+            schemaProp: prop,
+            dataProp: prop
+          }, valid);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+var require_patternProperties = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var code_1 = require_code2();
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var util_2 = require_util2();
+    var def = {
+      keyword: "patternProperties",
+      type: "object",
+      schemaType: "object",
+      code(cxt) {
+        const { gen, schema: schema2, data, parentSchema, it } = cxt;
+        const { opts } = it;
+        const patterns = (0, code_1.allSchemaProperties)(schema2);
+        const alwaysValidPatterns = patterns.filter((p) => (0, util_1.alwaysValidSchema)(it, schema2[p]));
+        if (patterns.length === 0 || alwaysValidPatterns.length === patterns.length && (!it.opts.unevaluated || it.props === true)) {
+          return;
+        }
+        const checkProperties = opts.strictSchema && !opts.allowMatchingProperties && parentSchema.properties;
+        const valid = gen.name("valid");
+        if (it.props !== true && !(it.props instanceof codegen_1.Name)) {
+          it.props = (0, util_2.evaluatedPropsToName)(gen, it.props);
+        }
+        const { props } = it;
+        validatePatternProperties();
+        function validatePatternProperties() {
+          for (const pat of patterns) {
+            if (checkProperties)
+              checkMatchingProperties(pat);
+            if (it.allErrors) {
+              validateProperties(pat);
+            } else {
+              gen.var(valid, true);
+              validateProperties(pat);
+              gen.if(valid);
+            }
+          }
+        }
+        function checkMatchingProperties(pat) {
+          for (const prop in checkProperties) {
+            if (new RegExp(pat).test(prop)) {
+              (0, util_1.checkStrictMode)(it, `property ${prop} matches pattern ${pat} (use allowMatchingProperties)`);
+            }
+          }
+        }
+        function validateProperties(pat) {
+          gen.forIn("key", data, (key) => {
+            gen.if((0, codegen_1._)`${(0, code_1.usePattern)(cxt, pat)}.test(${key})`, () => {
+              const alwaysValid = alwaysValidPatterns.includes(pat);
+              if (!alwaysValid) {
+                cxt.subschema({
+                  keyword: "patternProperties",
+                  schemaProp: pat,
+                  dataProp: key,
+                  dataPropType: util_2.Type.Str
+                }, valid);
+              }
+              if (it.opts.unevaluated && props !== true) {
+                gen.assign((0, codegen_1._)`${props}[${key}]`, true);
+              } else if (!alwaysValid && !it.allErrors) {
+                gen.if((0, codegen_1.not)(valid), () => gen.break());
+              }
+            });
+          });
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/not.js
+var require_not = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var util_1 = require_util2();
+    var def = {
+      keyword: "not",
+      schemaType: ["object", "boolean"],
+      trackErrors: true,
+      code(cxt) {
+        const { gen, schema: schema2, it } = cxt;
+        if ((0, util_1.alwaysValidSchema)(it, schema2)) {
+          cxt.fail();
+          return;
+        }
+        const valid = gen.name("valid");
+        cxt.subschema({
+          keyword: "not",
+          compositeRule: true,
+          createErrors: false,
+          allErrors: false
+        }, valid);
+        cxt.failResult(valid, () => cxt.reset(), () => cxt.error());
+      },
+      error: { message: "must NOT be valid" }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+var require_anyOf = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var code_1 = require_code2();
+    var def = {
+      keyword: "anyOf",
+      schemaType: "array",
+      trackErrors: true,
+      code: code_1.validateUnion,
+      error: { message: "must match a schema in anyOf" }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+var require_oneOf = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: "must match exactly one schema in oneOf",
+      params: ({ params }) => (0, codegen_1._)`{passingSchemas: ${params.passing}}`
+    };
+    var def = {
+      keyword: "oneOf",
+      schemaType: "array",
+      trackErrors: true,
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, parentSchema, it } = cxt;
+        if (!Array.isArray(schema2))
+          throw new Error("ajv implementation error");
+        if (it.opts.discriminator && parentSchema.discriminator)
+          return;
+        const schArr = schema2;
+        const valid = gen.let("valid", false);
+        const passing = gen.let("passing", null);
+        const schValid = gen.name("_valid");
+        cxt.setParams({ passing });
+        gen.block(validateOneOf);
+        cxt.result(valid, () => cxt.reset(), () => cxt.error(true));
+        function validateOneOf() {
+          schArr.forEach((sch, i) => {
+            let schCxt;
+            if ((0, util_1.alwaysValidSchema)(it, sch)) {
+              gen.var(schValid, true);
+            } else {
+              schCxt = cxt.subschema({
+                keyword: "oneOf",
+                schemaProp: i,
+                compositeRule: true
+              }, schValid);
+            }
+            if (i > 0) {
+              gen.if((0, codegen_1._)`${schValid} && ${valid}`).assign(valid, false).assign(passing, (0, codegen_1._)`[${passing}, ${i}]`).else();
+            }
+            gen.if(schValid, () => {
+              gen.assign(valid, true);
+              gen.assign(passing, i);
+              if (schCxt)
+                cxt.mergeEvaluated(schCxt, codegen_1.Name);
+            });
+          });
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/allOf.js
+var require_allOf = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var util_1 = require_util2();
+    var def = {
+      keyword: "allOf",
+      schemaType: "array",
+      code(cxt) {
+        const { gen, schema: schema2, it } = cxt;
+        if (!Array.isArray(schema2))
+          throw new Error("ajv implementation error");
+        const valid = gen.name("valid");
+        schema2.forEach((sch, i) => {
+          if ((0, util_1.alwaysValidSchema)(it, sch))
+            return;
+          const schCxt = cxt.subschema({ keyword: "allOf", schemaProp: i }, valid);
+          cxt.ok(valid);
+          cxt.mergeEvaluated(schCxt);
+        });
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/if.js
+var require_if = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: ({ params }) => (0, codegen_1.str)`must match "${params.ifClause}" schema`,
+      params: ({ params }) => (0, codegen_1._)`{failingKeyword: ${params.ifClause}}`
+    };
+    var def = {
+      keyword: "if",
+      schemaType: ["object", "boolean"],
+      trackErrors: true,
+      error,
+      code(cxt) {
+        const { gen, parentSchema, it } = cxt;
+        if (parentSchema.then === void 0 && parentSchema.else === void 0) {
+          (0, util_1.checkStrictMode)(it, '"if" without "then" and "else" is ignored');
+        }
+        const hasThen = hasSchema(it, "then");
+        const hasElse = hasSchema(it, "else");
+        if (!hasThen && !hasElse)
+          return;
+        const valid = gen.let("valid", true);
+        const schValid = gen.name("_valid");
+        validateIf();
+        cxt.reset();
+        if (hasThen && hasElse) {
+          const ifClause = gen.let("ifClause");
+          cxt.setParams({ ifClause });
+          gen.if(schValid, validateClause("then", ifClause), validateClause("else", ifClause));
+        } else if (hasThen) {
+          gen.if(schValid, validateClause("then"));
+        } else {
+          gen.if((0, codegen_1.not)(schValid), validateClause("else"));
+        }
+        cxt.pass(valid, () => cxt.error(true));
+        function validateIf() {
+          const schCxt = cxt.subschema({
+            keyword: "if",
+            compositeRule: true,
+            createErrors: false,
+            allErrors: false
+          }, schValid);
+          cxt.mergeEvaluated(schCxt);
+        }
+        function validateClause(keyword, ifClause) {
+          return () => {
+            const schCxt = cxt.subschema({ keyword }, schValid);
+            gen.assign(valid, schValid);
+            cxt.mergeValidEvaluated(schCxt, valid);
+            if (ifClause)
+              gen.assign(ifClause, (0, codegen_1._)`${keyword}`);
+            else
+              cxt.setParams({ ifClause: keyword });
+          };
+        }
+      }
+    };
+    function hasSchema(it, keyword) {
+      const schema2 = it.schema[keyword];
+      return schema2 !== void 0 && !(0, util_1.alwaysValidSchema)(it, schema2);
+    }
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+var require_thenElse = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var util_1 = require_util2();
+    var def = {
+      keyword: ["then", "else"],
+      schemaType: ["object", "boolean"],
+      code({ keyword, parentSchema, it }) {
+        if (parentSchema.if === void 0)
+          (0, util_1.checkStrictMode)(it, `"${keyword}" without "if" is ignored`);
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/index.js
+var require_applicator = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var additionalItems_1 = require_additionalItems();
+    var prefixItems_1 = require_prefixItems();
+    var items_1 = require_items();
+    var items2020_1 = require_items2020();
+    var contains_1 = require_contains();
+    var dependencies_1 = require_dependencies();
+    var propertyNames_1 = require_propertyNames();
+    var additionalProperties_1 = require_additionalProperties();
+    var properties_1 = require_properties();
+    var patternProperties_1 = require_patternProperties();
+    var not_1 = require_not();
+    var anyOf_1 = require_anyOf();
+    var oneOf_1 = require_oneOf();
+    var allOf_1 = require_allOf();
+    var if_1 = require_if();
+    var thenElse_1 = require_thenElse();
+    function getApplicator(draft2020 = false) {
+      const applicator = [
+        // any
+        not_1.default,
+        anyOf_1.default,
+        oneOf_1.default,
+        allOf_1.default,
+        if_1.default,
+        thenElse_1.default,
+        // object
+        propertyNames_1.default,
+        additionalProperties_1.default,
+        dependencies_1.default,
+        properties_1.default,
+        patternProperties_1.default
+      ];
+      if (draft2020)
+        applicator.push(prefixItems_1.default, items2020_1.default);
+      else
+        applicator.push(additionalItems_1.default, items_1.default);
+      applicator.push(contains_1.default);
+      return applicator;
+    }
+    exports.default = getApplicator;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/dynamic/dynamicAnchor.js
+var require_dynamicAnchor = __commonJS({
+  "node_modules/ajv/dist/vocabularies/dynamic/dynamicAnchor.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.dynamicAnchor = void 0;
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var compile_1 = require_compile();
+    var ref_1 = require_ref();
+    var def = {
+      keyword: "$dynamicAnchor",
+      schemaType: "string",
+      code: (cxt) => dynamicAnchor(cxt, cxt.schema)
+    };
+    function dynamicAnchor(cxt, anchor) {
+      const { gen, it } = cxt;
+      it.schemaEnv.root.dynamicAnchors[anchor] = true;
+      const v = (0, codegen_1._)`${names_1.default.dynamicAnchors}${(0, codegen_1.getProperty)(anchor)}`;
+      const validate = it.errSchemaPath === "#" ? it.validateName : _getValidate(cxt);
+      gen.if((0, codegen_1._)`!${v}`, () => gen.assign(v, validate));
+    }
+    exports.dynamicAnchor = dynamicAnchor;
+    function _getValidate(cxt) {
+      const { schemaEnv, schema: schema2, self } = cxt.it;
+      const { root, baseId, localRefs, meta } = schemaEnv.root;
+      const { schemaId } = self.opts;
+      const sch = new compile_1.SchemaEnv({ schema: schema2, schemaId, root, baseId, localRefs, meta });
+      compile_1.compileSchema.call(self, sch);
+      return (0, ref_1.getValidate)(cxt, sch);
+    }
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/dynamic/dynamicRef.js
+var require_dynamicRef = __commonJS({
+  "node_modules/ajv/dist/vocabularies/dynamic/dynamicRef.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.dynamicRef = void 0;
+    var codegen_1 = require_codegen();
+    var names_1 = require_names();
+    var ref_1 = require_ref();
+    var def = {
+      keyword: "$dynamicRef",
+      schemaType: "string",
+      code: (cxt) => dynamicRef(cxt, cxt.schema)
+    };
+    function dynamicRef(cxt, ref) {
+      const { gen, keyword, it } = cxt;
+      if (ref[0] !== "#")
+        throw new Error(`"${keyword}" only supports hash fragment reference`);
+      const anchor = ref.slice(1);
+      if (it.allErrors) {
+        _dynamicRef();
+      } else {
+        const valid = gen.let("valid", false);
+        _dynamicRef(valid);
+        cxt.ok(valid);
+      }
+      function _dynamicRef(valid) {
+        if (it.schemaEnv.root.dynamicAnchors[anchor]) {
+          const v = gen.let("_v", (0, codegen_1._)`${names_1.default.dynamicAnchors}${(0, codegen_1.getProperty)(anchor)}`);
+          gen.if(v, _callRef(v, valid), _callRef(it.validateName, valid));
+        } else {
+          _callRef(it.validateName, valid)();
+        }
+      }
+      function _callRef(validate, valid) {
+        return valid ? () => gen.block(() => {
+          (0, ref_1.callRef)(cxt, validate);
+          gen.let(valid, true);
+        }) : () => (0, ref_1.callRef)(cxt, validate);
+      }
+    }
+    exports.dynamicRef = dynamicRef;
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/dynamic/recursiveAnchor.js
+var require_recursiveAnchor = __commonJS({
+  "node_modules/ajv/dist/vocabularies/dynamic/recursiveAnchor.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dynamicAnchor_1 = require_dynamicAnchor();
+    var util_1 = require_util2();
+    var def = {
+      keyword: "$recursiveAnchor",
+      schemaType: "boolean",
+      code(cxt) {
+        if (cxt.schema)
+          (0, dynamicAnchor_1.dynamicAnchor)(cxt, "");
+        else
+          (0, util_1.checkStrictMode)(cxt.it, "$recursiveAnchor: false is ignored");
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/dynamic/recursiveRef.js
+var require_recursiveRef = __commonJS({
+  "node_modules/ajv/dist/vocabularies/dynamic/recursiveRef.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dynamicRef_1 = require_dynamicRef();
+    var def = {
+      keyword: "$recursiveRef",
+      schemaType: "string",
+      code: (cxt) => (0, dynamicRef_1.dynamicRef)(cxt, cxt.schema)
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/dynamic/index.js
+var require_dynamic = __commonJS({
+  "node_modules/ajv/dist/vocabularies/dynamic/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dynamicAnchor_1 = require_dynamicAnchor();
+    var dynamicRef_1 = require_dynamicRef();
+    var recursiveAnchor_1 = require_recursiveAnchor();
+    var recursiveRef_1 = require_recursiveRef();
+    var dynamic = [dynamicAnchor_1.default, dynamicRef_1.default, recursiveAnchor_1.default, recursiveRef_1.default];
+    exports.default = dynamic;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/dependentRequired.js
+var require_dependentRequired = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/dependentRequired.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dependencies_1 = require_dependencies();
+    var def = {
+      keyword: "dependentRequired",
+      type: "object",
+      schemaType: "object",
+      error: dependencies_1.error,
+      code: (cxt) => (0, dependencies_1.validatePropertyDeps)(cxt)
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/applicator/dependentSchemas.js
+var require_dependentSchemas = __commonJS({
+  "node_modules/ajv/dist/vocabularies/applicator/dependentSchemas.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dependencies_1 = require_dependencies();
+    var def = {
+      keyword: "dependentSchemas",
+      type: "object",
+      schemaType: "object",
+      code: (cxt) => (0, dependencies_1.validateSchemaDeps)(cxt)
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/validation/limitContains.js
+var require_limitContains = __commonJS({
+  "node_modules/ajv/dist/vocabularies/validation/limitContains.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var util_1 = require_util2();
+    var def = {
+      keyword: ["maxContains", "minContains"],
+      type: "array",
+      schemaType: "number",
+      code({ keyword, parentSchema, it }) {
+        if (parentSchema.contains === void 0) {
+          (0, util_1.checkStrictMode)(it, `"${keyword}" without "contains" is ignored`);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/next.js
+var require_next = __commonJS({
+  "node_modules/ajv/dist/vocabularies/next.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var dependentRequired_1 = require_dependentRequired();
+    var dependentSchemas_1 = require_dependentSchemas();
+    var limitContains_1 = require_limitContains();
+    var next = [dependentRequired_1.default, dependentSchemas_1.default, limitContains_1.default];
+    exports.default = next;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/unevaluated/unevaluatedProperties.js
+var require_unevaluatedProperties = __commonJS({
+  "node_modules/ajv/dist/vocabularies/unevaluated/unevaluatedProperties.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var names_1 = require_names();
+    var error = {
+      message: "must NOT have unevaluated properties",
+      params: ({ params }) => (0, codegen_1._)`{unevaluatedProperty: ${params.unevaluatedProperty}}`
+    };
+    var def = {
+      keyword: "unevaluatedProperties",
+      type: "object",
+      schemaType: ["boolean", "object"],
+      trackErrors: true,
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, data, errsCount, it } = cxt;
+        if (!errsCount)
+          throw new Error("ajv implementation error");
+        const { allErrors, props } = it;
+        if (props instanceof codegen_1.Name) {
+          gen.if((0, codegen_1._)`${props} !== true`, () => gen.forIn("key", data, (key) => gen.if(unevaluatedDynamic(props, key), () => unevaluatedPropCode(key))));
+        } else if (props !== true) {
+          gen.forIn("key", data, (key) => props === void 0 ? unevaluatedPropCode(key) : gen.if(unevaluatedStatic(props, key), () => unevaluatedPropCode(key)));
+        }
+        it.props = true;
+        cxt.ok((0, codegen_1._)`${errsCount} === ${names_1.default.errors}`);
+        function unevaluatedPropCode(key) {
+          if (schema2 === false) {
+            cxt.setParams({ unevaluatedProperty: key });
+            cxt.error();
+            if (!allErrors)
+              gen.break();
+            return;
+          }
+          if (!(0, util_1.alwaysValidSchema)(it, schema2)) {
+            const valid = gen.name("valid");
+            cxt.subschema({
+              keyword: "unevaluatedProperties",
+              dataProp: key,
+              dataPropType: util_1.Type.Str
+            }, valid);
+            if (!allErrors)
+              gen.if((0, codegen_1.not)(valid), () => gen.break());
+          }
+        }
+        function unevaluatedDynamic(evaluatedProps, key) {
+          return (0, codegen_1._)`!${evaluatedProps} || !${evaluatedProps}[${key}]`;
+        }
+        function unevaluatedStatic(evaluatedProps, key) {
+          const ps = [];
+          for (const p in evaluatedProps) {
+            if (evaluatedProps[p] === true)
+              ps.push((0, codegen_1._)`${key} !== ${p}`);
+          }
+          return (0, codegen_1.and)(...ps);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/unevaluated/unevaluatedItems.js
+var require_unevaluatedItems = __commonJS({
+  "node_modules/ajv/dist/vocabularies/unevaluated/unevaluatedItems.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var util_1 = require_util2();
+    var error = {
+      message: ({ params: { len } }) => (0, codegen_1.str)`must NOT have more than ${len} items`,
+      params: ({ params: { len } }) => (0, codegen_1._)`{limit: ${len}}`
+    };
+    var def = {
+      keyword: "unevaluatedItems",
+      type: "array",
+      schemaType: ["boolean", "object"],
+      error,
+      code(cxt) {
+        const { gen, schema: schema2, data, it } = cxt;
+        const items = it.items || 0;
+        if (items === true)
+          return;
+        const len = gen.const("len", (0, codegen_1._)`${data}.length`);
+        if (schema2 === false) {
+          cxt.setParams({ len: items });
+          cxt.fail((0, codegen_1._)`${len} > ${items}`);
+        } else if (typeof schema2 == "object" && !(0, util_1.alwaysValidSchema)(it, schema2)) {
+          const valid = gen.var("valid", (0, codegen_1._)`${len} <= ${items}`);
+          gen.if((0, codegen_1.not)(valid), () => validateItems(valid, items));
+          cxt.ok(valid);
+        }
+        it.items = true;
+        function validateItems(valid, from) {
+          gen.forRange("i", from, len, (i) => {
+            cxt.subschema({ keyword: "unevaluatedItems", dataProp: i, dataPropType: util_1.Type.Num }, valid);
+            if (!it.allErrors)
+              gen.if((0, codegen_1.not)(valid), () => gen.break());
+          });
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/unevaluated/index.js
+var require_unevaluated = __commonJS({
+  "node_modules/ajv/dist/vocabularies/unevaluated/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var unevaluatedProperties_1 = require_unevaluatedProperties();
+    var unevaluatedItems_1 = require_unevaluatedItems();
+    var unevaluated = [unevaluatedProperties_1.default, unevaluatedItems_1.default];
+    exports.default = unevaluated;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/format/format.js
+var require_format = __commonJS({
+  "node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var error = {
+      message: ({ schemaCode }) => (0, codegen_1.str)`must match format "${schemaCode}"`,
+      params: ({ schemaCode }) => (0, codegen_1._)`{format: ${schemaCode}}`
+    };
+    var def = {
+      keyword: "format",
+      type: ["number", "string"],
+      schemaType: "string",
+      $data: true,
+      error,
+      code(cxt, ruleType) {
+        const { gen, data, $data, schema: schema2, schemaCode, it } = cxt;
+        const { opts, errSchemaPath, schemaEnv, self } = it;
+        if (!opts.validateFormats)
+          return;
+        if ($data)
+          validate$DataFormat();
+        else
+          validateFormat();
+        function validate$DataFormat() {
+          const fmts = gen.scopeValue("formats", {
+            ref: self.formats,
+            code: opts.code.formats
+          });
+          const fDef = gen.const("fDef", (0, codegen_1._)`${fmts}[${schemaCode}]`);
+          const fType = gen.let("fType");
+          const format = gen.let("format");
+          gen.if((0, codegen_1._)`typeof ${fDef} == "object" && !(${fDef} instanceof RegExp)`, () => gen.assign(fType, (0, codegen_1._)`${fDef}.type || "string"`).assign(format, (0, codegen_1._)`${fDef}.validate`), () => gen.assign(fType, (0, codegen_1._)`"string"`).assign(format, fDef));
+          cxt.fail$data((0, codegen_1.or)(unknownFmt(), invalidFmt()));
+          function unknownFmt() {
+            if (opts.strictSchema === false)
+              return codegen_1.nil;
+            return (0, codegen_1._)`${schemaCode} && !${format}`;
+          }
+          function invalidFmt() {
+            const callFormat = schemaEnv.$async ? (0, codegen_1._)`(${fDef}.async ? await ${format}(${data}) : ${format}(${data}))` : (0, codegen_1._)`${format}(${data})`;
+            const validData = (0, codegen_1._)`(typeof ${format} == "function" ? ${callFormat} : ${format}.test(${data}))`;
+            return (0, codegen_1._)`${format} && ${format} !== true && ${fType} === ${ruleType} && !${validData}`;
+          }
+        }
+        function validateFormat() {
+          const formatDef = self.formats[schema2];
+          if (!formatDef) {
+            unknownFormat();
+            return;
+          }
+          if (formatDef === true)
+            return;
+          const [fmtType, format, fmtRef] = getFormat(formatDef);
+          if (fmtType === ruleType)
+            cxt.pass(validCondition());
+          function unknownFormat() {
+            if (opts.strictSchema === false) {
+              self.logger.warn(unknownMsg());
+              return;
+            }
+            throw new Error(unknownMsg());
+            function unknownMsg() {
+              return `unknown format "${schema2}" ignored in schema at path "${errSchemaPath}"`;
+            }
+          }
+          function getFormat(fmtDef) {
+            const code = fmtDef instanceof RegExp ? (0, codegen_1.regexpCode)(fmtDef) : opts.code.formats ? (0, codegen_1._)`${opts.code.formats}${(0, codegen_1.getProperty)(schema2)}` : void 0;
+            const fmt2 = gen.scopeValue("formats", { key: schema2, ref: fmtDef, code });
+            if (typeof fmtDef == "object" && !(fmtDef instanceof RegExp)) {
+              return [fmtDef.type || "string", fmtDef.validate, (0, codegen_1._)`${fmt2}.validate`];
+            }
+            return ["string", fmtDef, fmt2];
+          }
+          function validCondition() {
+            if (typeof formatDef == "object" && !(formatDef instanceof RegExp) && formatDef.async) {
+              if (!schemaEnv.$async)
+                throw new Error("async format in sync schema");
+              return (0, codegen_1._)`await ${fmtRef}(${data})`;
+            }
+            return typeof format == "function" ? (0, codegen_1._)`${fmtRef}(${data})` : (0, codegen_1._)`${fmtRef}.test(${data})`;
+          }
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/format/index.js
+var require_format2 = __commonJS({
+  "node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var format_1 = require_format();
+    var format = [format_1.default];
+    exports.default = format;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/metadata.js
+var require_metadata = __commonJS({
+  "node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.contentVocabulary = exports.metadataVocabulary = void 0;
+    exports.metadataVocabulary = [
+      "title",
+      "description",
+      "default",
+      "deprecated",
+      "readOnly",
+      "writeOnly",
+      "examples"
+    ];
+    exports.contentVocabulary = [
+      "contentMediaType",
+      "contentEncoding",
+      "contentSchema"
+    ];
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/draft2020.js
+var require_draft2020 = __commonJS({
+  "node_modules/ajv/dist/vocabularies/draft2020.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var core_1 = require_core2();
+    var validation_1 = require_validation();
+    var applicator_1 = require_applicator();
+    var dynamic_1 = require_dynamic();
+    var next_1 = require_next();
+    var unevaluated_1 = require_unevaluated();
+    var format_1 = require_format2();
+    var metadata_1 = require_metadata();
+    var draft2020Vocabularies = [
+      dynamic_1.default,
+      core_1.default,
+      validation_1.default,
+      (0, applicator_1.default)(true),
+      format_1.default,
+      metadata_1.metadataVocabulary,
+      metadata_1.contentVocabulary,
+      next_1.default,
+      unevaluated_1.default
+    ];
+    exports.default = draft2020Vocabularies;
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/discriminator/types.js
+var require_types = __commonJS({
+  "node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DiscrError = void 0;
+    var DiscrError;
+    (function(DiscrError2) {
+      DiscrError2["Tag"] = "tag";
+      DiscrError2["Mapping"] = "mapping";
+    })(DiscrError || (exports.DiscrError = DiscrError = {}));
+  }
+});
+
+// node_modules/ajv/dist/vocabularies/discriminator/index.js
+var require_discriminator = __commonJS({
+  "node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var codegen_1 = require_codegen();
+    var types_1 = require_types();
+    var compile_1 = require_compile();
+    var ref_error_1 = require_ref_error();
+    var util_1 = require_util2();
+    var error = {
+      message: ({ params: { discrError, tagName } }) => discrError === types_1.DiscrError.Tag ? `tag "${tagName}" must be string` : `value of tag "${tagName}" must be in oneOf`,
+      params: ({ params: { discrError, tag, tagName } }) => (0, codegen_1._)`{error: ${discrError}, tag: ${tagName}, tagValue: ${tag}}`
+    };
+    var def = {
+      keyword: "discriminator",
+      type: "object",
+      schemaType: "object",
+      error,
+      code(cxt) {
+        const { gen, data, schema: schema2, parentSchema, it } = cxt;
+        const { oneOf } = parentSchema;
+        if (!it.opts.discriminator) {
+          throw new Error("discriminator: requires discriminator option");
+        }
+        const tagName = schema2.propertyName;
+        if (typeof tagName != "string")
+          throw new Error("discriminator: requires propertyName");
+        if (schema2.mapping)
+          throw new Error("discriminator: mapping is not supported");
+        if (!oneOf)
+          throw new Error("discriminator: requires oneOf keyword");
+        const valid = gen.let("valid", false);
+        const tag = gen.const("tag", (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(tagName)}`);
+        gen.if((0, codegen_1._)`typeof ${tag} == "string"`, () => validateMapping(), () => cxt.error(false, { discrError: types_1.DiscrError.Tag, tag, tagName }));
+        cxt.ok(valid);
+        function validateMapping() {
+          const mapping = getMapping();
+          gen.if(false);
+          for (const tagValue in mapping) {
+            gen.elseIf((0, codegen_1._)`${tag} === ${tagValue}`);
+            gen.assign(valid, applyTagSchema(mapping[tagValue]));
+          }
+          gen.else();
+          cxt.error(false, { discrError: types_1.DiscrError.Mapping, tag, tagName });
+          gen.endIf();
+        }
+        function applyTagSchema(schemaProp) {
+          const _valid = gen.name("valid");
+          const schCxt = cxt.subschema({ keyword: "oneOf", schemaProp }, _valid);
+          cxt.mergeEvaluated(schCxt, codegen_1.Name);
+          return _valid;
+        }
+        function getMapping() {
+          var _a;
+          const oneOfMapping = {};
+          const topRequired = hasRequired(parentSchema);
+          let tagRequired = true;
+          for (let i = 0; i < oneOf.length; i++) {
+            let sch = oneOf[i];
+            if ((sch === null || sch === void 0 ? void 0 : sch.$ref) && !(0, util_1.schemaHasRulesButRef)(sch, it.self.RULES)) {
+              const ref = sch.$ref;
+              sch = compile_1.resolveRef.call(it.self, it.schemaEnv.root, it.baseId, ref);
+              if (sch instanceof compile_1.SchemaEnv)
+                sch = sch.schema;
+              if (sch === void 0)
+                throw new ref_error_1.default(it.opts.uriResolver, it.baseId, ref);
+            }
+            const propSch = (_a = sch === null || sch === void 0 ? void 0 : sch.properties) === null || _a === void 0 ? void 0 : _a[tagName];
+            if (typeof propSch != "object") {
+              throw new Error(`discriminator: oneOf subschemas (or referenced schemas) must have "properties/${tagName}"`);
+            }
+            tagRequired = tagRequired && (topRequired || hasRequired(sch));
+            addMappings(propSch, i);
+          }
+          if (!tagRequired)
+            throw new Error(`discriminator: "${tagName}" must be required`);
+          return oneOfMapping;
+          function hasRequired({ required }) {
+            return Array.isArray(required) && required.includes(tagName);
+          }
+          function addMappings(sch, i) {
+            if (sch.const) {
+              addMapping(sch.const, i);
+            } else if (sch.enum) {
+              for (const tagValue of sch.enum) {
+                addMapping(tagValue, i);
+              }
+            } else {
+              throw new Error(`discriminator: "properties/${tagName}" must have "const" or "enum"`);
+            }
+          }
+          function addMapping(tagValue, i) {
+            if (typeof tagValue != "string" || tagValue in oneOfMapping) {
+              throw new Error(`discriminator: "${tagName}" values must be unique strings`);
+            }
+            oneOfMapping[tagValue] = i;
+          }
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/schema.json
+var require_schema = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/schema.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/schema",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/unevaluated": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true,
+        "https://json-schema.org/draft/2020-12/vocab/meta-data": true,
+        "https://json-schema.org/draft/2020-12/vocab/format-annotation": true,
+        "https://json-schema.org/draft/2020-12/vocab/content": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Core and Validation specifications meta-schema",
+      allOf: [
+        { $ref: "meta/core" },
+        { $ref: "meta/applicator" },
+        { $ref: "meta/unevaluated" },
+        { $ref: "meta/validation" },
+        { $ref: "meta/meta-data" },
+        { $ref: "meta/format-annotation" },
+        { $ref: "meta/content" }
+      ],
+      type: ["object", "boolean"],
+      $comment: "This meta-schema also defines keywords that have appeared in previous drafts in order to prevent incompatible extensions as they remain in common use.",
+      properties: {
+        definitions: {
+          $comment: '"definitions" has been replaced by "$defs".',
+          type: "object",
+          additionalProperties: { $dynamicRef: "#meta" },
+          deprecated: true,
+          default: {}
+        },
+        dependencies: {
+          $comment: '"dependencies" has been split and replaced by "dependentSchemas" and "dependentRequired" in order to serve their differing semantics.',
+          type: "object",
+          additionalProperties: {
+            anyOf: [{ $dynamicRef: "#meta" }, { $ref: "meta/validation#/$defs/stringArray" }]
+          },
+          deprecated: true,
+          default: {}
+        },
+        $recursiveAnchor: {
+          $comment: '"$recursiveAnchor" has been replaced by "$dynamicAnchor".',
+          $ref: "meta/core#/$defs/anchorString",
+          deprecated: true
+        },
+        $recursiveRef: {
+          $comment: '"$recursiveRef" has been replaced by "$dynamicRef".',
+          $ref: "meta/core#/$defs/uriReferenceString",
+          deprecated: true
+        }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/applicator.json
+var require_applicator2 = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/applicator.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/applicator",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Applicator vocabulary meta-schema",
+      type: ["object", "boolean"],
+      properties: {
+        prefixItems: { $ref: "#/$defs/schemaArray" },
+        items: { $dynamicRef: "#meta" },
+        contains: { $dynamicRef: "#meta" },
+        additionalProperties: { $dynamicRef: "#meta" },
+        properties: {
+          type: "object",
+          additionalProperties: { $dynamicRef: "#meta" },
+          default: {}
+        },
+        patternProperties: {
+          type: "object",
+          additionalProperties: { $dynamicRef: "#meta" },
+          propertyNames: { format: "regex" },
+          default: {}
+        },
+        dependentSchemas: {
+          type: "object",
+          additionalProperties: { $dynamicRef: "#meta" },
+          default: {}
+        },
+        propertyNames: { $dynamicRef: "#meta" },
+        if: { $dynamicRef: "#meta" },
+        then: { $dynamicRef: "#meta" },
+        else: { $dynamicRef: "#meta" },
+        allOf: { $ref: "#/$defs/schemaArray" },
+        anyOf: { $ref: "#/$defs/schemaArray" },
+        oneOf: { $ref: "#/$defs/schemaArray" },
+        not: { $dynamicRef: "#meta" }
+      },
+      $defs: {
+        schemaArray: {
+          type: "array",
+          minItems: 1,
+          items: { $dynamicRef: "#meta" }
+        }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/unevaluated.json
+var require_unevaluated2 = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/unevaluated.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/unevaluated",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/unevaluated": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Unevaluated applicator vocabulary meta-schema",
+      type: ["object", "boolean"],
+      properties: {
+        unevaluatedItems: { $dynamicRef: "#meta" },
+        unevaluatedProperties: { $dynamicRef: "#meta" }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/content.json
+var require_content = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/content.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/content",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/content": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Content vocabulary meta-schema",
+      type: ["object", "boolean"],
+      properties: {
+        contentEncoding: { type: "string" },
+        contentMediaType: { type: "string" },
+        contentSchema: { $dynamicRef: "#meta" }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/core.json
+var require_core3 = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/core.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/core",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/core": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Core vocabulary meta-schema",
+      type: ["object", "boolean"],
+      properties: {
+        $id: {
+          $ref: "#/$defs/uriReferenceString",
+          $comment: "Non-empty fragments not allowed.",
+          pattern: "^[^#]*#?$"
+        },
+        $schema: { $ref: "#/$defs/uriString" },
+        $ref: { $ref: "#/$defs/uriReferenceString" },
+        $anchor: { $ref: "#/$defs/anchorString" },
+        $dynamicRef: { $ref: "#/$defs/uriReferenceString" },
+        $dynamicAnchor: { $ref: "#/$defs/anchorString" },
+        $vocabulary: {
+          type: "object",
+          propertyNames: { $ref: "#/$defs/uriString" },
+          additionalProperties: {
+            type: "boolean"
+          }
+        },
+        $comment: {
+          type: "string"
+        },
+        $defs: {
+          type: "object",
+          additionalProperties: { $dynamicRef: "#meta" }
+        }
+      },
+      $defs: {
+        anchorString: {
+          type: "string",
+          pattern: "^[A-Za-z_][-A-Za-z0-9._]*$"
+        },
+        uriString: {
+          type: "string",
+          format: "uri"
+        },
+        uriReferenceString: {
+          type: "string",
+          format: "uri-reference"
+        }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/format-annotation.json
+var require_format_annotation = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/format-annotation.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/format-annotation",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/format-annotation": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Format vocabulary meta-schema for annotation results",
+      type: ["object", "boolean"],
+      properties: {
+        format: { type: "string" }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/meta-data.json
+var require_meta_data = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/meta-data.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/meta-data",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/meta-data": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Meta-data vocabulary meta-schema",
+      type: ["object", "boolean"],
+      properties: {
+        title: {
+          type: "string"
+        },
+        description: {
+          type: "string"
+        },
+        default: true,
+        deprecated: {
+          type: "boolean",
+          default: false
+        },
+        readOnly: {
+          type: "boolean",
+          default: false
+        },
+        writeOnly: {
+          type: "boolean",
+          default: false
+        },
+        examples: {
+          type: "array",
+          items: true
+        }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/meta/validation.json
+var require_validation2 = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/meta/validation.json"(exports, module) {
+    module.exports = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://json-schema.org/draft/2020-12/meta/validation",
+      $vocabulary: {
+        "https://json-schema.org/draft/2020-12/vocab/validation": true
+      },
+      $dynamicAnchor: "meta",
+      title: "Validation vocabulary meta-schema",
+      type: ["object", "boolean"],
+      properties: {
+        type: {
+          anyOf: [
+            { $ref: "#/$defs/simpleTypes" },
+            {
+              type: "array",
+              items: { $ref: "#/$defs/simpleTypes" },
+              minItems: 1,
+              uniqueItems: true
+            }
+          ]
+        },
+        const: true,
+        enum: {
+          type: "array",
+          items: true
+        },
+        multipleOf: {
+          type: "number",
+          exclusiveMinimum: 0
+        },
+        maximum: {
+          type: "number"
+        },
+        exclusiveMaximum: {
+          type: "number"
+        },
+        minimum: {
+          type: "number"
+        },
+        exclusiveMinimum: {
+          type: "number"
+        },
+        maxLength: { $ref: "#/$defs/nonNegativeInteger" },
+        minLength: { $ref: "#/$defs/nonNegativeIntegerDefault0" },
+        pattern: {
+          type: "string",
+          format: "regex"
+        },
+        maxItems: { $ref: "#/$defs/nonNegativeInteger" },
+        minItems: { $ref: "#/$defs/nonNegativeIntegerDefault0" },
+        uniqueItems: {
+          type: "boolean",
+          default: false
+        },
+        maxContains: { $ref: "#/$defs/nonNegativeInteger" },
+        minContains: {
+          $ref: "#/$defs/nonNegativeInteger",
+          default: 1
+        },
+        maxProperties: { $ref: "#/$defs/nonNegativeInteger" },
+        minProperties: { $ref: "#/$defs/nonNegativeIntegerDefault0" },
+        required: { $ref: "#/$defs/stringArray" },
+        dependentRequired: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/$defs/stringArray"
+          }
+        }
+      },
+      $defs: {
+        nonNegativeInteger: {
+          type: "integer",
+          minimum: 0
+        },
+        nonNegativeIntegerDefault0: {
+          $ref: "#/$defs/nonNegativeInteger",
+          default: 0
+        },
+        simpleTypes: {
+          enum: ["array", "boolean", "integer", "null", "number", "object", "string"]
+        },
+        stringArray: {
+          type: "array",
+          items: { type: "string" },
+          uniqueItems: true,
+          default: []
+        }
+      }
+    };
+  }
+});
+
+// node_modules/ajv/dist/refs/json-schema-2020-12/index.js
+var require_json_schema_2020_12 = __commonJS({
+  "node_modules/ajv/dist/refs/json-schema-2020-12/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var metaSchema = require_schema();
+    var applicator = require_applicator2();
+    var unevaluated = require_unevaluated2();
+    var content = require_content();
+    var core2 = require_core3();
+    var format = require_format_annotation();
+    var metadata = require_meta_data();
+    var validation = require_validation2();
+    var META_SUPPORT_DATA = ["/properties"];
+    function addMetaSchema2020($data) {
+      ;
+      [
+        metaSchema,
+        applicator,
+        unevaluated,
+        content,
+        core2,
+        with$data(this, format),
+        metadata,
+        with$data(this, validation)
+      ].forEach((sch) => this.addMetaSchema(sch, void 0, false));
+      return this;
+      function with$data(ajv, sch) {
+        return $data ? ajv.$dataMetaSchema(sch, META_SUPPORT_DATA) : sch;
+      }
+    }
+    exports.default = addMetaSchema2020;
+  }
+});
+
+// node_modules/ajv/dist/2020.js
+var require__ = __commonJS({
+  "node_modules/ajv/dist/2020.js"(exports, module) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv2020 = void 0;
+    var core_1 = require_core();
+    var draft2020_1 = require_draft2020();
+    var discriminator_1 = require_discriminator();
+    var json_schema_2020_12_1 = require_json_schema_2020_12();
+    var META_SCHEMA_ID = "https://json-schema.org/draft/2020-12/schema";
+    var Ajv2020 = class extends core_1.default {
+      constructor(opts = {}) {
+        super({
+          ...opts,
+          dynamicRef: true,
+          next: true,
+          unevaluated: true
+        });
+      }
+      _addVocabularies() {
+        super._addVocabularies();
+        draft2020_1.default.forEach((v) => this.addVocabulary(v));
+        if (this.opts.discriminator)
+          this.addKeyword(discriminator_1.default);
+      }
+      _addDefaultMetaSchema() {
+        super._addDefaultMetaSchema();
+        const { $data, meta } = this.opts;
+        if (!meta)
+          return;
+        json_schema_2020_12_1.default.call(this, $data);
+        this.refs["http://json-schema.org/schema"] = META_SCHEMA_ID;
+      }
+      defaultMeta() {
+        return this.opts.defaultMeta = super.defaultMeta() || (this.getSchema(META_SCHEMA_ID) ? META_SCHEMA_ID : void 0);
+      }
+    };
+    exports.Ajv2020 = Ajv2020;
+    module.exports = exports = Ajv2020;
+    module.exports.Ajv2020 = Ajv2020;
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = Ajv2020;
+    var validate_1 = require_validate();
+    Object.defineProperty(exports, "KeywordCxt", { enumerable: true, get: function() {
+      return validate_1.KeywordCxt;
+    } });
+    var codegen_1 = require_codegen();
+    Object.defineProperty(exports, "_", { enumerable: true, get: function() {
+      return codegen_1._;
+    } });
+    Object.defineProperty(exports, "str", { enumerable: true, get: function() {
+      return codegen_1.str;
+    } });
+    Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
+      return codegen_1.stringify;
+    } });
+    Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
+      return codegen_1.nil;
+    } });
+    Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
+      return codegen_1.Name;
+    } });
+    Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function() {
+      return codegen_1.CodeGen;
+    } });
+    var validation_error_1 = require_validation_error();
+    Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function() {
+      return validation_error_1.default;
+    } });
+    var ref_error_1 = require_ref_error();
+    Object.defineProperty(exports, "MissingRefError", { enumerable: true, get: function() {
+      return ref_error_1.default;
+    } });
+  }
+});
+
+// node_modules/@apidevtools/openapi-schemas/schemas/v1.2/apiDeclaration.json
+var require_apiDeclaration = __commonJS({
+  "node_modules/@apidevtools/openapi-schemas/schemas/v1.2/apiDeclaration.json"(exports, module) {
+    module.exports = {
+      id: "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v1.2/apiDeclaration.json#",
+      $schema: "http://json-schema.org/draft-04/schema#",
+      type: "object",
+      required: ["swaggerVersion", "basePath", "apis"],
+      properties: {
+        swaggerVersion: { enum: ["1.2"] },
+        apiVersion: { type: "string" },
+        basePath: {
+          type: "string",
+          format: "uri",
+          pattern: "^https?://"
+        },
+        resourcePath: {
+          type: "string",
+          format: "uri",
+          pattern: "^/"
+        },
+        apis: {
+          type: "array",
+          items: { $ref: "#/definitions/apiObject" }
+        },
+        models: {
+          type: "object",
+          additionalProperties: {
+            $ref: "modelsObject.json#"
+          }
+        },
+        produces: { $ref: "#/definitions/mimeTypeArray" },
+        consumes: { $ref: "#/definitions/mimeTypeArray" },
+        authorizations: { $ref: "authorizationObject.json#" }
+      },
+      additionalProperties: false,
+      definitions: {
+        apiObject: {
+          type: "object",
+          required: ["path", "operations"],
+          properties: {
+            path: {
+              type: "string",
+              format: "uri-template",
+              pattern: "^/"
+            },
+            description: { type: "string" },
+            operations: {
+              type: "array",
+              items: { $ref: "operationObject.json#" }
+            }
+          },
+          additionalProperties: false
+        },
+        mimeTypeArray: {
+          type: "array",
+          items: {
+            type: "string",
+            format: "mime-type"
+          },
+          uniqueItems: true
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/openapi-schemas/schemas/v2.0/schema.json
+var require_schema2 = __commonJS({
+  "node_modules/@apidevtools/openapi-schemas/schemas/v2.0/schema.json"(exports, module) {
+    module.exports = {
+      title: "A JSON Schema for Swagger 2.0 API.",
+      id: "http://swagger.io/v2/schema.json#",
+      $schema: "http://json-schema.org/draft-04/schema#",
+      type: "object",
+      required: [
+        "swagger",
+        "info",
+        "paths"
+      ],
+      additionalProperties: false,
+      patternProperties: {
+        "^x-": {
+          $ref: "#/definitions/vendorExtension"
+        }
+      },
+      properties: {
+        swagger: {
+          type: "string",
+          enum: [
+            "2.0"
+          ],
+          description: "The Swagger version of this document."
+        },
+        info: {
+          $ref: "#/definitions/info"
+        },
+        host: {
+          type: "string",
+          pattern: "^[^{}/ :\\\\]+(?::\\d+)?$",
+          description: "The host (name or ip) of the API. Example: 'swagger.io'"
+        },
+        basePath: {
+          type: "string",
+          pattern: "^/",
+          description: "The base path to the API. Example: '/api'."
+        },
+        schemes: {
+          $ref: "#/definitions/schemesList"
+        },
+        consumes: {
+          description: "A list of MIME types accepted by the API.",
+          allOf: [
+            {
+              $ref: "#/definitions/mediaTypeList"
+            }
+          ]
+        },
+        produces: {
+          description: "A list of MIME types the API can produce.",
+          allOf: [
+            {
+              $ref: "#/definitions/mediaTypeList"
+            }
+          ]
+        },
+        paths: {
+          $ref: "#/definitions/paths"
+        },
+        definitions: {
+          $ref: "#/definitions/definitions"
+        },
+        parameters: {
+          $ref: "#/definitions/parameterDefinitions"
+        },
+        responses: {
+          $ref: "#/definitions/responseDefinitions"
+        },
+        security: {
+          $ref: "#/definitions/security"
+        },
+        securityDefinitions: {
+          $ref: "#/definitions/securityDefinitions"
+        },
+        tags: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/tag"
+          },
+          uniqueItems: true
+        },
+        externalDocs: {
+          $ref: "#/definitions/externalDocs"
+        }
+      },
+      definitions: {
+        info: {
+          type: "object",
+          description: "General information about the API.",
+          required: [
+            "version",
+            "title"
+          ],
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            title: {
+              type: "string",
+              description: "A unique and precise title of the API."
+            },
+            version: {
+              type: "string",
+              description: "A semantic version number of the API."
+            },
+            description: {
+              type: "string",
+              description: "A longer description of the API. Should be different from the title.  GitHub Flavored Markdown is allowed."
+            },
+            termsOfService: {
+              type: "string",
+              description: "The terms of service for the API."
+            },
+            contact: {
+              $ref: "#/definitions/contact"
+            },
+            license: {
+              $ref: "#/definitions/license"
+            }
+          }
+        },
+        contact: {
+          type: "object",
+          description: "Contact information for the owners of the API.",
+          additionalProperties: false,
+          properties: {
+            name: {
+              type: "string",
+              description: "The identifying name of the contact person/organization."
+            },
+            url: {
+              type: "string",
+              description: "The URL pointing to the contact information.",
+              format: "uri"
+            },
+            email: {
+              type: "string",
+              description: "The email address of the contact person/organization.",
+              format: "email"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        license: {
+          type: "object",
+          required: [
+            "name"
+          ],
+          additionalProperties: false,
+          properties: {
+            name: {
+              type: "string",
+              description: "The name of the license type. It's encouraged to use an OSI compatible license."
+            },
+            url: {
+              type: "string",
+              description: "The URL pointing to the license.",
+              format: "uri"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        paths: {
+          type: "object",
+          description: "Relative paths to the individual endpoints. They must be relative to the 'basePath'.",
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            },
+            "^/": {
+              $ref: "#/definitions/pathItem"
+            }
+          },
+          additionalProperties: false
+        },
+        definitions: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/definitions/schema"
+          },
+          description: "One or more JSON objects describing the schemas being consumed and produced by the API."
+        },
+        parameterDefinitions: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/definitions/parameter"
+          },
+          description: "One or more JSON representations for parameters"
+        },
+        responseDefinitions: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/definitions/response"
+          },
+          description: "One or more JSON representations for responses"
+        },
+        externalDocs: {
+          type: "object",
+          additionalProperties: false,
+          description: "information about external documentation",
+          required: [
+            "url"
+          ],
+          properties: {
+            description: {
+              type: "string"
+            },
+            url: {
+              type: "string",
+              format: "uri"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        examples: {
+          type: "object",
+          additionalProperties: true
+        },
+        mimeType: {
+          type: "string",
+          description: "The MIME type of the HTTP message."
+        },
+        operation: {
+          type: "object",
+          required: [
+            "responses"
+          ],
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            tags: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              uniqueItems: true
+            },
+            summary: {
+              type: "string",
+              description: "A brief summary of the operation."
+            },
+            description: {
+              type: "string",
+              description: "A longer description of the operation, GitHub Flavored Markdown is allowed."
+            },
+            externalDocs: {
+              $ref: "#/definitions/externalDocs"
+            },
+            operationId: {
+              type: "string",
+              description: "A unique identifier of the operation."
+            },
+            produces: {
+              description: "A list of MIME types the API can produce.",
+              allOf: [
+                {
+                  $ref: "#/definitions/mediaTypeList"
+                }
+              ]
+            },
+            consumes: {
+              description: "A list of MIME types the API can consume.",
+              allOf: [
+                {
+                  $ref: "#/definitions/mediaTypeList"
+                }
+              ]
+            },
+            parameters: {
+              $ref: "#/definitions/parametersList"
+            },
+            responses: {
+              $ref: "#/definitions/responses"
+            },
+            schemes: {
+              $ref: "#/definitions/schemesList"
+            },
+            deprecated: {
+              type: "boolean",
+              default: false
+            },
+            security: {
+              $ref: "#/definitions/security"
+            }
+          }
+        },
+        pathItem: {
+          type: "object",
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            $ref: {
+              type: "string"
+            },
+            get: {
+              $ref: "#/definitions/operation"
+            },
+            put: {
+              $ref: "#/definitions/operation"
+            },
+            post: {
+              $ref: "#/definitions/operation"
+            },
+            delete: {
+              $ref: "#/definitions/operation"
+            },
+            options: {
+              $ref: "#/definitions/operation"
+            },
+            head: {
+              $ref: "#/definitions/operation"
+            },
+            patch: {
+              $ref: "#/definitions/operation"
+            },
+            parameters: {
+              $ref: "#/definitions/parametersList"
+            }
+          }
+        },
+        responses: {
+          type: "object",
+          description: "Response objects names can either be any valid HTTP status code or 'default'.",
+          minProperties: 1,
+          additionalProperties: false,
+          patternProperties: {
+            "^([0-9]{3})$|^(default)$": {
+              $ref: "#/definitions/responseValue"
+            },
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          not: {
+            type: "object",
+            additionalProperties: false,
+            patternProperties: {
+              "^x-": {
+                $ref: "#/definitions/vendorExtension"
+              }
+            }
+          }
+        },
+        responseValue: {
+          oneOf: [
+            {
+              $ref: "#/definitions/response"
+            },
+            {
+              $ref: "#/definitions/jsonReference"
+            }
+          ]
+        },
+        response: {
+          type: "object",
+          required: [
+            "description"
+          ],
+          properties: {
+            description: {
+              type: "string"
+            },
+            schema: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/schema"
+                },
+                {
+                  $ref: "#/definitions/fileSchema"
+                }
+              ]
+            },
+            headers: {
+              $ref: "#/definitions/headers"
+            },
+            examples: {
+              $ref: "#/definitions/examples"
+            }
+          },
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        headers: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/definitions/header"
+          }
+        },
+        header: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "string",
+                "number",
+                "integer",
+                "boolean",
+                "array"
+              ]
+            },
+            format: {
+              type: "string"
+            },
+            items: {
+              $ref: "#/definitions/primitivesItems"
+            },
+            collectionFormat: {
+              $ref: "#/definitions/collectionFormat"
+            },
+            default: {
+              $ref: "#/definitions/default"
+            },
+            maximum: {
+              $ref: "#/definitions/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "#/definitions/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "#/definitions/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "#/definitions/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "#/definitions/maxLength"
+            },
+            minLength: {
+              $ref: "#/definitions/minLength"
+            },
+            pattern: {
+              $ref: "#/definitions/pattern"
+            },
+            maxItems: {
+              $ref: "#/definitions/maxItems"
+            },
+            minItems: {
+              $ref: "#/definitions/minItems"
+            },
+            uniqueItems: {
+              $ref: "#/definitions/uniqueItems"
+            },
+            enum: {
+              $ref: "#/definitions/enum"
+            },
+            multipleOf: {
+              $ref: "#/definitions/multipleOf"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        vendorExtension: {
+          description: "Any property starting with x- is valid.",
+          additionalProperties: true,
+          additionalItems: true
+        },
+        bodyParameter: {
+          type: "object",
+          required: [
+            "name",
+            "in",
+            "schema"
+          ],
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            description: {
+              type: "string",
+              description: "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+            },
+            name: {
+              type: "string",
+              description: "The name of the parameter."
+            },
+            in: {
+              type: "string",
+              description: "Determines the location of the parameter.",
+              enum: [
+                "body"
+              ]
+            },
+            required: {
+              type: "boolean",
+              description: "Determines whether or not this parameter is required or optional.",
+              default: false
+            },
+            schema: {
+              $ref: "#/definitions/schema"
+            }
+          },
+          additionalProperties: false
+        },
+        headerParameterSubSchema: {
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            required: {
+              type: "boolean",
+              description: "Determines whether or not this parameter is required or optional.",
+              default: false
+            },
+            in: {
+              type: "string",
+              description: "Determines the location of the parameter.",
+              enum: [
+                "header"
+              ]
+            },
+            description: {
+              type: "string",
+              description: "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+            },
+            name: {
+              type: "string",
+              description: "The name of the parameter."
+            },
+            type: {
+              type: "string",
+              enum: [
+                "string",
+                "number",
+                "boolean",
+                "integer",
+                "array"
+              ]
+            },
+            format: {
+              type: "string"
+            },
+            items: {
+              $ref: "#/definitions/primitivesItems"
+            },
+            collectionFormat: {
+              $ref: "#/definitions/collectionFormat"
+            },
+            default: {
+              $ref: "#/definitions/default"
+            },
+            maximum: {
+              $ref: "#/definitions/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "#/definitions/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "#/definitions/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "#/definitions/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "#/definitions/maxLength"
+            },
+            minLength: {
+              $ref: "#/definitions/minLength"
+            },
+            pattern: {
+              $ref: "#/definitions/pattern"
+            },
+            maxItems: {
+              $ref: "#/definitions/maxItems"
+            },
+            minItems: {
+              $ref: "#/definitions/minItems"
+            },
+            uniqueItems: {
+              $ref: "#/definitions/uniqueItems"
+            },
+            enum: {
+              $ref: "#/definitions/enum"
+            },
+            multipleOf: {
+              $ref: "#/definitions/multipleOf"
+            }
+          }
+        },
+        queryParameterSubSchema: {
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            required: {
+              type: "boolean",
+              description: "Determines whether or not this parameter is required or optional.",
+              default: false
+            },
+            in: {
+              type: "string",
+              description: "Determines the location of the parameter.",
+              enum: [
+                "query"
+              ]
+            },
+            description: {
+              type: "string",
+              description: "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+            },
+            name: {
+              type: "string",
+              description: "The name of the parameter."
+            },
+            allowEmptyValue: {
+              type: "boolean",
+              default: false,
+              description: "allows sending a parameter by name only or with an empty value."
+            },
+            type: {
+              type: "string",
+              enum: [
+                "string",
+                "number",
+                "boolean",
+                "integer",
+                "array"
+              ]
+            },
+            format: {
+              type: "string"
+            },
+            items: {
+              $ref: "#/definitions/primitivesItems"
+            },
+            collectionFormat: {
+              $ref: "#/definitions/collectionFormatWithMulti"
+            },
+            default: {
+              $ref: "#/definitions/default"
+            },
+            maximum: {
+              $ref: "#/definitions/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "#/definitions/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "#/definitions/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "#/definitions/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "#/definitions/maxLength"
+            },
+            minLength: {
+              $ref: "#/definitions/minLength"
+            },
+            pattern: {
+              $ref: "#/definitions/pattern"
+            },
+            maxItems: {
+              $ref: "#/definitions/maxItems"
+            },
+            minItems: {
+              $ref: "#/definitions/minItems"
+            },
+            uniqueItems: {
+              $ref: "#/definitions/uniqueItems"
+            },
+            enum: {
+              $ref: "#/definitions/enum"
+            },
+            multipleOf: {
+              $ref: "#/definitions/multipleOf"
+            }
+          }
+        },
+        formDataParameterSubSchema: {
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            required: {
+              type: "boolean",
+              description: "Determines whether or not this parameter is required or optional.",
+              default: false
+            },
+            in: {
+              type: "string",
+              description: "Determines the location of the parameter.",
+              enum: [
+                "formData"
+              ]
+            },
+            description: {
+              type: "string",
+              description: "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+            },
+            name: {
+              type: "string",
+              description: "The name of the parameter."
+            },
+            allowEmptyValue: {
+              type: "boolean",
+              default: false,
+              description: "allows sending a parameter by name only or with an empty value."
+            },
+            type: {
+              type: "string",
+              enum: [
+                "string",
+                "number",
+                "boolean",
+                "integer",
+                "array",
+                "file"
+              ]
+            },
+            format: {
+              type: "string"
+            },
+            items: {
+              $ref: "#/definitions/primitivesItems"
+            },
+            collectionFormat: {
+              $ref: "#/definitions/collectionFormatWithMulti"
+            },
+            default: {
+              $ref: "#/definitions/default"
+            },
+            maximum: {
+              $ref: "#/definitions/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "#/definitions/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "#/definitions/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "#/definitions/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "#/definitions/maxLength"
+            },
+            minLength: {
+              $ref: "#/definitions/minLength"
+            },
+            pattern: {
+              $ref: "#/definitions/pattern"
+            },
+            maxItems: {
+              $ref: "#/definitions/maxItems"
+            },
+            minItems: {
+              $ref: "#/definitions/minItems"
+            },
+            uniqueItems: {
+              $ref: "#/definitions/uniqueItems"
+            },
+            enum: {
+              $ref: "#/definitions/enum"
+            },
+            multipleOf: {
+              $ref: "#/definitions/multipleOf"
+            }
+          }
+        },
+        pathParameterSubSchema: {
+          additionalProperties: false,
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          required: [
+            "required"
+          ],
+          properties: {
+            required: {
+              type: "boolean",
+              enum: [
+                true
+              ],
+              description: "Determines whether or not this parameter is required or optional."
+            },
+            in: {
+              type: "string",
+              description: "Determines the location of the parameter.",
+              enum: [
+                "path"
+              ]
+            },
+            description: {
+              type: "string",
+              description: "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+            },
+            name: {
+              type: "string",
+              description: "The name of the parameter."
+            },
+            type: {
+              type: "string",
+              enum: [
+                "string",
+                "number",
+                "boolean",
+                "integer",
+                "array"
+              ]
+            },
+            format: {
+              type: "string"
+            },
+            items: {
+              $ref: "#/definitions/primitivesItems"
+            },
+            collectionFormat: {
+              $ref: "#/definitions/collectionFormat"
+            },
+            default: {
+              $ref: "#/definitions/default"
+            },
+            maximum: {
+              $ref: "#/definitions/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "#/definitions/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "#/definitions/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "#/definitions/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "#/definitions/maxLength"
+            },
+            minLength: {
+              $ref: "#/definitions/minLength"
+            },
+            pattern: {
+              $ref: "#/definitions/pattern"
+            },
+            maxItems: {
+              $ref: "#/definitions/maxItems"
+            },
+            minItems: {
+              $ref: "#/definitions/minItems"
+            },
+            uniqueItems: {
+              $ref: "#/definitions/uniqueItems"
+            },
+            enum: {
+              $ref: "#/definitions/enum"
+            },
+            multipleOf: {
+              $ref: "#/definitions/multipleOf"
+            }
+          }
+        },
+        nonBodyParameter: {
+          type: "object",
+          required: [
+            "name",
+            "in",
+            "type"
+          ],
+          oneOf: [
+            {
+              $ref: "#/definitions/headerParameterSubSchema"
+            },
+            {
+              $ref: "#/definitions/formDataParameterSubSchema"
+            },
+            {
+              $ref: "#/definitions/queryParameterSubSchema"
+            },
+            {
+              $ref: "#/definitions/pathParameterSubSchema"
+            }
+          ]
+        },
+        parameter: {
+          oneOf: [
+            {
+              $ref: "#/definitions/bodyParameter"
+            },
+            {
+              $ref: "#/definitions/nonBodyParameter"
+            }
+          ]
+        },
+        schema: {
+          type: "object",
+          description: "A deterministic version of a JSON Schema object.",
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          properties: {
+            $ref: {
+              type: "string"
+            },
+            format: {
+              type: "string"
+            },
+            title: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/title"
+            },
+            description: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/description"
+            },
+            default: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/default"
+            },
+            multipleOf: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/multipleOf"
+            },
+            maximum: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+            },
+            minLength: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+            },
+            pattern: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/pattern"
+            },
+            maxItems: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+            },
+            minItems: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+            },
+            uniqueItems: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
+            },
+            maxProperties: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+            },
+            minProperties: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+            },
+            required: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+            },
+            enum: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/enum"
+            },
+            additionalProperties: {
+              anyOf: [
+                {
+                  $ref: "#/definitions/schema"
+                },
+                {
+                  type: "boolean"
+                }
+              ],
+              default: {}
+            },
+            type: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/type"
+            },
+            items: {
+              anyOf: [
+                {
+                  $ref: "#/definitions/schema"
+                },
+                {
+                  type: "array",
+                  minItems: 1,
+                  items: {
+                    $ref: "#/definitions/schema"
+                  }
+                }
+              ],
+              default: {}
+            },
+            allOf: {
+              type: "array",
+              minItems: 1,
+              items: {
+                $ref: "#/definitions/schema"
+              }
+            },
+            properties: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/schema"
+              },
+              default: {}
+            },
+            discriminator: {
+              type: "string"
+            },
+            readOnly: {
+              type: "boolean",
+              default: false
+            },
+            xml: {
+              $ref: "#/definitions/xml"
+            },
+            externalDocs: {
+              $ref: "#/definitions/externalDocs"
+            },
+            example: {}
+          },
+          additionalProperties: false
+        },
+        fileSchema: {
+          type: "object",
+          description: "A deterministic version of a JSON Schema object.",
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          },
+          required: [
+            "type"
+          ],
+          properties: {
+            format: {
+              type: "string"
+            },
+            title: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/title"
+            },
+            description: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/description"
+            },
+            default: {
+              $ref: "http://json-schema.org/draft-04/schema#/properties/default"
+            },
+            required: {
+              $ref: "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+            },
+            type: {
+              type: "string",
+              enum: [
+                "file"
+              ]
+            },
+            readOnly: {
+              type: "boolean",
+              default: false
+            },
+            externalDocs: {
+              $ref: "#/definitions/externalDocs"
+            },
+            example: {}
+          },
+          additionalProperties: false
+        },
+        primitivesItems: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "string",
+                "number",
+                "integer",
+                "boolean",
+                "array"
+              ]
+            },
+            format: {
+              type: "string"
+            },
+            items: {
+              $ref: "#/definitions/primitivesItems"
+            },
+            collectionFormat: {
+              $ref: "#/definitions/collectionFormat"
+            },
+            default: {
+              $ref: "#/definitions/default"
+            },
+            maximum: {
+              $ref: "#/definitions/maximum"
+            },
+            exclusiveMaximum: {
+              $ref: "#/definitions/exclusiveMaximum"
+            },
+            minimum: {
+              $ref: "#/definitions/minimum"
+            },
+            exclusiveMinimum: {
+              $ref: "#/definitions/exclusiveMinimum"
+            },
+            maxLength: {
+              $ref: "#/definitions/maxLength"
+            },
+            minLength: {
+              $ref: "#/definitions/minLength"
+            },
+            pattern: {
+              $ref: "#/definitions/pattern"
+            },
+            maxItems: {
+              $ref: "#/definitions/maxItems"
+            },
+            minItems: {
+              $ref: "#/definitions/minItems"
+            },
+            uniqueItems: {
+              $ref: "#/definitions/uniqueItems"
+            },
+            enum: {
+              $ref: "#/definitions/enum"
+            },
+            multipleOf: {
+              $ref: "#/definitions/multipleOf"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        security: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/securityRequirement"
+          },
+          uniqueItems: true
+        },
+        securityRequirement: {
+          type: "object",
+          additionalProperties: {
+            type: "array",
+            items: {
+              type: "string"
+            },
+            uniqueItems: true
+          }
+        },
+        xml: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            name: {
+              type: "string"
+            },
+            namespace: {
+              type: "string"
+            },
+            prefix: {
+              type: "string"
+            },
+            attribute: {
+              type: "boolean",
+              default: false
+            },
+            wrapped: {
+              type: "boolean",
+              default: false
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        tag: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "name"
+          ],
+          properties: {
+            name: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            externalDocs: {
+              $ref: "#/definitions/externalDocs"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        securityDefinitions: {
+          type: "object",
+          additionalProperties: {
+            oneOf: [
+              {
+                $ref: "#/definitions/basicAuthenticationSecurity"
+              },
+              {
+                $ref: "#/definitions/apiKeySecurity"
+              },
+              {
+                $ref: "#/definitions/oauth2ImplicitSecurity"
+              },
+              {
+                $ref: "#/definitions/oauth2PasswordSecurity"
+              },
+              {
+                $ref: "#/definitions/oauth2ApplicationSecurity"
+              },
+              {
+                $ref: "#/definitions/oauth2AccessCodeSecurity"
+              }
+            ]
+          }
+        },
+        basicAuthenticationSecurity: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "basic"
+              ]
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        apiKeySecurity: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type",
+            "name",
+            "in"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "apiKey"
+              ]
+            },
+            name: {
+              type: "string"
+            },
+            in: {
+              type: "string",
+              enum: [
+                "header",
+                "query"
+              ]
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        oauth2ImplicitSecurity: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type",
+            "flow",
+            "authorizationUrl"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "oauth2"
+              ]
+            },
+            flow: {
+              type: "string",
+              enum: [
+                "implicit"
+              ]
+            },
+            scopes: {
+              $ref: "#/definitions/oauth2Scopes"
+            },
+            authorizationUrl: {
+              type: "string",
+              format: "uri"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        oauth2PasswordSecurity: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type",
+            "flow",
+            "tokenUrl"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "oauth2"
+              ]
+            },
+            flow: {
+              type: "string",
+              enum: [
+                "password"
+              ]
+            },
+            scopes: {
+              $ref: "#/definitions/oauth2Scopes"
+            },
+            tokenUrl: {
+              type: "string",
+              format: "uri"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        oauth2ApplicationSecurity: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type",
+            "flow",
+            "tokenUrl"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "oauth2"
+              ]
+            },
+            flow: {
+              type: "string",
+              enum: [
+                "application"
+              ]
+            },
+            scopes: {
+              $ref: "#/definitions/oauth2Scopes"
+            },
+            tokenUrl: {
+              type: "string",
+              format: "uri"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        oauth2AccessCodeSecurity: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "type",
+            "flow",
+            "authorizationUrl",
+            "tokenUrl"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "oauth2"
+              ]
+            },
+            flow: {
+              type: "string",
+              enum: [
+                "accessCode"
+              ]
+            },
+            scopes: {
+              $ref: "#/definitions/oauth2Scopes"
+            },
+            authorizationUrl: {
+              type: "string",
+              format: "uri"
+            },
+            tokenUrl: {
+              type: "string",
+              format: "uri"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {
+              $ref: "#/definitions/vendorExtension"
+            }
+          }
+        },
+        oauth2Scopes: {
+          type: "object",
+          additionalProperties: {
+            type: "string"
+          }
+        },
+        mediaTypeList: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/mimeType"
+          },
+          uniqueItems: true
+        },
+        parametersList: {
+          type: "array",
+          description: "The parameters needed to send a valid API call.",
+          additionalItems: false,
+          items: {
+            oneOf: [
+              {
+                $ref: "#/definitions/parameter"
+              },
+              {
+                $ref: "#/definitions/jsonReference"
+              }
+            ]
+          },
+          uniqueItems: true
+        },
+        schemesList: {
+          type: "array",
+          description: "The transfer protocol of the API.",
+          items: {
+            type: "string",
+            enum: [
+              "http",
+              "https",
+              "ws",
+              "wss"
+            ]
+          },
+          uniqueItems: true
+        },
+        collectionFormat: {
+          type: "string",
+          enum: [
+            "csv",
+            "ssv",
+            "tsv",
+            "pipes"
+          ],
+          default: "csv"
+        },
+        collectionFormatWithMulti: {
+          type: "string",
+          enum: [
+            "csv",
+            "ssv",
+            "tsv",
+            "pipes",
+            "multi"
+          ],
+          default: "csv"
+        },
+        title: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/title"
+        },
+        description: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/description"
+        },
+        default: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/default"
+        },
+        multipleOf: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/multipleOf"
+        },
+        maximum: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/maximum"
+        },
+        exclusiveMaximum: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
+        },
+        minimum: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/minimum"
+        },
+        exclusiveMinimum: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
+        },
+        maxLength: {
+          $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+        },
+        minLength: {
+          $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+        },
+        pattern: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/pattern"
+        },
+        maxItems: {
+          $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+        },
+        minItems: {
+          $ref: "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+        },
+        uniqueItems: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
+        },
+        enum: {
+          $ref: "http://json-schema.org/draft-04/schema#/properties/enum"
+        },
+        jsonReference: {
+          type: "object",
+          required: [
+            "$ref"
+          ],
+          additionalProperties: false,
+          properties: {
+            $ref: {
+              type: "string"
+            }
+          }
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/openapi-schemas/schemas/v3.0/schema.json
+var require_schema3 = __commonJS({
+  "node_modules/@apidevtools/openapi-schemas/schemas/v3.0/schema.json"(exports, module) {
+    module.exports = {
+      id: "https://spec.openapis.org/oas/3.0/schema/2019-04-02",
+      $schema: "http://json-schema.org/draft-04/schema#",
+      description: "Validation schema for OpenAPI Specification 3.0.X.",
+      type: "object",
+      required: [
+        "openapi",
+        "info",
+        "paths"
+      ],
+      properties: {
+        openapi: {
+          type: "string",
+          pattern: "^3\\.0\\.\\d(-.+)?$"
+        },
+        info: {
+          $ref: "#/definitions/Info"
+        },
+        externalDocs: {
+          $ref: "#/definitions/ExternalDocumentation"
+        },
+        servers: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/Server"
+          }
+        },
+        security: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/SecurityRequirement"
+          }
+        },
+        tags: {
+          type: "array",
+          items: {
+            $ref: "#/definitions/Tag"
+          },
+          uniqueItems: true
+        },
+        paths: {
+          $ref: "#/definitions/Paths"
+        },
+        components: {
+          $ref: "#/definitions/Components"
+        }
+      },
+      patternProperties: {
+        "^x-": {}
+      },
+      additionalProperties: false,
+      definitions: {
+        Reference: {
+          type: "object",
+          required: [
+            "$ref"
+          ],
+          patternProperties: {
+            "^\\$ref$": {
+              type: "string",
+              format: "uri-reference"
+            }
+          }
+        },
+        Info: {
+          type: "object",
+          required: [
+            "title",
+            "version"
+          ],
+          properties: {
+            title: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            termsOfService: {
+              type: "string",
+              format: "uri-reference"
+            },
+            contact: {
+              $ref: "#/definitions/Contact"
+            },
+            license: {
+              $ref: "#/definitions/License"
+            },
+            version: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Contact: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            url: {
+              type: "string",
+              format: "uri-reference"
+            },
+            email: {
+              type: "string",
+              format: "email"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        License: {
+          type: "object",
+          required: [
+            "name"
+          ],
+          properties: {
+            name: {
+              type: "string"
+            },
+            url: {
+              type: "string",
+              format: "uri-reference"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Server: {
+          type: "object",
+          required: [
+            "url"
+          ],
+          properties: {
+            url: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            variables: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/ServerVariable"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        ServerVariable: {
+          type: "object",
+          required: [
+            "default"
+          ],
+          properties: {
+            enum: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
+            default: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Components: {
+          type: "object",
+          properties: {
+            schemas: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Schema"
+                    },
+                    {
+                      $ref: "#/definitions/Reference"
+                    }
+                  ]
+                }
+              }
+            },
+            responses: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/Response"
+                    }
+                  ]
+                }
+              }
+            },
+            parameters: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/Parameter"
+                    }
+                  ]
+                }
+              }
+            },
+            examples: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/Example"
+                    }
+                  ]
+                }
+              }
+            },
+            requestBodies: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/RequestBody"
+                    }
+                  ]
+                }
+              }
+            },
+            headers: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/Header"
+                    }
+                  ]
+                }
+              }
+            },
+            securitySchemes: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/SecurityScheme"
+                    }
+                  ]
+                }
+              }
+            },
+            links: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/Link"
+                    }
+                  ]
+                }
+              }
+            },
+            callbacks: {
+              type: "object",
+              patternProperties: {
+                "^[a-zA-Z0-9\\.\\-_]+$": {
+                  oneOf: [
+                    {
+                      $ref: "#/definitions/Reference"
+                    },
+                    {
+                      $ref: "#/definitions/Callback"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Schema: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string"
+            },
+            multipleOf: {
+              type: "number",
+              minimum: 0,
+              exclusiveMinimum: true
+            },
+            maximum: {
+              type: "number"
+            },
+            exclusiveMaximum: {
+              type: "boolean",
+              default: false
+            },
+            minimum: {
+              type: "number"
+            },
+            exclusiveMinimum: {
+              type: "boolean",
+              default: false
+            },
+            maxLength: {
+              type: "integer",
+              minimum: 0
+            },
+            minLength: {
+              type: "integer",
+              minimum: 0,
+              default: 0
+            },
+            pattern: {
+              type: "string",
+              format: "regex"
+            },
+            maxItems: {
+              type: "integer",
+              minimum: 0
+            },
+            minItems: {
+              type: "integer",
+              minimum: 0,
+              default: 0
+            },
+            uniqueItems: {
+              type: "boolean",
+              default: false
+            },
+            maxProperties: {
+              type: "integer",
+              minimum: 0
+            },
+            minProperties: {
+              type: "integer",
+              minimum: 0,
+              default: 0
+            },
+            required: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              minItems: 1,
+              uniqueItems: true
+            },
+            enum: {
+              type: "array",
+              items: {},
+              minItems: 1,
+              uniqueItems: false
+            },
+            type: {
+              type: "string",
+              enum: [
+                "array",
+                "boolean",
+                "integer",
+                "number",
+                "object",
+                "string"
+              ]
+            },
+            not: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Schema"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            allOf: {
+              type: "array",
+              items: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Schema"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            oneOf: {
+              type: "array",
+              items: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Schema"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            anyOf: {
+              type: "array",
+              items: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Schema"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            items: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Schema"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            properties: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Schema"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            additionalProperties: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Schema"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                },
+                {
+                  type: "boolean"
+                }
+              ],
+              default: true
+            },
+            description: {
+              type: "string"
+            },
+            format: {
+              type: "string"
+            },
+            default: {},
+            nullable: {
+              type: "boolean",
+              default: false
+            },
+            discriminator: {
+              $ref: "#/definitions/Discriminator"
+            },
+            readOnly: {
+              type: "boolean",
+              default: false
+            },
+            writeOnly: {
+              type: "boolean",
+              default: false
+            },
+            example: {},
+            externalDocs: {
+              $ref: "#/definitions/ExternalDocumentation"
+            },
+            deprecated: {
+              type: "boolean",
+              default: false
+            },
+            xml: {
+              $ref: "#/definitions/XML"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Discriminator: {
+          type: "object",
+          required: [
+            "propertyName"
+          ],
+          properties: {
+            propertyName: {
+              type: "string"
+            },
+            mapping: {
+              type: "object",
+              additionalProperties: {
+                type: "string"
+              }
+            }
+          }
+        },
+        XML: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            namespace: {
+              type: "string",
+              format: "uri"
+            },
+            prefix: {
+              type: "string"
+            },
+            attribute: {
+              type: "boolean",
+              default: false
+            },
+            wrapped: {
+              type: "boolean",
+              default: false
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Response: {
+          type: "object",
+          required: [
+            "description"
+          ],
+          properties: {
+            description: {
+              type: "string"
+            },
+            headers: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Header"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            content: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/MediaType"
+              }
+            },
+            links: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Link"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        MediaType: {
+          type: "object",
+          properties: {
+            schema: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Schema"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            example: {},
+            examples: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Example"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            encoding: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/Encoding"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false,
+          allOf: [
+            {
+              $ref: "#/definitions/ExampleXORExamples"
+            }
+          ]
+        },
+        Example: {
+          type: "object",
+          properties: {
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            value: {},
+            externalValue: {
+              type: "string",
+              format: "uri-reference"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Header: {
+          type: "object",
+          properties: {
+            description: {
+              type: "string"
+            },
+            required: {
+              type: "boolean",
+              default: false
+            },
+            deprecated: {
+              type: "boolean",
+              default: false
+            },
+            allowEmptyValue: {
+              type: "boolean",
+              default: false
+            },
+            style: {
+              type: "string",
+              enum: [
+                "simple"
+              ],
+              default: "simple"
+            },
+            explode: {
+              type: "boolean"
+            },
+            allowReserved: {
+              type: "boolean",
+              default: false
+            },
+            schema: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Schema"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            content: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/MediaType"
+              },
+              minProperties: 1,
+              maxProperties: 1
+            },
+            example: {},
+            examples: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Example"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false,
+          allOf: [
+            {
+              $ref: "#/definitions/ExampleXORExamples"
+            },
+            {
+              $ref: "#/definitions/SchemaXORContent"
+            }
+          ]
+        },
+        Paths: {
+          type: "object",
+          patternProperties: {
+            "^\\/": {
+              $ref: "#/definitions/PathItem"
+            },
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        PathItem: {
+          type: "object",
+          properties: {
+            $ref: {
+              type: "string"
+            },
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            servers: {
+              type: "array",
+              items: {
+                $ref: "#/definitions/Server"
+              }
+            },
+            parameters: {
+              type: "array",
+              items: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Parameter"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              },
+              uniqueItems: true
+            }
+          },
+          patternProperties: {
+            "^(get|put|post|delete|options|head|patch|trace)$": {
+              $ref: "#/definitions/Operation"
+            },
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Operation: {
+          type: "object",
+          required: [
+            "responses"
+          ],
+          properties: {
+            tags: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            externalDocs: {
+              $ref: "#/definitions/ExternalDocumentation"
+            },
+            operationId: {
+              type: "string"
+            },
+            parameters: {
+              type: "array",
+              items: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Parameter"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              },
+              uniqueItems: true
+            },
+            requestBody: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/RequestBody"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            responses: {
+              $ref: "#/definitions/Responses"
+            },
+            callbacks: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Callback"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            },
+            deprecated: {
+              type: "boolean",
+              default: false
+            },
+            security: {
+              type: "array",
+              items: {
+                $ref: "#/definitions/SecurityRequirement"
+              }
+            },
+            servers: {
+              type: "array",
+              items: {
+                $ref: "#/definitions/Server"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Responses: {
+          type: "object",
+          properties: {
+            default: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Response"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            }
+          },
+          patternProperties: {
+            "^[1-5](?:\\d{2}|XX)$": {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Response"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            "^x-": {}
+          },
+          minProperties: 1,
+          additionalProperties: false
+        },
+        SecurityRequirement: {
+          type: "object",
+          additionalProperties: {
+            type: "array",
+            items: {
+              type: "string"
+            }
+          }
+        },
+        Tag: {
+          type: "object",
+          required: [
+            "name"
+          ],
+          properties: {
+            name: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            externalDocs: {
+              $ref: "#/definitions/ExternalDocumentation"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        ExternalDocumentation: {
+          type: "object",
+          required: [
+            "url"
+          ],
+          properties: {
+            description: {
+              type: "string"
+            },
+            url: {
+              type: "string",
+              format: "uri-reference"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        ExampleXORExamples: {
+          description: "Example and examples are mutually exclusive",
+          not: {
+            required: [
+              "example",
+              "examples"
+            ]
+          }
+        },
+        SchemaXORContent: {
+          description: "Schema and content are mutually exclusive, at least one is required",
+          not: {
+            required: [
+              "schema",
+              "content"
+            ]
+          },
+          oneOf: [
+            {
+              required: [
+                "schema"
+              ]
+            },
+            {
+              required: [
+                "content"
+              ],
+              description: "Some properties are not allowed if content is present",
+              allOf: [
+                {
+                  not: {
+                    required: [
+                      "style"
+                    ]
+                  }
+                },
+                {
+                  not: {
+                    required: [
+                      "explode"
+                    ]
+                  }
+                },
+                {
+                  not: {
+                    required: [
+                      "allowReserved"
+                    ]
+                  }
+                },
+                {
+                  not: {
+                    required: [
+                      "example"
+                    ]
+                  }
+                },
+                {
+                  not: {
+                    required: [
+                      "examples"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        Parameter: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            in: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            required: {
+              type: "boolean",
+              default: false
+            },
+            deprecated: {
+              type: "boolean",
+              default: false
+            },
+            allowEmptyValue: {
+              type: "boolean",
+              default: false
+            },
+            style: {
+              type: "string"
+            },
+            explode: {
+              type: "boolean"
+            },
+            allowReserved: {
+              type: "boolean",
+              default: false
+            },
+            schema: {
+              oneOf: [
+                {
+                  $ref: "#/definitions/Schema"
+                },
+                {
+                  $ref: "#/definitions/Reference"
+                }
+              ]
+            },
+            content: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/MediaType"
+              },
+              minProperties: 1,
+              maxProperties: 1
+            },
+            example: {},
+            examples: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  {
+                    $ref: "#/definitions/Example"
+                  },
+                  {
+                    $ref: "#/definitions/Reference"
+                  }
+                ]
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false,
+          required: [
+            "name",
+            "in"
+          ],
+          allOf: [
+            {
+              $ref: "#/definitions/ExampleXORExamples"
+            },
+            {
+              $ref: "#/definitions/SchemaXORContent"
+            },
+            {
+              $ref: "#/definitions/ParameterLocation"
+            }
+          ]
+        },
+        ParameterLocation: {
+          description: "Parameter location",
+          oneOf: [
+            {
+              description: "Parameter in path",
+              required: [
+                "required"
+              ],
+              properties: {
+                in: {
+                  enum: [
+                    "path"
+                  ]
+                },
+                style: {
+                  enum: [
+                    "matrix",
+                    "label",
+                    "simple"
+                  ],
+                  default: "simple"
+                },
+                required: {
+                  enum: [
+                    true
+                  ]
+                }
+              }
+            },
+            {
+              description: "Parameter in query",
+              properties: {
+                in: {
+                  enum: [
+                    "query"
+                  ]
+                },
+                style: {
+                  enum: [
+                    "form",
+                    "spaceDelimited",
+                    "pipeDelimited",
+                    "deepObject"
+                  ],
+                  default: "form"
+                }
+              }
+            },
+            {
+              description: "Parameter in header",
+              properties: {
+                in: {
+                  enum: [
+                    "header"
+                  ]
+                },
+                style: {
+                  enum: [
+                    "simple"
+                  ],
+                  default: "simple"
+                }
+              }
+            },
+            {
+              description: "Parameter in cookie",
+              properties: {
+                in: {
+                  enum: [
+                    "cookie"
+                  ]
+                },
+                style: {
+                  enum: [
+                    "form"
+                  ],
+                  default: "form"
+                }
+              }
+            }
+          ]
+        },
+        RequestBody: {
+          type: "object",
+          required: [
+            "content"
+          ],
+          properties: {
+            description: {
+              type: "string"
+            },
+            content: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/MediaType"
+              }
+            },
+            required: {
+              type: "boolean",
+              default: false
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        SecurityScheme: {
+          oneOf: [
+            {
+              $ref: "#/definitions/APIKeySecurityScheme"
+            },
+            {
+              $ref: "#/definitions/HTTPSecurityScheme"
+            },
+            {
+              $ref: "#/definitions/OAuth2SecurityScheme"
+            },
+            {
+              $ref: "#/definitions/OpenIdConnectSecurityScheme"
+            }
+          ]
+        },
+        APIKeySecurityScheme: {
+          type: "object",
+          required: [
+            "type",
+            "name",
+            "in"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "apiKey"
+              ]
+            },
+            name: {
+              type: "string"
+            },
+            in: {
+              type: "string",
+              enum: [
+                "header",
+                "query",
+                "cookie"
+              ]
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        HTTPSecurityScheme: {
+          type: "object",
+          required: [
+            "scheme",
+            "type"
+          ],
+          properties: {
+            scheme: {
+              type: "string"
+            },
+            bearerFormat: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            type: {
+              type: "string",
+              enum: [
+                "http"
+              ]
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false,
+          oneOf: [
+            {
+              description: "Bearer",
+              properties: {
+                scheme: {
+                  enum: [
+                    "bearer"
+                  ]
+                }
+              }
+            },
+            {
+              description: "Non Bearer",
+              not: {
+                required: [
+                  "bearerFormat"
+                ]
+              },
+              properties: {
+                scheme: {
+                  not: {
+                    enum: [
+                      "bearer"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        OAuth2SecurityScheme: {
+          type: "object",
+          required: [
+            "type",
+            "flows"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "oauth2"
+              ]
+            },
+            flows: {
+              $ref: "#/definitions/OAuthFlows"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        OpenIdConnectSecurityScheme: {
+          type: "object",
+          required: [
+            "type",
+            "openIdConnectUrl"
+          ],
+          properties: {
+            type: {
+              type: "string",
+              enum: [
+                "openIdConnect"
+              ]
+            },
+            openIdConnectUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        OAuthFlows: {
+          type: "object",
+          properties: {
+            implicit: {
+              $ref: "#/definitions/ImplicitOAuthFlow"
+            },
+            password: {
+              $ref: "#/definitions/PasswordOAuthFlow"
+            },
+            clientCredentials: {
+              $ref: "#/definitions/ClientCredentialsFlow"
+            },
+            authorizationCode: {
+              $ref: "#/definitions/AuthorizationCodeOAuthFlow"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        ImplicitOAuthFlow: {
+          type: "object",
+          required: [
+            "authorizationUrl",
+            "scopes"
+          ],
+          properties: {
+            authorizationUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            refreshUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            scopes: {
+              type: "object",
+              additionalProperties: {
+                type: "string"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        PasswordOAuthFlow: {
+          type: "object",
+          required: [
+            "tokenUrl"
+          ],
+          properties: {
+            tokenUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            refreshUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            scopes: {
+              type: "object",
+              additionalProperties: {
+                type: "string"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        ClientCredentialsFlow: {
+          type: "object",
+          required: [
+            "tokenUrl"
+          ],
+          properties: {
+            tokenUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            refreshUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            scopes: {
+              type: "object",
+              additionalProperties: {
+                type: "string"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        AuthorizationCodeOAuthFlow: {
+          type: "object",
+          required: [
+            "authorizationUrl",
+            "tokenUrl"
+          ],
+          properties: {
+            authorizationUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            tokenUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            refreshUrl: {
+              type: "string",
+              format: "uri-reference"
+            },
+            scopes: {
+              type: "object",
+              additionalProperties: {
+                type: "string"
+              }
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false
+        },
+        Link: {
+          type: "object",
+          properties: {
+            operationId: {
+              type: "string"
+            },
+            operationRef: {
+              type: "string",
+              format: "uri-reference"
+            },
+            parameters: {
+              type: "object",
+              additionalProperties: {}
+            },
+            requestBody: {},
+            description: {
+              type: "string"
+            },
+            server: {
+              $ref: "#/definitions/Server"
+            }
+          },
+          patternProperties: {
+            "^x-": {}
+          },
+          additionalProperties: false,
+          not: {
+            description: "Operation Id and Operation Ref are mutually exclusive",
+            required: [
+              "operationId",
+              "operationRef"
+            ]
+          }
+        },
+        Callback: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/definitions/PathItem"
+          },
+          patternProperties: {
+            "^x-": {}
+          }
+        },
+        Encoding: {
+          type: "object",
+          properties: {
+            contentType: {
+              type: "string"
+            },
+            headers: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/definitions/Header"
+              }
+            },
+            style: {
+              type: "string",
+              enum: [
+                "form",
+                "spaceDelimited",
+                "pipeDelimited",
+                "deepObject"
+              ]
+            },
+            explode: {
+              type: "boolean"
+            },
+            allowReserved: {
+              type: "boolean",
+              default: false
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/openapi-schemas/schemas/v3.1/schema.json
+var require_schema4 = __commonJS({
+  "node_modules/@apidevtools/openapi-schemas/schemas/v3.1/schema.json"(exports, module) {
+    module.exports = {
+      $id: "https://spec.openapis.org/oas/3.1/schema/2021-04-15",
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      type: "object",
+      properties: {
+        openapi: {
+          type: "string",
+          pattern: "^3\\.1\\.\\d+(-.+)?$"
+        },
+        info: {
+          $ref: "#/$defs/info"
+        },
+        jsonSchemaDialect: {
+          $ref: "#/$defs/uri",
+          default: "https://spec.openapis.org/oas/3.1/dialect/base"
+        },
+        servers: {
+          type: "array",
+          items: {
+            $ref: "#/$defs/server"
+          }
+        },
+        paths: {
+          $ref: "#/$defs/paths"
+        },
+        webhooks: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/$defs/path-item-or-reference"
+          }
+        },
+        components: {
+          $ref: "#/$defs/components"
+        },
+        security: {
+          type: "array",
+          items: {
+            $ref: "#/$defs/security-requirement"
+          }
+        },
+        tags: {
+          type: "array",
+          items: {
+            $ref: "#/$defs/tag"
+          }
+        },
+        externalDocs: {
+          $ref: "#/$defs/external-documentation"
+        }
+      },
+      required: [
+        "openapi",
+        "info"
+      ],
+      anyOf: [
+        {
+          required: [
+            "paths"
+          ]
+        },
+        {
+          required: [
+            "components"
+          ]
+        },
+        {
+          required: [
+            "webhooks"
+          ]
+        }
+      ],
+      $ref: "#/$defs/specification-extensions",
+      unevaluatedProperties: false,
+      $defs: {
+        info: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string"
+            },
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            termsOfService: {
+              type: "string"
+            },
+            contact: {
+              $ref: "#/$defs/contact"
+            },
+            license: {
+              $ref: "#/$defs/license"
+            },
+            version: {
+              type: "string"
+            }
+          },
+          required: [
+            "title",
+            "version"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        contact: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            url: {
+              type: "string"
+            },
+            email: {
+              type: "string"
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        license: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            identifier: {
+              type: "string"
+            },
+            url: {
+              $ref: "#/$defs/uri"
+            }
+          },
+          required: [
+            "name"
+          ],
+          oneOf: [
+            {
+              required: [
+                "identifier"
+              ]
+            },
+            {
+              required: [
+                "url"
+              ]
+            }
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        server: {
+          type: "object",
+          properties: {
+            url: {
+              $ref: "#/$defs/uri"
+            },
+            description: {
+              type: "string"
+            },
+            variables: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/server-variable"
+              }
+            }
+          },
+          required: [
+            "url"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "server-variable": {
+          type: "object",
+          properties: {
+            enum: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              minItems: 1
+            },
+            default: {
+              type: "string"
+            },
+            descriptions: {
+              type: "string"
+            }
+          },
+          required: [
+            "default"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        components: {
+          type: "object",
+          properties: {
+            schemas: {
+              type: "object",
+              additionalProperties: {
+                $dynamicRef: "#meta"
+              }
+            },
+            responses: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/response-or-reference"
+              }
+            },
+            parameters: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/parameter-or-reference"
+              }
+            },
+            examples: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/example-or-reference"
+              }
+            },
+            requestBodies: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/request-body-or-reference"
+              }
+            },
+            headers: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/header-or-reference"
+              }
+            },
+            securitySchemes: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/security-scheme-or-reference"
+              }
+            },
+            links: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/link-or-reference"
+              }
+            },
+            callbacks: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/callbacks-or-reference"
+              }
+            },
+            pathItems: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/path-item-or-reference"
+              }
+            }
+          },
+          patternProperties: {
+            "^(schemas|responses|parameters|examples|requestBodies|headers|securitySchemes|links|callbacks|pathItems)$": {
+              $comment: "Enumerating all of the property names in the regex above is necessary for unevaluatedProperties to work as expected",
+              propertyNames: {
+                pattern: "^[a-zA-Z0-9._-]+$"
+              }
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        paths: {
+          type: "object",
+          patternProperties: {
+            "^/": {
+              $ref: "#/$defs/path-item"
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "path-item": {
+          type: "object",
+          properties: {
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            servers: {
+              type: "array",
+              items: {
+                $ref: "#/$defs/server"
+              }
+            },
+            parameters: {
+              type: "array",
+              items: {
+                $ref: "#/$defs/parameter-or-reference"
+              }
+            }
+          },
+          patternProperties: {
+            "^(get|put|post|delete|options|head|patch|trace)$": {
+              $ref: "#/$defs/operation"
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "path-item-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/path-item"
+          }
+        },
+        operation: {
+          type: "object",
+          properties: {
+            tags: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            externalDocs: {
+              $ref: "#/$defs/external-documentation"
+            },
+            operationId: {
+              type: "string"
+            },
+            parameters: {
+              type: "array",
+              items: {
+                $ref: "#/$defs/parameter-or-reference"
+              }
+            },
+            requestBody: {
+              $ref: "#/$defs/request-body-or-reference"
+            },
+            responses: {
+              $ref: "#/$defs/responses"
+            },
+            callbacks: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/callbacks-or-reference"
+              }
+            },
+            deprecated: {
+              default: false,
+              type: "boolean"
+            },
+            security: {
+              type: "array",
+              items: {
+                $ref: "#/$defs/security-requirement"
+              }
+            },
+            servers: {
+              type: "array",
+              items: {
+                $ref: "#/$defs/server"
+              }
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "external-documentation": {
+          type: "object",
+          properties: {
+            description: {
+              type: "string"
+            },
+            url: {
+              $ref: "#/$defs/uri"
+            }
+          },
+          required: [
+            "url"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        parameter: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            in: {
+              enum: [
+                "query",
+                "header",
+                "path",
+                "cookie"
+              ]
+            },
+            description: {
+              type: "string"
+            },
+            required: {
+              default: false,
+              type: "boolean"
+            },
+            deprecated: {
+              default: false,
+              type: "boolean"
+            },
+            allowEmptyValue: {
+              default: false,
+              type: "boolean"
+            },
+            schema: {
+              $dynamicRef: "#meta"
+            },
+            content: {
+              $ref: "#/$defs/content"
+            }
+          },
+          required: [
+            "in"
+          ],
+          oneOf: [
+            {
+              required: [
+                "schema"
+              ]
+            },
+            {
+              required: [
+                "content"
+              ]
+            }
+          ],
+          dependentSchemas: {
+            schema: {
+              properties: {
+                style: {
+                  type: "string"
+                },
+                explode: {
+                  type: "boolean"
+                },
+                allowReserved: {
+                  default: false,
+                  type: "boolean"
+                }
+              },
+              allOf: [
+                {
+                  $ref: "#/$defs/examples"
+                },
+                {
+                  $ref: "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-path"
+                },
+                {
+                  $ref: "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-header"
+                },
+                {
+                  $ref: "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-query"
+                },
+                {
+                  $ref: "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-cookie"
+                },
+                {
+                  $ref: "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-form"
+                }
+              ],
+              $defs: {
+                "styles-for-path": {
+                  if: {
+                    properties: {
+                      in: {
+                        const: "path"
+                      }
+                    },
+                    required: [
+                      "in"
+                    ]
+                  },
+                  then: {
+                    properties: {
+                      style: {
+                        default: "simple",
+                        enum: [
+                          "matrix",
+                          "label",
+                          "simple"
+                        ]
+                      },
+                      required: {
+                        const: true
+                      }
+                    },
+                    required: [
+                      "required"
+                    ]
+                  }
+                },
+                "styles-for-header": {
+                  if: {
+                    properties: {
+                      in: {
+                        const: "header"
+                      }
+                    },
+                    required: [
+                      "in"
+                    ]
+                  },
+                  then: {
+                    properties: {
+                      style: {
+                        default: "simple",
+                        enum: [
+                          "simple"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "styles-for-query": {
+                  if: {
+                    properties: {
+                      in: {
+                        const: "query"
+                      }
+                    },
+                    required: [
+                      "in"
+                    ]
+                  },
+                  then: {
+                    properties: {
+                      style: {
+                        default: "form",
+                        enum: [
+                          "form",
+                          "spaceDelimited",
+                          "pipeDelimited",
+                          "deepObject"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "styles-for-cookie": {
+                  if: {
+                    properties: {
+                      in: {
+                        const: "cookie"
+                      }
+                    },
+                    required: [
+                      "in"
+                    ]
+                  },
+                  then: {
+                    properties: {
+                      style: {
+                        default: "form",
+                        enum: [
+                          "form"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "styles-for-form": {
+                  if: {
+                    properties: {
+                      style: {
+                        const: "form"
+                      }
+                    },
+                    required: [
+                      "style"
+                    ]
+                  },
+                  then: {
+                    properties: {
+                      explode: {
+                        default: true
+                      }
+                    }
+                  },
+                  else: {
+                    properties: {
+                      explode: {
+                        default: false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "parameter-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/parameter"
+          }
+        },
+        "request-body": {
+          type: "object",
+          properties: {
+            description: {
+              type: "string"
+            },
+            content: {
+              $ref: "#/$defs/content"
+            },
+            required: {
+              default: false,
+              type: "boolean"
+            }
+          },
+          required: [
+            "content"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "request-body-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/request-body"
+          }
+        },
+        content: {
+          type: "object",
+          additionalProperties: {
+            $ref: "#/$defs/media-type"
+          },
+          propertyNames: {
+            format: "media-range"
+          }
+        },
+        "media-type": {
+          type: "object",
+          properties: {
+            schema: {
+              $dynamicRef: "#meta"
+            },
+            encoding: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/encoding"
+              }
+            }
+          },
+          allOf: [
+            {
+              $ref: "#/$defs/specification-extensions"
+            },
+            {
+              $ref: "#/$defs/examples"
+            }
+          ],
+          unevaluatedProperties: false
+        },
+        encoding: {
+          type: "object",
+          properties: {
+            contentType: {
+              type: "string",
+              format: "media-range"
+            },
+            headers: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/header-or-reference"
+              }
+            },
+            style: {
+              default: "form",
+              enum: [
+                "form",
+                "spaceDelimited",
+                "pipeDelimited",
+                "deepObject"
+              ]
+            },
+            explode: {
+              type: "boolean"
+            },
+            allowReserved: {
+              default: false,
+              type: "boolean"
+            }
+          },
+          allOf: [
+            {
+              $ref: "#/$defs/specification-extensions"
+            },
+            {
+              $ref: "#/$defs/encoding/$defs/explode-default"
+            }
+          ],
+          unevaluatedProperties: false,
+          $defs: {
+            "explode-default": {
+              if: {
+                properties: {
+                  style: {
+                    const: "form"
+                  }
+                },
+                required: [
+                  "style"
+                ]
+              },
+              then: {
+                properties: {
+                  explode: {
+                    default: true
+                  }
+                }
+              },
+              else: {
+                properties: {
+                  explode: {
+                    default: false
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          type: "object",
+          properties: {
+            default: {
+              $ref: "#/$defs/response-or-reference"
+            }
+          },
+          patternProperties: {
+            "^[1-5][0-9X]{2}$": {
+              $ref: "#/$defs/response-or-reference"
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        response: {
+          type: "object",
+          properties: {
+            description: {
+              type: "string"
+            },
+            headers: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/header-or-reference"
+              }
+            },
+            content: {
+              $ref: "#/$defs/content"
+            },
+            links: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/link-or-reference"
+              }
+            }
+          },
+          required: [
+            "description"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "response-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/response"
+          }
+        },
+        callbacks: {
+          type: "object",
+          $ref: "#/$defs/specification-extensions",
+          additionalProperties: {
+            $ref: "#/$defs/path-item-or-reference"
+          }
+        },
+        "callbacks-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/callbacks"
+          }
+        },
+        example: {
+          type: "object",
+          properties: {
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            value: true,
+            externalValue: {
+              $ref: "#/$defs/uri"
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "example-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/example"
+          }
+        },
+        link: {
+          type: "object",
+          properties: {
+            operationRef: {
+              $ref: "#/$defs/uri"
+            },
+            operationId: true,
+            parameters: {
+              $ref: "#/$defs/map-of-strings"
+            },
+            requestBody: true,
+            description: {
+              type: "string"
+            },
+            body: {
+              $ref: "#/$defs/server"
+            }
+          },
+          oneOf: [
+            {
+              required: [
+                "operationRef"
+              ]
+            },
+            {
+              required: [
+                "operationId"
+              ]
+            }
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "link-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/link"
+          }
+        },
+        header: {
+          type: "object",
+          properties: {
+            description: {
+              type: "string"
+            },
+            required: {
+              default: false,
+              type: "boolean"
+            },
+            deprecated: {
+              default: false,
+              type: "boolean"
+            },
+            allowEmptyValue: {
+              default: false,
+              type: "boolean"
+            }
+          },
+          dependentSchemas: {
+            schema: {
+              properties: {
+                style: {
+                  default: "simple",
+                  enum: [
+                    "simple"
+                  ]
+                },
+                explode: {
+                  default: false,
+                  type: "boolean"
+                },
+                allowReserved: {
+                  default: false,
+                  type: "boolean"
+                },
+                schema: {
+                  $dynamicRef: "#meta"
+                }
+              },
+              $ref: "#/$defs/examples"
+            },
+            content: {
+              properties: {
+                content: {
+                  $ref: "#/$defs/content"
+                }
+              }
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        "header-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/header"
+          }
+        },
+        tag: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            externalDocs: {
+              $ref: "#/$defs/external-documentation"
+            }
+          },
+          required: [
+            "name"
+          ],
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false
+        },
+        reference: {
+          type: "object",
+          properties: {
+            $ref: {
+              $ref: "#/$defs/uri"
+            },
+            summary: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            }
+          },
+          unevaluatedProperties: false
+        },
+        schema: {
+          $dynamicAnchor: "meta",
+          type: [
+            "object",
+            "boolean"
+          ]
+        },
+        "security-scheme": {
+          type: "object",
+          properties: {
+            type: {
+              enum: [
+                "apiKey",
+                "http",
+                "mutualTLS",
+                "oauth2",
+                "openIdConnect"
+              ]
+            },
+            description: {
+              type: "string"
+            }
+          },
+          required: [
+            "type"
+          ],
+          allOf: [
+            {
+              $ref: "#/$defs/specification-extensions"
+            },
+            {
+              $ref: "#/$defs/security-scheme/$defs/type-apikey"
+            },
+            {
+              $ref: "#/$defs/security-scheme/$defs/type-http"
+            },
+            {
+              $ref: "#/$defs/security-scheme/$defs/type-http-bearer"
+            },
+            {
+              $ref: "#/$defs/security-scheme/$defs/type-oauth2"
+            },
+            {
+              $ref: "#/$defs/security-scheme/$defs/type-oidc"
+            }
+          ],
+          unevaluatedProperties: false,
+          $defs: {
+            "type-apikey": {
+              if: {
+                properties: {
+                  type: {
+                    const: "apiKey"
+                  }
+                },
+                required: [
+                  "type"
+                ]
+              },
+              then: {
+                properties: {
+                  name: {
+                    type: "string"
+                  },
+                  in: {
+                    enum: [
+                      "query",
+                      "header",
+                      "cookie"
+                    ]
+                  }
+                },
+                required: [
+                  "name",
+                  "in"
+                ]
+              }
+            },
+            "type-http": {
+              if: {
+                properties: {
+                  type: {
+                    const: "http"
+                  }
+                },
+                required: [
+                  "type"
+                ]
+              },
+              then: {
+                properties: {
+                  scheme: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "scheme"
+                ]
+              }
+            },
+            "type-http-bearer": {
+              if: {
+                properties: {
+                  type: {
+                    const: "http"
+                  },
+                  scheme: {
+                    const: "bearer"
+                  }
+                },
+                required: [
+                  "type",
+                  "scheme"
+                ]
+              },
+              then: {
+                properties: {
+                  bearerFormat: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "scheme"
+                ]
+              }
+            },
+            "type-oauth2": {
+              if: {
+                properties: {
+                  type: {
+                    const: "oauth2"
+                  }
+                },
+                required: [
+                  "type"
+                ]
+              },
+              then: {
+                properties: {
+                  flows: {
+                    $ref: "#/$defs/oauth-flows"
+                  }
+                },
+                required: [
+                  "flows"
+                ]
+              }
+            },
+            "type-oidc": {
+              if: {
+                properties: {
+                  type: {
+                    const: "openIdConnect"
+                  }
+                },
+                required: [
+                  "type"
+                ]
+              },
+              then: {
+                properties: {
+                  openIdConnectUrl: {
+                    $ref: "#/$defs/uri"
+                  }
+                },
+                required: [
+                  "openIdConnectUrl"
+                ]
+              }
+            }
+          }
+        },
+        "security-scheme-or-reference": {
+          if: {
+            required: [
+              "$ref"
+            ]
+          },
+          then: {
+            $ref: "#/$defs/reference"
+          },
+          else: {
+            $ref: "#/$defs/security-scheme"
+          }
+        },
+        "oauth-flows": {
+          type: "object",
+          properties: {
+            implicit: {
+              $ref: "#/$defs/oauth-flows/$defs/implicit"
+            },
+            password: {
+              $ref: "#/$defs/oauth-flows/$defs/password"
+            },
+            clientCredentials: {
+              $ref: "#/$defs/oauth-flows/$defs/client-credentials"
+            },
+            authorizationCode: {
+              $ref: "#/$defs/oauth-flows/$defs/authorization-code"
+            }
+          },
+          $ref: "#/$defs/specification-extensions",
+          unevaluatedProperties: false,
+          $defs: {
+            implicit: {
+              type: "object",
+              properties: {
+                authorizationUrl: {
+                  type: "string"
+                },
+                refreshUrl: {
+                  type: "string"
+                },
+                scopes: {
+                  $ref: "#/$defs/map-of-strings"
+                }
+              },
+              required: [
+                "authorizationUrl",
+                "scopes"
+              ],
+              $ref: "#/$defs/specification-extensions",
+              unevaluatedProperties: false
+            },
+            password: {
+              type: "object",
+              properties: {
+                tokenUrl: {
+                  type: "string"
+                },
+                refreshUrl: {
+                  type: "string"
+                },
+                scopes: {
+                  $ref: "#/$defs/map-of-strings"
+                }
+              },
+              required: [
+                "tokenUrl",
+                "scopes"
+              ],
+              $ref: "#/$defs/specification-extensions",
+              unevaluatedProperties: false
+            },
+            "client-credentials": {
+              type: "object",
+              properties: {
+                tokenUrl: {
+                  type: "string"
+                },
+                refreshUrl: {
+                  type: "string"
+                },
+                scopes: {
+                  $ref: "#/$defs/map-of-strings"
+                }
+              },
+              required: [
+                "tokenUrl",
+                "scopes"
+              ],
+              $ref: "#/$defs/specification-extensions",
+              unevaluatedProperties: false
+            },
+            "authorization-code": {
+              type: "object",
+              properties: {
+                authorizationUrl: {
+                  type: "string"
+                },
+                tokenUrl: {
+                  type: "string"
+                },
+                refreshUrl: {
+                  type: "string"
+                },
+                scopes: {
+                  $ref: "#/$defs/map-of-strings"
+                }
+              },
+              required: [
+                "authorizationUrl",
+                "tokenUrl",
+                "scopes"
+              ],
+              $ref: "#/$defs/specification-extensions",
+              unevaluatedProperties: false
+            }
+          }
+        },
+        "security-requirement": {
+          type: "object",
+          additionalProperties: {
+            type: "array",
+            items: {
+              type: "string"
+            }
+          }
+        },
+        "specification-extensions": {
+          patternProperties: {
+            "^x-": true
+          }
+        },
+        examples: {
+          properties: {
+            example: true,
+            examples: {
+              type: "object",
+              additionalProperties: {
+                $ref: "#/$defs/example-or-reference"
+              }
+            }
+          }
+        },
+        uri: {
+          type: "string",
+          format: "uri"
+        },
+        "map-of-strings": {
+          type: "object",
+          additionalProperties: {
+            type: "string"
+          }
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/openapi-schemas/lib/index.js
+var require_lib = __commonJS({
+  "node_modules/@apidevtools/openapi-schemas/lib/index.js"(exports, module) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.openapi = exports.openapiV31 = exports.openapiV3 = exports.openapiV2 = exports.openapiV1 = void 0;
+    exports.openapiV1 = require_apiDeclaration();
+    exports.openapiV2 = require_schema2();
+    exports.openapiV3 = require_schema3();
+    exports.openapiV31 = require_schema4();
+    exports.openapi = {
+      v1: exports.openapiV1,
+      v2: exports.openapiV2,
+      v3: exports.openapiV3,
+      v31: exports.openapiV31
+    };
+    exports.default = exports.openapi;
+    if (typeof module === "object" && typeof module.exports === "object") {
+      module.exports = Object.assign(module.exports.default, module.exports);
+    }
+  }
+});
+
+// node_modules/ajv-draft-04/dist/vocabulary/core.js
+var require_core4 = __commonJS({
+  "node_modules/ajv-draft-04/dist/vocabulary/core.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ref_1 = require_ref();
+    var core2 = [
+      "$schema",
+      "id",
+      "$defs",
+      { keyword: "$comment" },
+      "definitions",
+      ref_1.default
+    ];
+    exports.default = core2;
+  }
+});
+
+// node_modules/ajv-draft-04/dist/vocabulary/validation/limitNumber.js
+var require_limitNumber2 = __commonJS({
+  "node_modules/ajv-draft-04/dist/vocabulary/validation/limitNumber.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var core_1 = require_core();
+    var codegen_1 = require_codegen();
+    var ops = codegen_1.operators;
+    var KWDs = {
+      maximum: {
+        exclusive: "exclusiveMaximum",
+        ops: [
+          { okStr: "<=", ok: ops.LTE, fail: ops.GT },
+          { okStr: "<", ok: ops.LT, fail: ops.GTE }
+        ]
+      },
+      minimum: {
+        exclusive: "exclusiveMinimum",
+        ops: [
+          { okStr: ">=", ok: ops.GTE, fail: ops.LT },
+          { okStr: ">", ok: ops.GT, fail: ops.LTE }
+        ]
+      }
+    };
+    var error = {
+      message: (cxt) => core_1.str`must be ${kwdOp(cxt).okStr} ${cxt.schemaCode}`,
+      params: (cxt) => core_1._`{comparison: ${kwdOp(cxt).okStr}, limit: ${cxt.schemaCode}}`
+    };
+    var def = {
+      keyword: Object.keys(KWDs),
+      type: "number",
+      schemaType: "number",
+      $data: true,
+      error,
+      code(cxt) {
+        const { data, schemaCode } = cxt;
+        cxt.fail$data(core_1._`${data} ${kwdOp(cxt).fail} ${schemaCode} || isNaN(${data})`);
+      }
+    };
+    function kwdOp(cxt) {
+      var _a;
+      const keyword = cxt.keyword;
+      const opsIdx = ((_a = cxt.parentSchema) === null || _a === void 0 ? void 0 : _a[KWDs[keyword].exclusive]) ? 1 : 0;
+      return KWDs[keyword].ops[opsIdx];
+    }
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv-draft-04/dist/vocabulary/validation/limitNumberExclusive.js
+var require_limitNumberExclusive = __commonJS({
+  "node_modules/ajv-draft-04/dist/vocabulary/validation/limitNumberExclusive.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var KWDs = {
+      exclusiveMaximum: "maximum",
+      exclusiveMinimum: "minimum"
+    };
+    var def = {
+      keyword: Object.keys(KWDs),
+      type: "number",
+      schemaType: "boolean",
+      code({ keyword, parentSchema }) {
+        const limitKwd = KWDs[keyword];
+        if (parentSchema[limitKwd] === void 0) {
+          throw new Error(`${keyword} can only be used with ${limitKwd}`);
+        }
+      }
+    };
+    exports.default = def;
+  }
+});
+
+// node_modules/ajv-draft-04/dist/vocabulary/validation/index.js
+var require_validation3 = __commonJS({
+  "node_modules/ajv-draft-04/dist/vocabulary/validation/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var limitNumber_1 = require_limitNumber2();
+    var limitNumberExclusive_1 = require_limitNumberExclusive();
+    var multipleOf_1 = require_multipleOf();
+    var limitLength_1 = require_limitLength();
+    var pattern_1 = require_pattern();
+    var limitProperties_1 = require_limitProperties();
+    var required_1 = require_required();
+    var limitItems_1 = require_limitItems();
+    var uniqueItems_1 = require_uniqueItems();
+    var const_1 = require_const();
+    var enum_1 = require_enum();
+    var validation = [
+      // number
+      limitNumber_1.default,
+      limitNumberExclusive_1.default,
+      multipleOf_1.default,
+      // string
+      limitLength_1.default,
+      pattern_1.default,
+      // object
+      limitProperties_1.default,
+      required_1.default,
+      // array
+      limitItems_1.default,
+      uniqueItems_1.default,
+      // any
+      { keyword: "type", schemaType: ["string", "array"] },
+      { keyword: "nullable", schemaType: "boolean" },
+      const_1.default,
+      enum_1.default
+    ];
+    exports.default = validation;
+  }
+});
+
+// node_modules/ajv-draft-04/dist/vocabulary/draft4.js
+var require_draft4 = __commonJS({
+  "node_modules/ajv-draft-04/dist/vocabulary/draft4.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var core_1 = require_core4();
+    var validation_1 = require_validation3();
+    var applicator_1 = require_applicator();
+    var format_1 = require_format2();
+    var metadataVocabulary = ["title", "description", "default"];
+    var draft4Vocabularies = [
+      core_1.default,
+      validation_1.default,
+      applicator_1.default(),
+      format_1.default,
+      metadataVocabulary
+    ];
+    exports.default = draft4Vocabularies;
+  }
+});
+
+// node_modules/ajv-draft-04/dist/refs/json-schema-draft-04.json
+var require_json_schema_draft_04 = __commonJS({
+  "node_modules/ajv-draft-04/dist/refs/json-schema-draft-04.json"(exports, module) {
+    module.exports = {
+      id: "http://json-schema.org/draft-04/schema#",
+      $schema: "http://json-schema.org/draft-04/schema#",
+      description: "Core schema meta-schema",
+      definitions: {
+        schemaArray: {
+          type: "array",
+          minItems: 1,
+          items: { $ref: "#" }
+        },
+        positiveInteger: {
+          type: "integer",
+          minimum: 0
+        },
+        positiveIntegerDefault0: {
+          allOf: [{ $ref: "#/definitions/positiveInteger" }, { default: 0 }]
+        },
+        simpleTypes: {
+          enum: ["array", "boolean", "integer", "null", "number", "object", "string"]
+        },
+        stringArray: {
+          type: "array",
+          items: { type: "string" },
+          minItems: 1,
+          uniqueItems: true
+        }
+      },
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          format: "uri"
+        },
+        $schema: {
+          type: "string",
+          format: "uri"
+        },
+        title: {
+          type: "string"
+        },
+        description: {
+          type: "string"
+        },
+        default: {},
+        multipleOf: {
+          type: "number",
+          minimum: 0,
+          exclusiveMinimum: true
+        },
+        maximum: {
+          type: "number"
+        },
+        exclusiveMaximum: {
+          type: "boolean",
+          default: false
+        },
+        minimum: {
+          type: "number"
+        },
+        exclusiveMinimum: {
+          type: "boolean",
+          default: false
+        },
+        maxLength: { $ref: "#/definitions/positiveInteger" },
+        minLength: { $ref: "#/definitions/positiveIntegerDefault0" },
+        pattern: {
+          type: "string",
+          format: "regex"
+        },
+        additionalItems: {
+          anyOf: [{ type: "boolean" }, { $ref: "#" }],
+          default: {}
+        },
+        items: {
+          anyOf: [{ $ref: "#" }, { $ref: "#/definitions/schemaArray" }],
+          default: {}
+        },
+        maxItems: { $ref: "#/definitions/positiveInteger" },
+        minItems: { $ref: "#/definitions/positiveIntegerDefault0" },
+        uniqueItems: {
+          type: "boolean",
+          default: false
+        },
+        maxProperties: { $ref: "#/definitions/positiveInteger" },
+        minProperties: { $ref: "#/definitions/positiveIntegerDefault0" },
+        required: { $ref: "#/definitions/stringArray" },
+        additionalProperties: {
+          anyOf: [{ type: "boolean" }, { $ref: "#" }],
+          default: {}
+        },
+        definitions: {
+          type: "object",
+          additionalProperties: { $ref: "#" },
+          default: {}
+        },
+        properties: {
+          type: "object",
+          additionalProperties: { $ref: "#" },
+          default: {}
+        },
+        patternProperties: {
+          type: "object",
+          additionalProperties: { $ref: "#" },
+          default: {}
+        },
+        dependencies: {
+          type: "object",
+          additionalProperties: {
+            anyOf: [{ $ref: "#" }, { $ref: "#/definitions/stringArray" }]
+          }
+        },
+        enum: {
+          type: "array",
+          minItems: 1,
+          uniqueItems: true
+        },
+        type: {
+          anyOf: [
+            { $ref: "#/definitions/simpleTypes" },
+            {
+              type: "array",
+              items: { $ref: "#/definitions/simpleTypes" },
+              minItems: 1,
+              uniqueItems: true
+            }
+          ]
+        },
+        allOf: { $ref: "#/definitions/schemaArray" },
+        anyOf: { $ref: "#/definitions/schemaArray" },
+        oneOf: { $ref: "#/definitions/schemaArray" },
+        not: { $ref: "#" }
+      },
+      dependencies: {
+        exclusiveMaximum: ["maximum"],
+        exclusiveMinimum: ["minimum"]
+      },
+      default: {}
+    };
+  }
+});
+
+// node_modules/ajv-draft-04/dist/index.js
+var require_dist = __commonJS({
+  "node_modules/ajv-draft-04/dist/index.js"(exports, module) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
+    var core_1 = require_core();
+    var draft4_1 = require_draft4();
+    var discriminator_1 = require_discriminator();
+    var draft4MetaSchema = require_json_schema_draft_04();
+    var META_SUPPORT_DATA = ["/properties"];
+    var META_SCHEMA_ID = "http://json-schema.org/draft-04/schema";
+    var Ajv = class extends core_1.default {
+      constructor(opts = {}) {
+        super({
+          ...opts,
+          schemaId: "id"
+        });
+      }
+      _addVocabularies() {
+        super._addVocabularies();
+        draft4_1.default.forEach((v) => this.addVocabulary(v));
+        if (this.opts.discriminator)
+          this.addKeyword(discriminator_1.default);
+      }
+      _addDefaultMetaSchema() {
+        super._addDefaultMetaSchema();
+        if (!this.opts.meta)
+          return;
+        const metaSchema = this.opts.$data ? this.$dataMetaSchema(draft4MetaSchema, META_SUPPORT_DATA) : draft4MetaSchema;
+        this.addMetaSchema(metaSchema, META_SCHEMA_ID, false);
+        this.refs["http://json-schema.org/schema"] = META_SCHEMA_ID;
+      }
+      defaultMeta() {
+        return this.opts.defaultMeta = super.defaultMeta() || (this.getSchema(META_SCHEMA_ID) ? META_SCHEMA_ID : void 0);
+      }
+    };
+    module.exports = exports = Ajv;
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = Ajv;
+    var core_2 = require_core();
+    Object.defineProperty(exports, "KeywordCxt", { enumerable: true, get: function() {
+      return core_2.KeywordCxt;
+    } });
+    var core_3 = require_core();
+    Object.defineProperty(exports, "_", { enumerable: true, get: function() {
+      return core_3._;
+    } });
+    Object.defineProperty(exports, "str", { enumerable: true, get: function() {
+      return core_3.str;
+    } });
+    Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
+      return core_3.stringify;
+    } });
+    Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
+      return core_3.nil;
+    } });
+    Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
+      return core_3.Name;
+    } });
+    Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function() {
+      return core_3.CodeGen;
+    } });
+  }
+});
+
+// node_modules/@apidevtools/swagger-parser/lib/validators/schema.js
+var require_schema5 = __commonJS({
+  "node_modules/@apidevtools/swagger-parser/lib/validators/schema.js"(exports, module) {
+    "use strict";
+    var util = require_util();
+    var Ajv = require__();
+    var { openapi } = require_lib();
+    module.exports = validateSchema;
+    function validateSchema(api) {
+      let ajv;
+      let schema2;
+      if (api.swagger) {
+        schema2 = openapi.v2;
+        ajv = initializeAjv();
+      } else {
+        if (api.openapi.startsWith("3.1")) {
+          schema2 = openapi.v31;
+          const schemaDynamicRef = schema2.$defs.schema;
+          delete schemaDynamicRef.$dynamicAnchor;
+          schema2.$defs.components.properties.schemas.additionalProperties = schemaDynamicRef;
+          schema2.$defs.header.dependentSchemas.schema.properties.schema = schemaDynamicRef;
+          schema2.$defs["media-type"].properties.schema = schemaDynamicRef;
+          schema2.$defs.parameter.properties.schema = schemaDynamicRef;
+          ajv = initializeAjv(false);
+        } else {
+          schema2 = openapi.v3;
+          ajv = initializeAjv();
+        }
+      }
+      let isValid = ajv.validate(schema2, api);
+      if (!isValid) {
+        let err = ajv.errors;
+        let message = "Swagger schema validation failed.\n" + formatAjvError(err);
+        const error = new SyntaxError(message);
+        error.details = err;
+        throw error;
+      }
+    }
+    function initializeAjv(draft04 = true) {
+      const opts = {
+        allErrors: true,
+        strict: false,
+        validateFormats: false
+      };
+      if (draft04) {
+        const AjvDraft4 = require_dist();
+        return new AjvDraft4(opts);
+      }
+      return new Ajv(opts);
+    }
+    function formatAjvError(errors, indent) {
+      indent = indent || "  ";
+      let message = "";
+      for (let error of errors) {
+        message += util.format(`${indent}#${error.instancePath.length ? error.instancePath : "/"} ${error.message}
+`);
+      }
+      return message;
+    }
+  }
+});
+
+// node_modules/@apidevtools/swagger-methods/lib/index.js
+var require_lib2 = __commonJS({
+  "node_modules/@apidevtools/swagger-methods/lib/index.js"(exports, module) {
+    "use strict";
+    module.exports = [
+      "get",
+      "put",
+      "post",
+      "delete",
+      "options",
+      "head",
+      "patch"
+    ];
+  }
+});
+
+// node_modules/@apidevtools/swagger-parser/lib/validators/spec.js
+var require_spec = __commonJS({
+  "node_modules/@apidevtools/swagger-parser/lib/validators/spec.js"(exports, module) {
+    "use strict";
+    var util = require_util();
+    var swaggerMethods = require_lib2();
+    var primitiveTypes = ["array", "boolean", "integer", "number", "string"];
+    var schemaTypes = ["array", "boolean", "integer", "number", "string", "object", "null", void 0];
+    module.exports = validateSpec;
+    function validateSpec(api) {
+      if (api.openapi) {
+        return;
+      }
+      let paths = Object.keys(api.paths || {});
+      let operationIds = [];
+      for (let pathName of paths) {
+        let path = api.paths[pathName];
+        let pathId = "/paths" + pathName;
+        if (path && pathName.indexOf("/") === 0) {
+          validatePath(api, path, pathId, operationIds);
+        }
+      }
+      let definitions = Object.keys(api.definitions || {});
+      for (let definitionName of definitions) {
+        let definition = api.definitions[definitionName];
+        let definitionId = "/definitions/" + definitionName;
+        validateRequiredPropertiesExist(definition, definitionId);
+      }
+    }
+    function validatePath(api, path, pathId, operationIds) {
+      for (let operationName of swaggerMethods) {
+        let operation = path[operationName];
+        let operationId = pathId + "/" + operationName;
+        if (operation) {
+          let declaredOperationId = operation.operationId;
+          if (declaredOperationId) {
+            if (operationIds.indexOf(declaredOperationId) === -1) {
+              operationIds.push(declaredOperationId);
+            } else {
+              throw new SyntaxError(`Validation failed. Duplicate operation id '${declaredOperationId}'`);
+            }
+          }
+          validateParameters(api, path, pathId, operation, operationId);
+          let responses = Object.keys(operation.responses || {});
+          for (let responseName of responses) {
+            let response = operation.responses[responseName];
+            let responseId = operationId + "/responses/" + responseName;
+            validateResponse(responseName, response || {}, responseId);
+          }
+        }
+      }
+    }
+    function validateParameters(api, path, pathId, operation, operationId) {
+      let pathParams = path.parameters || [];
+      let operationParams = operation.parameters || [];
+      try {
+        checkForDuplicates(pathParams);
+      } catch (e) {
+        throw new SyntaxError(e, `Validation failed. ${pathId} has duplicate parameters`);
+      }
+      try {
+        checkForDuplicates(operationParams);
+      } catch (e) {
+        throw new SyntaxError(e, `Validation failed. ${operationId} has duplicate parameters`);
+      }
+      let params = pathParams.reduce((combinedParams, value) => {
+        let duplicate = combinedParams.some((param) => {
+          return param.in === value.in && param.name === value.name;
+        });
+        if (!duplicate) {
+          combinedParams.push(value);
+        }
+        return combinedParams;
+      }, operationParams.slice());
+      validateBodyParameters(params, operationId);
+      validatePathParameters(params, pathId, operationId);
+      validateParameterTypes(params, api, operation, operationId);
+    }
+    function validateBodyParameters(params, operationId) {
+      let bodyParams = params.filter((param) => {
+        return param.in === "body";
+      });
+      let formParams = params.filter((param) => {
+        return param.in === "formData";
+      });
+      if (bodyParams.length > 1) {
+        throw new SyntaxError(
+          `Validation failed. ${operationId} has ${bodyParams.length} body parameters. Only one is allowed.`
+        );
+      } else if (bodyParams.length > 0 && formParams.length > 0) {
+        throw new SyntaxError(
+          `Validation failed. ${operationId} has body parameters and formData parameters. Only one or the other is allowed.`
+        );
+      }
+    }
+    function validatePathParameters(params, pathId, operationId) {
+      let placeholders = pathId.match(util.swaggerParamRegExp) || [];
+      for (let i = 0; i < placeholders.length; i++) {
+        for (let j = i + 1; j < placeholders.length; j++) {
+          if (placeholders[i] === placeholders[j]) {
+            throw new SyntaxError(
+              `Validation failed. ${operationId} has multiple path placeholders named ${placeholders[i]}`
+            );
+          }
+        }
+      }
+      params = params.filter((param) => {
+        return param.in === "path";
+      });
+      for (let param of params) {
+        if (param.required !== true) {
+          throw new SyntaxError(
+            `Validation failed. Path parameters cannot be optional. Set required=true for the "${param.name}" parameter at ${operationId}`
+          );
+        }
+        let match = placeholders.indexOf("{" + param.name + "}");
+        if (match === -1) {
+          throw new SyntaxError(
+            `Validation failed. ${operationId} has a path parameter named "${param.name}", but there is no corresponding {${param.name}} in the path string`
+          );
+        }
+        placeholders.splice(match, 1);
+      }
+      if (placeholders.length > 0) {
+        throw new SyntaxError(`Validation failed. ${operationId} is missing path parameter(s) for ${placeholders}`);
+      }
+    }
+    function validateParameterTypes(params, api, operation, operationId) {
+      for (let param of params) {
+        let parameterId = operationId + "/parameters/" + param.name;
+        let schema2, validTypes;
+        switch (param.in) {
+          case "body":
+            schema2 = param.schema;
+            validTypes = schemaTypes;
+            break;
+          case "formData":
+            schema2 = param;
+            validTypes = primitiveTypes.concat("file");
+            break;
+          default:
+            schema2 = param;
+            validTypes = primitiveTypes;
+        }
+        validateSchema(schema2, parameterId, validTypes);
+        validateRequiredPropertiesExist(schema2, parameterId);
+        if (schema2.type === "file") {
+          let formData = /multipart\/(.*\+)?form-data/;
+          let urlEncoded = /application\/(.*\+)?x-www-form-urlencoded/;
+          let consumes = operation.consumes || api.consumes || [];
+          let hasValidMimeType = consumes.some((consume) => {
+            return formData.test(consume) || urlEncoded.test(consume);
+          });
+          if (!hasValidMimeType) {
+            throw new SyntaxError(
+              `Validation failed. ${operationId} has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded`
+            );
+          }
+        }
+      }
+    }
+    function checkForDuplicates(params) {
+      for (let i = 0; i < params.length - 1; i++) {
+        let outer = params[i];
+        for (let j = i + 1; j < params.length; j++) {
+          let inner = params[j];
+          if (outer.name === inner.name && outer.in === inner.in) {
+            throw new SyntaxError(`Validation failed. Found multiple ${outer.in} parameters named "${outer.name}"`);
+          }
+        }
+      }
+    }
+    function validateResponse(code, response, responseId) {
+      if (code !== "default" && (code < 100 || code > 599)) {
+        throw new SyntaxError(`Validation failed. ${responseId} has an invalid response code (${code})`);
+      }
+      let headers = Object.keys(response.headers || {});
+      for (let headerName of headers) {
+        let header = response.headers[headerName];
+        let headerId = responseId + "/headers/" + headerName;
+        validateSchema(header, headerId, primitiveTypes);
+      }
+      if (response.schema) {
+        let validTypes = schemaTypes.concat("file");
+        if (validTypes.indexOf(response.schema.type) === -1) {
+          throw new SyntaxError(
+            `Validation failed. ${responseId} has an invalid response schema type (${response.schema.type})`
+          );
+        } else {
+          validateSchema(response.schema, responseId + "/schema", validTypes);
+        }
+      }
+    }
+    function validateSchema(schema2, schemaId, validTypes) {
+      if (validTypes.indexOf(schema2.type) === -1) {
+        throw new SyntaxError(`Validation failed. ${schemaId} has an invalid type (${schema2.type})`);
+      }
+      if (schema2.type === "array" && !schema2.items) {
+        throw new SyntaxError(`Validation failed. ${schemaId} is an array, so it must include an "items" schema`);
+      }
+    }
+    function validateRequiredPropertiesExist(schema2, schemaId) {
+      function collectProperties(schemaObj, props) {
+        if (schemaObj.properties) {
+          for (let property in schemaObj.properties) {
+            if (schemaObj.properties.hasOwnProperty(property)) {
+              props[property] = schemaObj.properties[property];
+            }
+          }
+        }
+        if (schemaObj.allOf) {
+          for (let parent of schemaObj.allOf) {
+            collectProperties(parent, props);
+          }
+        }
+      }
+      if (Array.isArray(schema2.type) && !schema2.type.includes("object")) {
+        return;
+      } else if (!Array.isArray(schema2.type) && schema2.type !== "object") {
+        return;
+      }
+      if (schema2.required && Array.isArray(schema2.required)) {
+        let props = {};
+        collectProperties(schema2, props);
+        for (let requiredProperty of schema2.required) {
+          if (!props[requiredProperty]) {
+            throw new SyntaxError(
+              `Validation failed. Property '${requiredProperty}' listed as required but does not exist in '${schemaId}'`
+            );
+          }
+        }
+      }
+    }
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/convert-path-to-posix.js
+function convertPathToPosix(filePath) {
+  const isExtendedLengthPath = filePath.startsWith("\\\\?\\");
+  if (isExtendedLengthPath) {
+    return filePath;
+  }
+  return filePath.split(win32Sep).join("/");
+}
+var win32Sep;
+var init_convert_path_to_posix = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/convert-path-to-posix.js"() {
+    win32Sep = "\\";
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/is-windows.js
+var isWindowsConst, isWindows;
+var init_is_windows = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/is-windows.js"() {
+    isWindowsConst = /^win/.test(globalThis.process ? globalThis.process.platform : "");
+    isWindows = () => isWindowsConst;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/url.js
+function resolve(from, to) {
+  const fromUrl = new URL(convertPathToPosix(from), "https://aaa.nonexistanturl.com");
+  const resolvedUrl = new URL(convertPathToPosix(to), fromUrl);
+  const endSpaces = to.match(/(\s*)$/)?.[1] || "";
+  if (resolvedUrl.hostname === "aaa.nonexistanturl.com") {
+    const { pathname, search, hash } = resolvedUrl;
+    return pathname + search + decodeURIComponent(hash) + endSpaces;
+  }
+  const resolved = resolvedUrl.toString() + endSpaces;
+  if (resolved.includes("#")) {
+    const [base, hash] = resolved.split("#", 2);
+    return base + "#" + decodeURIComponent(hash || "");
+  }
+  return resolved;
+}
+function cwd() {
+  if (typeof window !== "undefined" && window.location && window.location.href) {
+    const href = window.location.href;
+    if (!href || !href.startsWith("http")) {
+      try {
+        new URL(href);
+        return href;
+      } catch {
+        return "/";
+      }
+    }
+    return href;
+  }
+  if (typeof process !== "undefined" && process.cwd) {
+    const path = process.cwd();
+    const lastChar = path.slice(-1);
+    if (lastChar === "/" || lastChar === "\\") {
+      return path;
+    } else {
+      return path + "/";
+    }
+  }
+  return "/";
+}
+function getProtocol(path) {
+  const match = protocolPattern.exec(path || "");
+  if (match) {
+    return match[1].toLowerCase();
+  }
+  return void 0;
+}
+function getExtension(path) {
+  const lastDot = path.lastIndexOf(".");
+  if (lastDot >= 0) {
+    return stripQuery(path.substring(lastDot).toLowerCase());
+  }
+  return "";
+}
+function stripQuery(path) {
+  const queryIndex = path.indexOf("?");
+  if (queryIndex >= 0) {
+    path = path.substring(0, queryIndex);
+  }
+  return path;
+}
+function getHash(path) {
+  if (!path) {
+    return "#";
+  }
+  const hashIndex = path.indexOf("#");
+  if (hashIndex >= 0) {
+    return path.substring(hashIndex);
+  }
+  return "#";
+}
+function stripHash(path) {
+  if (!path) {
+    return "";
+  }
+  const hashIndex = path.indexOf("#");
+  if (hashIndex >= 0) {
+    path = path.substring(0, hashIndex);
+  }
+  return path;
+}
+function isHttp(path) {
+  const protocol = getProtocol(path);
+  if (protocol === "http" || protocol === "https") {
+    return true;
+  } else if (protocol === void 0) {
+    return typeof window !== "undefined";
+  } else {
+    return false;
+  }
+}
+function isUnsafeUrl(path) {
+  if (!path || typeof path !== "string") {
+    return true;
+  }
+  const normalizedPath = path.trim().toLowerCase();
+  if (!normalizedPath) {
+    return true;
+  }
+  if (normalizedPath.startsWith("javascript:") || normalizedPath.startsWith("vbscript:") || normalizedPath.startsWith("data:")) {
+    return true;
+  }
+  if (normalizedPath.startsWith("file:")) {
+    return true;
+  }
+  if (typeof window !== "undefined" && window.location && window.location.href) {
+    return false;
+  }
+  try {
+    const url = new URL(normalizedPath.startsWith("//") ? "http:" + normalizedPath : normalizedPath);
+    if (isUnsafeHostname(url.hostname)) {
+      return true;
+    }
+    const port = url.port;
+    if (port && isInternalPort(parseInt(port))) {
+      return true;
+    }
+  } catch {
+    if (normalizedPath.startsWith("/") && !normalizedPath.startsWith("//")) {
+      return false;
+    }
+    if (containsUnsafeHostname(normalizedPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+function isUnsafeHostname(hostname) {
+  const normalizedHostname = normalizeHostname(hostname);
+  if (!normalizedHostname) {
+    return true;
+  }
+  if (normalizedHostname === "localhost" || unsafeDomainSuffixes.some((suffix) => normalizedHostname.endsWith(suffix))) {
+    return true;
+  }
+  const ipv4 = parseIPv4Address(normalizedHostname);
+  if (ipv4) {
+    return isUnsafeIPv4Address(ipv4);
+  }
+  const ipv6 = parseIPv6Address(normalizedHostname);
+  if (ipv6) {
+    return isUnsafeIPv6Address(ipv6);
+  }
+  return false;
+}
+function normalizeHostname(hostname) {
+  let normalizedHostname = hostname.trim().toLowerCase();
+  if (normalizedHostname.startsWith("[") && normalizedHostname.endsWith("]")) {
+    normalizedHostname = normalizedHostname.slice(1, -1);
+  }
+  while (normalizedHostname.endsWith(".")) {
+    normalizedHostname = normalizedHostname.slice(0, -1);
+  }
+  return normalizedHostname;
+}
+function parseIPv4Address(ip) {
+  const parts = ip.split(".");
+  if (parts.length !== 4) {
+    return void 0;
+  }
+  const octets = parts.map((part) => {
+    if (!/^\d+$/.test(part)) {
+      return Number.NaN;
+    }
+    return Number(part);
+  });
+  if (octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) {
+    return void 0;
+  }
+  return octets;
+}
+function isUnsafeIPv4Address([a, b, c, d]) {
+  return a === 0 || a === 10 || a === 127 || a === 100 && b >= 64 && b <= 127 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31 || a === 192 && b === 0 && c === 0 || a === 192 && b === 168 || a === 198 && (b === 18 || b === 19) || a >= 224 || a === 255 && b === 255 && c === 255 && d === 255;
+}
+function parseIPv6Address(ip) {
+  if (!ip.includes(":")) {
+    return void 0;
+  }
+  let normalizedIP = ip;
+  const lastSeparator = normalizedIP.lastIndexOf(":");
+  const possibleIPv4 = normalizedIP.slice(lastSeparator + 1);
+  if (possibleIPv4.includes(".")) {
+    const ipv4 = parseIPv4Address(possibleIPv4);
+    if (!ipv4) {
+      return void 0;
+    }
+    const firstGroup = ipv4[0] * 256 + ipv4[1];
+    const secondGroup = ipv4[2] * 256 + ipv4[3];
+    normalizedIP = `${normalizedIP.slice(0, lastSeparator + 1)}${firstGroup.toString(16)}:${secondGroup.toString(16)}`;
+  }
+  const halves = normalizedIP.split("::");
+  if (halves.length > 2) {
+    return void 0;
+  }
+  const head = parseIPv6Groups(halves[0]);
+  const tail = halves.length === 2 ? parseIPv6Groups(halves[1]) : [];
+  if (!head || !tail) {
+    return void 0;
+  }
+  if (halves.length === 1) {
+    return head.length === 8 ? head : void 0;
+  }
+  const missingGroups = 8 - head.length - tail.length;
+  if (missingGroups < 1) {
+    return void 0;
+  }
+  return [...head, ...Array(missingGroups).fill(0), ...tail];
+}
+function parseIPv6Groups(groups) {
+  if (!groups) {
+    return [];
+  }
+  const parsedGroups = groups.split(":").map((group) => {
+    if (!/^[\da-f]{1,4}$/i.test(group)) {
+      return Number.NaN;
+    }
+    return Number.parseInt(group, 16);
+  });
+  if (parsedGroups.some((group) => !Number.isInteger(group) || group < 0 || group > 65535)) {
+    return void 0;
+  }
+  return parsedGroups;
+}
+function isUnsafeIPv6Address(groups) {
+  if (groups.length !== 8) {
+    return false;
+  }
+  const isUnspecified = groups.every((group) => group === 0);
+  const isLoopback = groups.slice(0, 7).every((group) => group === 0) && groups[7] === 1;
+  const isUniqueLocal = (groups[0] & 65024) === 64512;
+  const isLinkLocal = (groups[0] & 65472) === 65152;
+  const isMulticast = (groups[0] & 65280) === 65280;
+  if (isUnspecified || isLoopback || isUniqueLocal || isLinkLocal || isMulticast) {
+    return true;
+  }
+  const mappedIPv4 = getMappedIPv4Address(groups);
+  return mappedIPv4 ? isUnsafeIPv4Address(mappedIPv4) : false;
+}
+function getMappedIPv4Address(groups) {
+  const firstFiveGroupsAreZero = groups.slice(0, 5).every((group) => group === 0);
+  const firstSixGroupsAreZero = firstFiveGroupsAreZero && groups[5] === 0;
+  const isIPv4Mapped = firstFiveGroupsAreZero && groups[5] === 65535;
+  if (!firstSixGroupsAreZero && !isIPv4Mapped) {
+    return void 0;
+  }
+  return [Math.floor(groups[6] / 256), groups[6] % 256, Math.floor(groups[7] / 256), groups[7] % 256];
+}
+function containsUnsafeHostname(value) {
+  const candidates = value.split(/[\s/?#]+/).map((candidate) => candidate.replace(/^[a-z][\d+.a-z-]*:\/\//i, "").replace(/:\d+$/, "")).filter(Boolean);
+  return candidates.some((candidate) => isUnsafeHostname(candidate));
+}
+function isInternalPort(port) {
+  const internalPorts = [
+    22,
+    // SSH
+    23,
+    // Telnet
+    25,
+    // SMTP
+    53,
+    // DNS
+    135,
+    // RPC
+    139,
+    // NetBIOS
+    445,
+    // SMB
+    993,
+    // IMAPS
+    995,
+    // POP3S
+    1433,
+    // SQL Server
+    1521,
+    // Oracle
+    3306,
+    // MySQL
+    3389,
+    // RDP
+    5432,
+    // PostgreSQL
+    5900,
+    // VNC
+    6379,
+    // Redis
+    8080,
+    // Common internal web
+    8443,
+    // Common internal HTTPS
+    9200,
+    // Elasticsearch
+    27017
+    // MongoDB
+  ];
+  return internalPorts.includes(port);
+}
+function isFileSystemPath(path) {
+  if (typeof window !== "undefined" || typeof process !== "undefined" && process.browser) {
+    return false;
+  }
+  const protocol = getProtocol(path);
+  return protocol === void 0 || protocol === "file";
+}
+function fromFileSystemPath(path) {
+  if (isWindows()) {
+    const projectDir = cwd();
+    const upperPath = path.toUpperCase();
+    const projectDirPosixPath = convertPathToPosix(projectDir);
+    const posixUpper = projectDirPosixPath.toUpperCase();
+    const hasProjectDir = upperPath.includes(posixUpper);
+    const hasProjectUri = upperPath.includes(posixUpper);
+    const isAbsolutePath = isAbsoluteWin32Path.test(path) || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("file://");
+    if (!(hasProjectDir || hasProjectUri || isAbsolutePath) && !projectDir.startsWith("http")) {
+      const join = (a, b) => {
+        if (a.endsWith("/") || a.endsWith("\\")) {
+          return a + b;
+        } else {
+          return a + "/" + b;
+        }
+      };
+      path = join(projectDir, path);
+    }
+    path = convertPathToPosix(path);
+  }
+  path = encodeURI(path);
+  for (const pattern of urlEncodePatterns) {
+    path = path.replace(pattern[0], pattern[1]);
+  }
+  return path;
+}
+function toFileSystemPath(path, keepFileProtocol) {
+  path = path.replace(/%(?![0-9A-Fa-f]{2})/g, "%25");
+  path = decodeURI(path);
+  for (let i = 0; i < urlDecodePatterns.length; i += 2) {
+    path = path.replace(urlDecodePatterns[i], urlDecodePatterns[i + 1]);
+  }
+  let isFileUrl = path.toLowerCase().startsWith("file://");
+  if (isFileUrl) {
+    path = path.replace(/^file:\/\//, "").replace(/^\//, "");
+    if (isWindows() && path[1] === "/") {
+      path = `${path[0]}:${path.substring(1)}`;
+    }
+    if (keepFileProtocol) {
+      path = "file:///" + path;
+    } else {
+      isFileUrl = false;
+      path = isWindows() ? path : "/" + path;
+    }
+  }
+  if (isWindows() && !isFileUrl) {
+    path = path.replace(forwardSlashPattern, "\\");
+    if (path.match(/^[a-z]:\\/i)) {
+      path = path[0].toUpperCase() + path.substring(1);
+    }
+  }
+  return path;
+}
+function safePointerToPath(pointer) {
+  if (pointer.length <= 1 || pointer[0] !== "#" || pointer[1] !== "/") {
+    return [];
+  }
+  return pointer.slice(2).split("/").map((value) => {
+    return value.replace(jsonPointerSlash, "/").replace(jsonPointerTilde, "~");
+  });
+}
+var forwardSlashPattern, protocolPattern, jsonPointerSlash, jsonPointerTilde, isAbsoluteWin32Path, urlEncodePatterns, urlDecodePatterns, unsafeDomainSuffixes, parse;
+var init_url = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/url.js"() {
+    init_convert_path_to_posix();
+    init_is_windows();
+    forwardSlashPattern = /\//g;
+    protocolPattern = /^(\w{2,}):\/\//i;
+    jsonPointerSlash = /~1/g;
+    jsonPointerTilde = /~0/g;
+    isAbsoluteWin32Path = /^[a-zA-Z]:[\\/]/;
+    urlEncodePatterns = [
+      [/\?/g, "%3F"],
+      [/#/g, "%23"]
+    ];
+    urlDecodePatterns = [/%23/g, "#", /%24/g, "$", /%26/g, "&", /%2C/g, ",", /%40/g, "@"];
+    unsafeDomainSuffixes = [".localhost", ".local", ".internal", ".intranet", ".corp", ".home", ".lan"];
+    parse = (u) => new URL(u);
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/errors.js
+function toJSON() {
+  const pojo = {};
+  const error = this;
+  for (const key of getDeepKeys(error)) {
+    if (typeof key === "string") {
+      const value = error[key];
+      const type2 = typeof value;
+      if (!nonJsonTypes.includes(type2)) {
+        pojo[key] = value;
+      }
+    }
+  }
+  return pojo;
+}
+function getDeepKeys(obj, omit = []) {
+  let keys = [];
+  while (obj && obj !== objectPrototype) {
+    keys = keys.concat(Object.getOwnPropertyNames(obj), Object.getOwnPropertySymbols(obj));
+    obj = Object.getPrototypeOf(obj);
+  }
+  const uniqueKeys = new Set(keys);
+  for (const key of omit.concat(protectedProps)) {
+    uniqueKeys.delete(key);
+  }
+  return uniqueKeys;
+}
+function isHandledError(err) {
+  return err instanceof JSONParserError || err instanceof JSONParserErrorGroup;
+}
+function normalizeError(err) {
+  if (err.path === null) {
+    err.path = [];
+  }
+  return err;
+}
+var nonJsonTypes, protectedProps, objectPrototype, JSONParserError, JSONParserErrorGroup, ParserError, UnmatchedParserError, ResolverError, UnmatchedResolverError, MissingPointerError, TimeoutError, InvalidPointerError;
+var init_errors = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/errors.js"() {
+    init_url();
+    nonJsonTypes = ["function", "symbol", "undefined"];
+    protectedProps = ["constructor", "prototype", "__proto__"];
+    objectPrototype = Object.getPrototypeOf({});
+    JSONParserError = class extends Error {
+      name;
+      message;
+      source;
+      path;
+      code;
+      constructor(message, source) {
+        super();
+        this.code = "EUNKNOWN";
+        this.name = "JSONParserError";
+        this.message = message;
+        this.source = source;
+        this.path = null;
+      }
+      toJSON = toJSON.bind(this);
+      get footprint() {
+        return `${this.path}+${this.source}+${this.code}+${this.message}`;
+      }
+    };
+    JSONParserErrorGroup = class _JSONParserErrorGroup extends Error {
+      files;
+      constructor(parser) {
+        super();
+        this.files = parser;
+        this.name = "JSONParserErrorGroup";
+        this.message = `${this.errors.length} error${this.errors.length > 1 ? "s" : ""} occurred while reading '${toFileSystemPath(parser.$refs._root$Ref.path)}'`;
+      }
+      toJSON = toJSON.bind(this);
+      static getParserErrors(parser) {
+        const errors = [];
+        for (const $ref of Object.values(parser.$refs._$refs)) {
+          if ($ref.errors) {
+            errors.push(...$ref.errors);
+          }
+        }
+        return errors;
+      }
+      get errors() {
+        return _JSONParserErrorGroup.getParserErrors(this.files);
+      }
+    };
+    ParserError = class extends JSONParserError {
+      code = "EPARSER";
+      name = "ParserError";
+      constructor(message, source) {
+        super(`Error parsing ${source}: ${message}`, source);
+      }
+    };
+    UnmatchedParserError = class extends JSONParserError {
+      code = "EUNMATCHEDPARSER";
+      name = "UnmatchedParserError";
+      constructor(source) {
+        super(`Could not find parser for "${source}"`, source);
+      }
+    };
+    ResolverError = class extends JSONParserError {
+      code = "ERESOLVER";
+      name = "ResolverError";
+      ioErrorCode;
+      constructor(ex, source) {
+        super(ex.message || `Error reading file "${source}"`, source);
+        if ("code" in ex) {
+          this.ioErrorCode = String(ex.code);
+        }
+      }
+    };
+    UnmatchedResolverError = class extends JSONParserError {
+      code = "EUNMATCHEDRESOLVER";
+      name = "UnmatchedResolverError";
+      constructor(source) {
+        super(`Could not find resolver for "${source}"`, source);
+      }
+    };
+    MissingPointerError = class extends JSONParserError {
+      code = "EMISSINGPOINTER";
+      name = "MissingPointerError";
+      targetToken;
+      targetRef;
+      targetFound;
+      parentPath;
+      constructor(token, path, targetRef, targetFound, parentPath) {
+        super(`Missing $ref pointer "${getHash(path)}". Token "${token}" does not exist.`, stripHash(path));
+        this.targetToken = token;
+        this.targetRef = targetRef;
+        this.targetFound = targetFound;
+        this.parentPath = parentPath;
+      }
+    };
+    TimeoutError = class extends JSONParserError {
+      code = "ETIMEOUT";
+      name = "TimeoutError";
+      constructor(timeout) {
+        super(`Dereferencing timeout reached: ${timeout}ms`);
+      }
+    };
+    InvalidPointerError = class extends JSONParserError {
+      code = "EUNMATCHEDRESOLVER";
+      name = "InvalidPointerError";
+      constructor(pointer, path) {
+        super(`Invalid $ref pointer "${pointer}". Pointers must begin with "#/"`, stripHash(path));
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/schema-resources.js
+function getSchemaBasePath(basePath, value) {
+  const schemaId = getSchemaId(value);
+  return schemaId ? resolve(basePath, schemaId) : basePath;
+}
+function usesDynamicIdScope(value) {
+  if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) {
+    return false;
+  }
+  const schema2 = value.$schema;
+  if (typeof schema2 === "string" && (schema2.includes("draft/2019-09/") || schema2.includes("draft/2020-12/") || schema2.includes("oas/3.1/"))) {
+    return true;
+  }
+  const openapi = value.openapi;
+  return typeof openapi === "string" && /^3\.1(?:\.|$)/.test(openapi);
+}
+function registerSchemaResources($refs, basePath, value, pathType, dynamicIdScope = false) {
+  if (!dynamicIdScope) {
+    return;
+  }
+  const seen = /* @__PURE__ */ new Set();
+  const visit = (node, scopeBase) => {
+    if (!node || typeof node !== "object" || ArrayBuffer.isView(node) || seen.has(node)) {
+      return;
+    }
+    seen.add(node);
+    const nextScopeBase = getSchemaBasePath(scopeBase, node);
+    if (nextScopeBase !== scopeBase) {
+      $refs._addAlias(nextScopeBase, node, pathType, dynamicIdScope);
+    }
+    for (const key of Object.keys(node)) {
+      visit(node[key], nextScopeBase);
+    }
+  };
+  visit(value, basePath);
+}
+function getSchemaId(value) {
+  if (value && typeof value === "object" && "$id" in value && typeof value.$id === "string" && value.$id.length > 0) {
+    return value.$id;
+  }
+  return void 0;
+}
+var init_schema_resources = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/schema-resources.js"() {
+    init_url();
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/pointer.js
+function resolveIf$Ref(pointer, options, pathFromRoot) {
+  if (ref_default.isAllowed$Ref(pointer.value, options)) {
+    const resolutionBase = pointer.$ref.dynamicIdScope ? pointer.scopeBase : pointer.path;
+    const $refPath = resolve(resolutionBase, pointer.value.$ref);
+    if ($refPath === pointer.path && !isRootPath(pathFromRoot)) {
+      pointer.circular = true;
+    } else {
+      const resolved = pointer.$ref.$refs._resolve($refPath, pointer.path, options);
+      if (resolved === null) {
+        return false;
+      }
+      pointer.indirections += resolved.indirections + 1;
+      if (ref_default.isExtended$Ref(pointer.value)) {
+        pointer.value = ref_default.dereference(pointer.value, resolved.value, options);
+        return false;
+      } else {
+        pointer.$ref = resolved.$ref;
+        pointer.path = resolved.path;
+        pointer.value = resolved.value;
+        pointer.scopeBase = pointer.$ref.path;
+      }
+      return true;
+    }
+  }
+  return void 0;
+}
+function setValue(pointer, token, value) {
+  if (pointer.value && typeof pointer.value === "object") {
+    if (token === "-" && Array.isArray(pointer.value)) {
+      pointer.value.push(value);
+    } else {
+      pointer.value[token] = value;
+    }
+  } else {
+    throw new JSONParserError(`Error assigning $ref pointer "${pointer.path}". 
+Cannot set "${token}" of a non-object.`);
+  }
+  return value;
+}
+function assertSafeSetTokens(pointerPath, tokens) {
+  for (const token of tokens) {
+    if (unsafeSetTokens.has(token)) {
+      throw new JSONParserError(`Error assigning $ref pointer "${pointerPath}". 
+Unsafe JSON Pointer token "${token}" cannot be used for assignment.`);
+    }
+  }
+}
+function unwrapOrThrow(value) {
+  if (isHandledError(value)) {
+    throw value;
+  }
+  return value;
+}
+function isRootPath(pathFromRoot) {
+  return typeof pathFromRoot == "string" && Pointer.parse(pathFromRoot).length == 0;
+}
+function isAliasedResource($ref) {
+  return Boolean($ref.path && $ref.path in $ref.$refs._aliases);
+}
+var nullSymbol, slashes, tildes, escapedSlash, escapedTilde, unsafeSetTokens, Pointer, pointer_default;
+var init_pointer = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/pointer.js"() {
+    init_ref();
+    init_url();
+    init_errors();
+    init_schema_resources();
+    nullSymbol = /* @__PURE__ */ Symbol("null");
+    slashes = /\//g;
+    tildes = /~/g;
+    escapedSlash = /~1/g;
+    escapedTilde = /~0/g;
+    unsafeSetTokens = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
+    Pointer = class _Pointer {
+      /**
+       * The {@link $Ref} object that contains this {@link Pointer} object.
+       */
+      $ref;
+      /**
+       * The file path or URL, containing the JSON pointer in the hash.
+       * This path is relative to the path of the main JSON schema file.
+       */
+      path;
+      /**
+       * The original path or URL, used for error messages.
+       */
+      originalPath;
+      /**
+       * The current base URI used to resolve nested $ref pointers while walking this pointer.
+       */
+      scopeBase;
+      /**
+       * The value of the JSON pointer.
+       * Can be any JSON type, not just objects. Unknown file types are represented as Buffers (byte arrays).
+       */
+      value;
+      /**
+       * Indicates whether the pointer references itself.
+       */
+      circular;
+      /**
+       * The number of indirect references that were traversed to resolve the value.
+       * Resolving a single pointer may require resolving multiple $Refs.
+       */
+      indirections;
+      constructor($ref, path, friendlyPath) {
+        this.$ref = $ref;
+        this.path = path;
+        this.originalPath = friendlyPath || path;
+        this.scopeBase = $ref.path || stripHash(path);
+        this.value = void 0;
+        this.circular = false;
+        this.indirections = 0;
+      }
+      /**
+       * Resolves the value of a nested property within the given object.
+       *
+       * @param obj - The object that will be crawled
+       * @param options
+       * @param pathFromRoot - the path of place that initiated resolving
+       *
+       * @returns
+       * Returns a JSON pointer whose {@link Pointer#value} is the resolved value.
+       * If resolving this value required resolving other JSON references, then
+       * the {@link Pointer#$ref} and {@link Pointer#path} will reflect the resolution path
+       * of the resolved value.
+       */
+      resolve(obj, options, pathFromRoot) {
+        const tokens = _Pointer.parse(this.path, this.originalPath);
+        const found = [];
+        this.value = unwrapOrThrow(obj);
+        if (this.$ref.dynamicIdScope && !isAliasedResource(this.$ref)) {
+          this.scopeBase = getSchemaBasePath(this.scopeBase, this.value);
+        }
+        for (let i = 0; i < tokens.length; i++) {
+          const wasCircular = this.circular;
+          const isExtendedRef = ref_default.isExtended$Ref(this.value);
+          if (resolveIf$Ref(this, options, pathFromRoot)) {
+            this.path = _Pointer.join(this.path, tokens.slice(i));
+          } else if (!wasCircular && this.circular && isExtendedRef) {
+            this.circular = false;
+          }
+          const token = tokens[i];
+          if (this.value[token] === void 0 || this.value[token] === null && i === tokens.length - 1) {
+            let didFindSubstringSlashMatch = false;
+            for (let j = tokens.length - 1; j > i; j--) {
+              const joinedToken = tokens.slice(i, j + 1).join("/");
+              if (this.value[joinedToken] !== void 0) {
+                this.value = this.value[joinedToken];
+                i = j;
+                didFindSubstringSlashMatch = true;
+                break;
+              }
+            }
+            if (didFindSubstringSlashMatch) {
+              continue;
+            }
+            if (token in this.value && this.value[token] === null) {
+              this.value = nullSymbol;
+              continue;
+            }
+            this.value = null;
+            const path = this.$ref.path || "";
+            const targetRef = this.path.replace(path, "");
+            const targetFound = _Pointer.join("", found);
+            const parentPath = pathFromRoot?.replace(path, "");
+            throw new MissingPointerError(token, decodeURI(this.originalPath), targetRef, targetFound, parentPath);
+          } else {
+            this.value = this.value[token];
+          }
+          found.push(token);
+          if (this.$ref.dynamicIdScope) {
+            this.scopeBase = getSchemaBasePath(this.scopeBase, this.value);
+          }
+        }
+        const finalResolutionBase = this.$ref.dynamicIdScope ? this.scopeBase : this.path;
+        if (!this.value || this.value.$ref && resolve(finalResolutionBase, this.value.$ref) !== pathFromRoot) {
+          resolveIf$Ref(this, options, pathFromRoot);
+        }
+        return this;
+      }
+      /**
+       * Sets the value of a nested property within the given object.
+       *
+       * @param obj - The object that will be crawled
+       * @param value - the value to assign
+       * @param options
+       *
+       * @returns
+       * Returns the modified object, or an entirely new object if the entire object is overwritten.
+       */
+      set(obj, value, options) {
+        const tokens = _Pointer.parse(this.path);
+        let token;
+        if (tokens.length === 0) {
+          this.value = value;
+          return value;
+        }
+        assertSafeSetTokens(this.path, tokens);
+        this.value = unwrapOrThrow(obj);
+        if (this.$ref.dynamicIdScope && !isAliasedResource(this.$ref)) {
+          this.scopeBase = getSchemaBasePath(this.scopeBase, this.value);
+        }
+        for (let i = 0; i < tokens.length - 1; i++) {
+          resolveIf$Ref(this, options);
+          token = tokens[i];
+          if (this.value && this.value[token] !== void 0) {
+            this.value = this.value[token];
+          } else {
+            this.value = setValue(this, token, {});
+          }
+          if (this.$ref.dynamicIdScope) {
+            this.scopeBase = getSchemaBasePath(this.scopeBase, this.value);
+          }
+        }
+        resolveIf$Ref(this, options);
+        token = tokens[tokens.length - 1];
+        setValue(this, token, value);
+        return obj;
+      }
+      /**
+       * Parses a JSON pointer (or a path containing a JSON pointer in the hash)
+       * and returns an array of the pointer's tokens.
+       * (e.g. "schema.json#/definitions/person/name" => ["definitions", "person", "name"])
+       *
+       * The pointer is parsed according to RFC 6901
+       * {@link https://tools.ietf.org/html/rfc6901#section-3}
+       *
+       * @param path
+       * @param [originalPath]
+       * @returns
+       */
+      static parse(path, originalPath) {
+        const pointer = getHash(path).substring(1);
+        if (!pointer) {
+          return [];
+        }
+        const split = pointer.split("/");
+        for (let i = 0; i < split.length; i++) {
+          split[i] = split[i].replace(escapedSlash, "/").replace(escapedTilde, "~");
+        }
+        if (split[0] !== "") {
+          throw new InvalidPointerError(pointer, originalPath === void 0 ? path : originalPath);
+        }
+        return split.slice(1);
+      }
+      /**
+       * Creates a JSON pointer path, by joining one or more tokens to a base path.
+       *
+       * @param base - The base path (e.g. "schema.json#/definitions/person")
+       * @param tokens - The token(s) to append (e.g. ["name", "first"])
+       * @returns
+       */
+      static join(base, tokens) {
+        if (base.indexOf("#") === -1) {
+          base += "#";
+        }
+        tokens = Array.isArray(tokens) ? tokens : [tokens];
+        for (let i = 0; i < tokens.length; i++) {
+          const token = tokens[i];
+          base += "/" + token.replace(tildes, "~0").replace(slashes, "~1");
+        }
+        return base;
+      }
+    };
+    pointer_default = Pointer;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/ref.js
+function deepMerge(target, source) {
+  if (typeof target !== "object" || target === null) {
+    return source;
+  }
+  if (typeof source !== "object" || source === null) {
+    return source;
+  }
+  const output = Array.isArray(target) ? [...target] : { ...target };
+  for (const key of Object.keys(source)) {
+    if (Array.isArray(source[key])) {
+      output[key] = [...source[key]];
+    } else if (typeof source[key] === "object" && source[key] !== null) {
+      output[key] = deepMerge(target[key], source[key]);
+    } else {
+      output[key] = source[key];
+    }
+  }
+  return output;
+}
+var $Ref, ref_default;
+var init_ref = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/ref.js"() {
+    init_pointer();
+    init_errors();
+    init_url();
+    $Ref = class _$Ref {
+      /**
+       * The file path or URL of the referenced file.
+       * This path is relative to the path of the main JSON schema file.
+       *
+       * This path does NOT contain document fragments (JSON pointers). It always references an ENTIRE file.
+       * Use methods such as {@link $Ref#get}, {@link $Ref#resolve}, and {@link $Ref#exists} to get
+       * specific JSON pointers within the file.
+       *
+       * @type {string}
+       */
+      path;
+      /**
+       * The resolved value of the JSON reference.
+       * Can be any JSON type, not just objects. Unknown file types are represented as Buffers (byte arrays).
+       *
+       * @type {?*}
+       */
+      value;
+      /**
+       * The {@link $Refs} object that contains this {@link $Ref} object.
+       *
+       * @type {$Refs}
+       */
+      $refs;
+      /**
+       * Indicates the type of {@link $Ref#path} (e.g. "file", "http", etc.)
+       */
+      pathType;
+      /**
+       * Whether this document/resource should use JSON Schema 2019-09+ nested $id scope semantics.
+       */
+      dynamicIdScope = false;
+      /**
+       * List of all errors. Undefined if no errors.
+       */
+      errors = [];
+      constructor($refs) {
+        this.$refs = $refs;
+      }
+      /**
+       * Pushes an error to errors array.
+       *
+       * @param err - The error to be pushed
+       * @returns
+       */
+      addError(err) {
+        if (this.errors === void 0) {
+          this.errors = [];
+        }
+        const existingErrors = this.errors.map(({ footprint }) => footprint);
+        if ("errors" in err && Array.isArray(err.errors)) {
+          this.errors.push(...err.errors.map(normalizeError).filter(({ footprint }) => !existingErrors.includes(footprint)));
+        } else if (!("footprint" in err) || !existingErrors.includes(err.footprint)) {
+          this.errors.push(normalizeError(err));
+        }
+      }
+      /**
+       * Determines whether the given JSON reference exists within this {@link $Ref#value}.
+       *
+       * @param path - The full path being resolved, optionally with a JSON pointer in the hash
+       * @param options
+       * @returns
+       */
+      exists(path, options) {
+        try {
+          this.resolve(path, options);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      /**
+       * Resolves the given JSON reference within this {@link $Ref#value} and returns the resolved value.
+       *
+       * @param path - The full path being resolved, optionally with a JSON pointer in the hash
+       * @param options
+       * @returns - Returns the resolved value
+       */
+      get(path, options) {
+        return this.resolve(path, options)?.value;
+      }
+      /**
+       * Resolves the given JSON reference within this {@link $Ref#value}.
+       *
+       * @param path - The full path being resolved, optionally with a JSON pointer in the hash
+       * @param options
+       * @param friendlyPath - The original user-specified path (used for error messages)
+       * @param pathFromRoot - The path of `obj` from the schema root
+       * @returns
+       */
+      resolve(path, options, friendlyPath, pathFromRoot) {
+        const pointer = new pointer_default(this, path, friendlyPath);
+        try {
+          const resolved = pointer.resolve(this.value, options, pathFromRoot);
+          if (resolved.value === nullSymbol) {
+            resolved.value = null;
+          }
+          return resolved;
+        } catch (err) {
+          if (!options || !options.continueOnError || !isHandledError(err)) {
+            throw err;
+          }
+          if (err.path === null) {
+            err.path = safePointerToPath(getHash(pathFromRoot));
+          }
+          if (err instanceof InvalidPointerError) {
+            err.source = decodeURI(stripHash(pathFromRoot));
+          }
+          this.addError(err);
+          return null;
+        }
+      }
+      /**
+       * Sets the value of a nested property within this {@link $Ref#value}.
+       * If the property, or any of its parents don't exist, they will be created.
+       *
+       * @param path - The full path of the property to set, optionally with a JSON pointer in the hash
+       * @param value - The value to assign
+       */
+      set(path, value) {
+        const pointer = new pointer_default(this, path);
+        this.value = pointer.set(this.value, value);
+        if (this.value === nullSymbol) {
+          this.value = null;
+        }
+      }
+      /**
+       * Determines whether the given value is a JSON reference.
+       *
+       * @param value - The value to inspect
+       * @returns
+       */
+      static is$Ref(value) {
+        return Boolean(value) && typeof value === "object" && value !== null && "$ref" in value && typeof value.$ref === "string" && value.$ref.length > 0;
+      }
+      /**
+       * Determines whether the given value is an external JSON reference.
+       *
+       * @param value - The value to inspect
+       * @returns
+       */
+      static isExternal$Ref(value) {
+        return _$Ref.is$Ref(value) && value.$ref[0] !== "#";
+      }
+      /**
+       * Determines whether the given value is a JSON reference, and whether it is allowed by the options.
+       * For example, if it references an external file, then options.resolve.external must be true.
+       *
+       * @param value - The value to inspect
+       * @param options
+       * @returns
+       */
+      static isAllowed$Ref(value, options) {
+        if (this.is$Ref(value)) {
+          if (value.$ref.substring(0, 2) === "#/" || value.$ref === "#") {
+            return true;
+          } else if (value.$ref[0] !== "#" && (!options || options.resolve?.external)) {
+            return true;
+          }
+        }
+        return void 0;
+      }
+      /**
+       * Determines whether the given value is a JSON reference that "extends" its resolved value.
+       * That is, it has extra properties (in addition to "$ref"), so rather than simply pointing to
+       * an existing value, this $ref actually creates a NEW value that is a shallow copy of the resolved
+       * value, plus the extra properties.
+       *
+       * @example: {
+         person: {
+           properties: {
+             firstName: { type: string }
+             lastName: { type: string }
+           }
+         }
+         employee: {
+           properties: {
+             $ref: #/person/properties
+             salary: { type: number }
+           }
+         }
+       }
+       *  In this example, "employee" is an extended $ref, since it extends "person" with an additional
+       *  property (salary).  The result is a NEW value that looks like this:
+       *
+       *  {
+       *    properties: {
+       *      firstName: { type: string }
+       *      lastName: { type: string }
+       *      salary: { type: number }
+       *    }
+       *  }
+       *
+       * @param value - The value to inspect
+       * @returns
+       */
+      static isExtended$Ref(value) {
+        return _$Ref.is$Ref(value) && Object.keys(value).length > 1;
+      }
+      /**
+       * Returns the resolved value of a JSON Reference.
+       * If necessary, the resolved value is merged with the JSON Reference to create a new object
+       *
+       * @example: {
+      person: {
+        properties: {
+          firstName: { type: string }
+          lastName: { type: string }
+        }
+      }
+      employee: {
+        properties: {
+          $ref: #/person/properties
+          salary: { type: number }
+        }
+      }
+      } When "person" and "employee" are merged, you end up with the following object:
+       *
+       *  {
+       *    properties: {
+       *      firstName: { type: string }
+       *      lastName: { type: string }
+       *      salary: { type: number }
+       *    }
+       *  }
+       *
+       * @param $ref - The JSON reference object (the one with the "$ref" property)
+       * @param resolvedValue - The resolved value, which can be any type
+       * @param options - The options
+       * @returns - Returns the dereferenced value
+       */
+      static dereference($ref, resolvedValue, options) {
+        if (resolvedValue && typeof resolvedValue === "object" && _$Ref.isExtended$Ref($ref)) {
+          const merged = {};
+          for (const key of Object.keys($ref)) {
+            if (key !== "$ref") {
+              merged[key] = $ref[key];
+            }
+          }
+          const mergeKeys = options?.dereference?.mergeKeys ?? true;
+          for (const _key of Object.keys(resolvedValue)) {
+            const key = _key;
+            if (!(key in merged)) {
+              merged[key] = resolvedValue[key];
+            } else {
+              if (mergeKeys && typeof merged[key] === "object" && merged[key] !== null && typeof resolvedValue[key] === "object" && resolvedValue[key] !== null) {
+                merged[key] = deepMerge(resolvedValue[key], merged[key]);
+              }
+            }
+          }
+          return merged;
+        } else {
+          return resolvedValue;
+        }
+      }
+    };
+    ref_default = $Ref;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/refs.js
+function getPaths($refs, types2) {
+  let paths = Object.keys($refs);
+  types2 = Array.isArray(types2[0]) ? types2[0] : Array.prototype.slice.call(types2);
+  if (types2.length > 0 && types2[0]) {
+    paths = paths.filter((key) => {
+      return types2.includes($refs[key].pathType);
+    });
+  }
+  return paths.map((path) => {
+    return {
+      encoded: path,
+      decoded: $refs[path].pathType === "file" ? toFileSystemPath(path, true) : path
+    };
+  });
+}
+var $Refs;
+var init_refs = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/refs.js"() {
+    init_ref();
+    init_url();
+    init_convert_path_to_posix();
+    $Refs = class {
+      /**
+       * This property is true if the schema contains any circular references. You may want to check this property before serializing the dereferenced schema as JSON, since JSON.stringify() does not support circular references by default.
+       *
+       * See https://apidevtools.com/json-schema-ref-parser/docs/refs.html#circular
+       */
+      circular;
+      /**
+       * Returns the paths/URLs of all the files in your schema (including the main schema file).
+       *
+       * See https://apidevtools.com/json-schema-ref-parser/docs/refs.html#pathstypes
+       *
+       * @param types (optional) Optionally only return certain types of paths ("file", "http", etc.)
+       */
+      paths(...types2) {
+        const paths = getPaths(this._$refs, types2.flat());
+        return paths.map((path) => {
+          return convertPathToPosix(path.decoded);
+        });
+      }
+      /**
+       * Returns a map of paths/URLs and their correspond values.
+       *
+       * See https://apidevtools.com/json-schema-ref-parser/docs/refs.html#valuestypes
+       *
+       * @param types (optional) Optionally only return values from certain locations ("file", "http", etc.)
+       */
+      values(...types2) {
+        const $refs = this._$refs;
+        const paths = getPaths($refs, types2.flat());
+        return paths.reduce((obj, path) => {
+          obj[convertPathToPosix(path.decoded)] = $refs[path.encoded].value;
+          return obj;
+        }, {});
+      }
+      /**
+       * Returns `true` if the given path exists in the schema; otherwise, returns `false`
+       *
+       * See https://apidevtools.com/json-schema-ref-parser/docs/refs.html#existsref
+       *
+       * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
+       */
+      /**
+       * Determines whether the given JSON reference exists.
+       *
+       * @param path - The path being resolved, optionally with a JSON pointer in the hash
+       * @param [options]
+       * @returns
+       */
+      exists(path, options) {
+        try {
+          this._resolve(path, "", options);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      /**
+       * Resolves the given JSON reference and returns the resolved value.
+       *
+       * @param path - The path being resolved, with a JSON pointer in the hash
+       * @param [options]
+       * @returns - Returns the resolved value
+       */
+      get(path, options) {
+        return this._resolve(path, "", options).value;
+      }
+      /**
+       * Sets the value at the given path in the schema. If the property, or any of its parents, don't exist, they will be created.
+       *
+       * @param path The JSON Reference path, optionally with a JSON Pointer in the hash
+       * @param value The value to assign. Can be anything (object, string, number, etc.)
+       */
+      set(path, value) {
+        const absPath = resolve(this._root$Ref.path, path);
+        const $ref = this._getRef(absPath);
+        if (!$ref) {
+          throw new Error(`Error resolving $ref pointer "${path}". 
+"${stripHash(absPath)}" not found.`);
+        }
+        $ref.set(absPath, value);
+      }
+      /**
+       * Returns the specified {@link $Ref} object, or undefined.
+       *
+       * @param path - The path being resolved, optionally with a JSON pointer in the hash
+       * @returns
+       * @protected
+       */
+      _get$Ref(path) {
+        path = resolve(this._root$Ref.path, path);
+        return this._getRef(path);
+      }
+      /**
+       * Creates a new {@link $Ref} object and adds it to this {@link $Refs} object.
+       *
+       * @param path  - The file path or URL of the referenced file
+       */
+      _add(path) {
+        const withoutHash = stripHash(path);
+        const $ref = new ref_default(this);
+        $ref.path = withoutHash;
+        this._$refs[withoutHash] = $ref;
+        this._root$Ref = this._root$Ref || $ref;
+        return $ref;
+      }
+      _addAlias(path, value, pathType, dynamicIdScope = false) {
+        const withoutHash = stripHash(path);
+        if (!withoutHash || this._$refs[withoutHash] || this._aliases[withoutHash]) {
+          return this._$refs[withoutHash] || this._aliases[withoutHash];
+        }
+        const $ref = new ref_default(this);
+        $ref.path = withoutHash;
+        $ref.pathType = pathType;
+        $ref.value = value;
+        $ref.dynamicIdScope = dynamicIdScope;
+        this._aliases[withoutHash] = $ref;
+        return $ref;
+      }
+      /**
+       * Resolves the given JSON reference.
+       *
+       * @param path - The path being resolved, optionally with a JSON pointer in the hash
+       * @param pathFromRoot - The path of `obj` from the schema root
+       * @param [options]
+       * @returns
+       * @protected
+       */
+      _resolve(path, pathFromRoot, options) {
+        const absPath = resolve(this._root$Ref.path, path);
+        const $ref = this._getRef(absPath);
+        if (!$ref) {
+          throw new Error(`Error resolving $ref pointer "${path}". 
+"${stripHash(absPath)}" not found.`);
+        }
+        return $ref.resolve(absPath, options, path, pathFromRoot);
+      }
+      /**
+       * A map of paths/urls to {@link $Ref} objects
+       *
+       * @type {object}
+       * @protected
+       */
+      _$refs = {};
+      _aliases = {};
+      /**
+       * The {@link $Ref} object that is the root of the JSON schema.
+       *
+       * @type {$Ref}
+       * @protected
+       */
+      _root$Ref;
+      constructor() {
+        this.circular = false;
+        this._$refs = {};
+        this._aliases = {};
+        this._root$Ref = null;
+      }
+      /**
+       * Returns the paths of all the files/URLs that are referenced by the JSON schema,
+       * including the schema itself.
+       *
+       * @param [types] - Only return paths of the given types ("file", "http", etc.)
+       * @returns
+       */
+      /**
+       * Returns the map of JSON references and their resolved values.
+       *
+       * @param [types] - Only return references of the given types ("file", "http", etc.)
+       * @returns
+       */
+      /**
+       * Returns a POJO (plain old JavaScript object) for serialization as JSON.
+       *
+       * @returns {object}
+       */
+      toJSON = this.values;
+      _getRef(path) {
+        const withoutHash = stripHash(path);
+        return this._$refs[withoutHash] || this._aliases[withoutHash];
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/plugins.js
+function all(plugins) {
+  return Object.keys(plugins || {}).filter((key) => {
+    return typeof plugins[key] === "object";
+  }).map((key) => {
+    plugins[key].name = key;
+    return plugins[key];
+  });
+}
+function filter(plugins, method, file, callback, $refs) {
+  return plugins.filter((plugin) => {
+    return !!getResult(plugin, method, file, callback, $refs);
+  });
+}
+function sort(plugins) {
+  for (const plugin of plugins) {
+    plugin.order = plugin.order || Number.MAX_SAFE_INTEGER;
+  }
+  return plugins.sort((a, b) => {
+    return a.order - b.order;
+  });
+}
+async function run(plugins, method, file, $refs) {
+  let plugin;
+  let lastError;
+  let index = 0;
+  return new Promise((resolve3, reject) => {
+    runNextPlugin();
+    function runNextPlugin() {
+      plugin = plugins[index++];
+      if (!plugin) {
+        return reject(lastError);
+      }
+      try {
+        const result = getResult(plugin, method, file, callback, $refs);
+        if (result && typeof result.then === "function") {
+          result.then(onSuccess, onError);
+        } else if (result !== void 0) {
+          onSuccess(result);
+        } else if (index === plugins.length) {
+          throw new Error("No promise has been returned or callback has been called.");
+        }
+      } catch (e) {
+        onError(e);
+      }
+    }
+    function callback(err, result) {
+      if (err) {
+        onError(err);
+      } else {
+        onSuccess(result);
+      }
+    }
+    function onSuccess(result) {
+      resolve3({
+        plugin,
+        result
+      });
+    }
+    function onError(error) {
+      lastError = {
+        plugin,
+        error
+      };
+      runNextPlugin();
+    }
+  });
+}
+function getResult(obj, prop, file, callback, $refs) {
+  const value = obj[prop];
+  if (typeof value === "function") {
+    return value.apply(obj, [file, callback, $refs]);
+  }
+  if (!callback) {
+    if (value instanceof RegExp) {
+      return value.test(file.url);
+    } else if (typeof value === "string") {
+      return value === file.extension;
+    } else if (Array.isArray(value)) {
+      return value.indexOf(file.extension) !== -1;
+    }
+  }
+  return value;
+}
+var init_plugins = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/plugins.js"() {
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parse.js
+async function parse2(target, $refs, options) {
+  let path = typeof target === "string" ? target : target.url;
+  const baseUrl = typeof target === "string" ? void 0 : target.baseUrl;
+  let reference = typeof target === "string" ? void 0 : target.reference;
+  const hashIndex = path.indexOf("#");
+  let hash = "";
+  if (hashIndex >= 0) {
+    hash = path.substring(hashIndex);
+    path = path.substring(0, hashIndex);
+  }
+  if (reference) {
+    const referenceHashIndex = reference.indexOf("#");
+    if (referenceHashIndex >= 0) {
+      reference = reference.substring(0, referenceHashIndex);
+    }
+  }
+  const $ref = $refs._add(path);
+  const file = {
+    url: path,
+    hash,
+    extension: getExtension(path),
+    ...reference !== void 0 ? { reference } : {},
+    ...baseUrl !== void 0 ? { baseUrl } : {}
+  };
+  try {
+    const resolver = await readFile(file, options, $refs);
+    $ref.pathType = resolver.plugin.name;
+    file.data = resolver.result;
+    const parser = await parseFile(file, options, $refs);
+    $ref.value = parser.result;
+    $ref.dynamicIdScope = usesDynamicIdScope($ref.value);
+    registerSchemaResources($refs, $ref.path, $ref.value, $ref.pathType, $ref.dynamicIdScope);
+    return parser.result;
+  } catch (err) {
+    if (isHandledError(err)) {
+      $ref.value = err;
+    }
+    throw err;
+  }
+}
+async function readFile(file, options, $refs) {
+  let resolvers = all(options.resolve);
+  resolvers = filter(resolvers, "canRead", file, void 0, $refs);
+  sort(resolvers);
+  try {
+    const data = await run(resolvers, "read", file, $refs);
+    return data;
+  } catch (err) {
+    if (!err && options.continueOnError) {
+      throw new UnmatchedResolverError(file.url);
+    } else if (!err || !("error" in err)) {
+      throw new SyntaxError(`Unable to resolve $ref pointer "${file.url}"`, { cause: err });
+    } else if (err.error instanceof ResolverError) {
+      throw err.error;
+    } else {
+      throw new ResolverError(err, file.url);
+    }
+  }
+}
+async function parseFile(file, options, $refs) {
+  const allParsers = all(options.parse);
+  const filteredParsers = filter(allParsers, "canParse", file);
+  const parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
+  sort(parsers);
+  try {
+    const parser = await run(parsers, "parse", file, $refs);
+    if (!parser.plugin.allowEmpty && isEmpty(parser.result)) {
+      throw new SyntaxError(`Error parsing "${file.url}" as ${parser.plugin.name}. 
+Parsed value is empty`);
+    } else {
+      return parser;
+    }
+  } catch (err) {
+    if (!err && options.continueOnError) {
+      throw new UnmatchedParserError(file.url);
+    } else if (err && err.message && err.message.startsWith("Error parsing")) {
+      throw err;
+    } else if (!err || !("error" in err)) {
+      throw new SyntaxError(`Unable to parse ${file.url}`, { cause: err });
+    } else if (err.error instanceof ParserError) {
+      throw err.error;
+    } else {
+      throw new ParserError(err.error.message, file.url);
+    }
+  }
+}
+function isEmpty(value) {
+  return value === void 0 || typeof value === "object" && Object.keys(value).length === 0 || typeof value === "string" && value.trim().length === 0 || Buffer.isBuffer(value) && value.length === 0;
+}
+var parse_default;
+var init_parse = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parse.js"() {
+    init_url();
+    init_schema_resources();
+    init_plugins();
+    init_errors();
+    parse_default = parse2;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/json.js
+var json_default;
+var init_json = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/json.js"() {
+    init_errors();
+    json_default = {
+      /**
+       * The order that this parser will run, in relation to other parsers.
+       */
+      order: 100,
+      /**
+       * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
+       */
+      allowEmpty: true,
+      /**
+       * Determines whether this parser can parse a given file reference.
+       * Parsers that match will be tried, in order, until one successfully parses the file.
+       * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
+       * every parser will be tried.
+       */
+      canParse: ".json",
+      /**
+       * Allow JSON files with byte order marks (BOM)
+       */
+      allowBOM: true,
+      /**
+       * Parses the given file as JSON
+       */
+      async parse(file) {
+        let data = file.data;
+        if (Buffer.isBuffer(data)) {
+          data = data.toString();
+        }
+        if (typeof data === "string") {
+          if (data.trim().length === 0) {
+            return;
+          } else {
+            try {
+              return JSON.parse(data);
+            } catch (e) {
+              if (this.allowBOM) {
+                try {
+                  const firstCurlyBrace = data.indexOf("{");
+                  data = data.slice(firstCurlyBrace);
+                  return JSON.parse(data);
+                } catch (e2) {
+                  throw new ParserError(e2.message, file.url);
+                }
+              }
+              throw new ParserError(e.message, file.url);
+            }
+          }
+        } else {
+          return data;
+        }
+      }
+    };
+  }
+});
+
+// node_modules/js-yaml/dist/js-yaml.mjs
+function getDefaultExportFromCjs(x) {
+  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
+}
+function requireCommon() {
+  if (hasRequiredCommon) return common;
+  hasRequiredCommon = 1;
+  function isNothing(subject) {
+    return typeof subject === "undefined" || subject === null;
+  }
+  function isObject(subject) {
+    return typeof subject === "object" && subject !== null;
+  }
+  function toArray(sequence) {
+    if (Array.isArray(sequence)) return sequence;
+    else if (isNothing(sequence)) return [];
+    return [sequence];
+  }
+  function extend(target, source) {
+    if (source) {
+      const sourceKeys = Object.keys(source);
+      for (let index = 0, length = sourceKeys.length; index < length; index += 1) {
+        const key = sourceKeys[index];
+        target[key] = source[key];
+      }
+    }
+    return target;
+  }
+  function repeat(string, count) {
+    let result = "";
+    for (let cycle = 0; cycle < count; cycle += 1) {
+      result += string;
+    }
+    return result;
+  }
+  function isNegativeZero(number) {
+    return number === 0 && Number.NEGATIVE_INFINITY === 1 / number;
+  }
+  common.isNothing = isNothing;
+  common.isObject = isObject;
+  common.toArray = toArray;
+  common.repeat = repeat;
+  common.isNegativeZero = isNegativeZero;
+  common.extend = extend;
+  return common;
+}
+function requireException() {
+  if (hasRequiredException) return exception;
+  hasRequiredException = 1;
+  function formatError(exception2, compact) {
+    let where = "";
+    const message = exception2.reason || "(unknown reason)";
+    if (!exception2.mark) return message;
+    if (exception2.mark.name) {
+      where += 'in "' + exception2.mark.name + '" ';
+    }
+    where += "(" + (exception2.mark.line + 1) + ":" + (exception2.mark.column + 1) + ")";
+    if (!compact && exception2.mark.snippet) {
+      where += "\n\n" + exception2.mark.snippet;
+    }
+    return message + " " + where;
+  }
+  function YAMLException2(reason, mark) {
+    Error.call(this);
+    this.name = "YAMLException";
+    this.reason = reason;
+    this.mark = mark;
+    this.message = formatError(this, false);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error().stack || "";
+    }
+  }
+  YAMLException2.prototype = Object.create(Error.prototype);
+  YAMLException2.prototype.constructor = YAMLException2;
+  YAMLException2.prototype.toString = function toString(compact) {
+    return this.name + ": " + formatError(this, compact);
+  };
+  exception = YAMLException2;
+  return exception;
+}
+function requireSnippet() {
+  if (hasRequiredSnippet) return snippet;
+  hasRequiredSnippet = 1;
+  const common2 = requireCommon();
+  function getLine(buffer, lineStart, lineEnd, position, maxLineLength) {
+    let head = "";
+    let tail = "";
+    const maxHalfLength = Math.floor(maxLineLength / 2) - 1;
+    if (position - lineStart > maxHalfLength) {
+      head = " ... ";
+      lineStart = position - maxHalfLength + head.length;
+    }
+    if (lineEnd - position > maxHalfLength) {
+      tail = " ...";
+      lineEnd = position + maxHalfLength - tail.length;
+    }
+    return {
+      str: head + buffer.slice(lineStart, lineEnd).replace(/\t/g, "\u2192") + tail,
+      pos: position - lineStart + head.length
+      // relative position
+    };
+  }
+  function padStart(string, max) {
+    return common2.repeat(" ", max - string.length) + string;
+  }
+  function makeSnippet(mark, options) {
+    options = Object.create(options || null);
+    if (!mark.buffer) return null;
+    if (!options.maxLength) options.maxLength = 79;
+    if (typeof options.indent !== "number") options.indent = 1;
+    if (typeof options.linesBefore !== "number") options.linesBefore = 3;
+    if (typeof options.linesAfter !== "number") options.linesAfter = 2;
+    const re = /\r?\n|\r|\0/g;
+    const lineStarts = [0];
+    const lineEnds = [];
+    let match;
+    let foundLineNo = -1;
+    while (match = re.exec(mark.buffer)) {
+      lineEnds.push(match.index);
+      lineStarts.push(match.index + match[0].length);
+      if (mark.position <= match.index && foundLineNo < 0) {
+        foundLineNo = lineStarts.length - 2;
+      }
+    }
+    if (foundLineNo < 0) foundLineNo = lineStarts.length - 1;
+    let result = "";
+    const lineNoLength = Math.min(mark.line + options.linesAfter, lineEnds.length).toString().length;
+    const maxLineLength = options.maxLength - (options.indent + lineNoLength + 3);
+    for (let i = 1; i <= options.linesBefore; i++) {
+      if (foundLineNo - i < 0) break;
+      const line2 = getLine(
+        mark.buffer,
+        lineStarts[foundLineNo - i],
+        lineEnds[foundLineNo - i],
+        mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
+        maxLineLength
+      );
+      result = common2.repeat(" ", options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) + " | " + line2.str + "\n" + result;
+    }
+    const line = getLine(mark.buffer, lineStarts[foundLineNo], lineEnds[foundLineNo], mark.position, maxLineLength);
+    result += common2.repeat(" ", options.indent) + padStart((mark.line + 1).toString(), lineNoLength) + " | " + line.str + "\n";
+    result += common2.repeat("-", options.indent + lineNoLength + 3 + line.pos) + "^\n";
+    for (let i = 1; i <= options.linesAfter; i++) {
+      if (foundLineNo + i >= lineEnds.length) break;
+      const line2 = getLine(
+        mark.buffer,
+        lineStarts[foundLineNo + i],
+        lineEnds[foundLineNo + i],
+        mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
+        maxLineLength
+      );
+      result += common2.repeat(" ", options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) + " | " + line2.str + "\n";
+    }
+    return result.replace(/\n$/, "");
+  }
+  snippet = makeSnippet;
+  return snippet;
+}
+function requireType() {
+  if (hasRequiredType) return type;
+  hasRequiredType = 1;
+  const YAMLException2 = requireException();
+  const TYPE_CONSTRUCTOR_OPTIONS = [
+    "kind",
+    "multi",
+    "resolve",
+    "construct",
+    "instanceOf",
+    "predicate",
+    "represent",
+    "representName",
+    "defaultStyle",
+    "styleAliases"
+  ];
+  const YAML_NODE_KINDS = [
+    "scalar",
+    "sequence",
+    "mapping"
+  ];
+  function compileStyleAliases(map2) {
+    const result = {};
+    if (map2 !== null) {
+      Object.keys(map2).forEach(function(style) {
+        map2[style].forEach(function(alias) {
+          result[String(alias)] = style;
+        });
+      });
+    }
+    return result;
+  }
+  function Type2(tag, options) {
+    options = options || {};
+    Object.keys(options).forEach(function(name) {
+      if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
+        throw new YAMLException2('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
+      }
+    });
+    this.options = options;
+    this.tag = tag;
+    this.kind = options["kind"] || null;
+    this.resolve = options["resolve"] || function() {
+      return true;
+    };
+    this.construct = options["construct"] || function(data) {
+      return data;
+    };
+    this.instanceOf = options["instanceOf"] || null;
+    this.predicate = options["predicate"] || null;
+    this.represent = options["represent"] || null;
+    this.representName = options["representName"] || null;
+    this.defaultStyle = options["defaultStyle"] || null;
+    this.multi = options["multi"] || false;
+    this.styleAliases = compileStyleAliases(options["styleAliases"] || null);
+    if (YAML_NODE_KINDS.indexOf(this.kind) === -1) {
+      throw new YAMLException2('Unknown kind "' + this.kind + '" is specified for "' + tag + '" YAML type.');
+    }
+  }
+  type = Type2;
+  return type;
+}
+function requireSchema() {
+  if (hasRequiredSchema) return schema;
+  hasRequiredSchema = 1;
+  const YAMLException2 = requireException();
+  const Type2 = requireType();
+  function compileList(schema2, name) {
+    const result = [];
+    schema2[name].forEach(function(currentType) {
+      let newIndex = result.length;
+      result.forEach(function(previousType, previousIndex) {
+        if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
+          newIndex = previousIndex;
+        }
+      });
+      result[newIndex] = currentType;
+    });
+    return result;
+  }
+  function compileMap() {
+    const result = {
+      scalar: {},
+      sequence: {},
+      mapping: {},
+      fallback: {},
+      multi: {
+        scalar: [],
+        sequence: [],
+        mapping: [],
+        fallback: []
+      }
+    };
+    function collectType(type2) {
+      if (type2.multi) {
+        result.multi[type2.kind].push(type2);
+        result.multi["fallback"].push(type2);
+      } else {
+        result[type2.kind][type2.tag] = result["fallback"][type2.tag] = type2;
+      }
+    }
+    for (let index = 0, length = arguments.length; index < length; index += 1) {
+      arguments[index].forEach(collectType);
+    }
+    return result;
+  }
+  function Schema2(definition) {
+    return this.extend(definition);
+  }
+  Schema2.prototype.extend = function extend(definition) {
+    let implicit = [];
+    let explicit = [];
+    if (definition instanceof Type2) {
+      explicit.push(definition);
+    } else if (Array.isArray(definition)) {
+      explicit = explicit.concat(definition);
+    } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
+      if (definition.implicit) implicit = implicit.concat(definition.implicit);
+      if (definition.explicit) explicit = explicit.concat(definition.explicit);
+    } else {
+      throw new YAMLException2("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
+    }
+    implicit.forEach(function(type2) {
+      if (!(type2 instanceof Type2)) {
+        throw new YAMLException2("Specified list of YAML types (or a single Type object) contains a non-Type object.");
+      }
+      if (type2.loadKind && type2.loadKind !== "scalar") {
+        throw new YAMLException2("There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.");
+      }
+      if (type2.multi) {
+        throw new YAMLException2("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
+      }
+    });
+    explicit.forEach(function(type2) {
+      if (!(type2 instanceof Type2)) {
+        throw new YAMLException2("Specified list of YAML types (or a single Type object) contains a non-Type object.");
+      }
+    });
+    const result = Object.create(Schema2.prototype);
+    result.implicit = (this.implicit || []).concat(implicit);
+    result.explicit = (this.explicit || []).concat(explicit);
+    result.compiledImplicit = compileList(result, "implicit");
+    result.compiledExplicit = compileList(result, "explicit");
+    result.compiledTypeMap = compileMap(result.compiledImplicit, result.compiledExplicit);
+    return result;
+  };
+  schema = Schema2;
+  return schema;
+}
+function requireStr() {
+  if (hasRequiredStr) return str;
+  hasRequiredStr = 1;
+  const Type2 = requireType();
+  str = new Type2("tag:yaml.org,2002:str", {
+    kind: "scalar",
+    construct: function(data) {
+      return data !== null ? data : "";
+    }
+  });
+  return str;
+}
+function requireSeq() {
+  if (hasRequiredSeq) return seq;
+  hasRequiredSeq = 1;
+  const Type2 = requireType();
+  seq = new Type2("tag:yaml.org,2002:seq", {
+    kind: "sequence",
+    construct: function(data) {
+      return data !== null ? data : [];
+    }
+  });
+  return seq;
+}
+function requireMap() {
+  if (hasRequiredMap) return map;
+  hasRequiredMap = 1;
+  const Type2 = requireType();
+  map = new Type2("tag:yaml.org,2002:map", {
+    kind: "mapping",
+    construct: function(data) {
+      return data !== null ? data : {};
+    }
+  });
+  return map;
+}
+function requireFailsafe() {
+  if (hasRequiredFailsafe) return failsafe;
+  hasRequiredFailsafe = 1;
+  const Schema2 = requireSchema();
+  failsafe = new Schema2({
+    explicit: [
+      requireStr(),
+      requireSeq(),
+      requireMap()
+    ]
+  });
+  return failsafe;
+}
+function require_null() {
+  if (hasRequired_null) return _null;
+  hasRequired_null = 1;
+  const Type2 = requireType();
+  function resolveYamlNull(data) {
+    if (data === null) return true;
+    const max = data.length;
+    return max === 1 && data === "~" || max === 4 && (data === "null" || data === "Null" || data === "NULL");
+  }
+  function constructYamlNull() {
+    return null;
+  }
+  function isNull(object) {
+    return object === null;
+  }
+  _null = new Type2("tag:yaml.org,2002:null", {
+    kind: "scalar",
+    resolve: resolveYamlNull,
+    construct: constructYamlNull,
+    predicate: isNull,
+    represent: {
+      canonical: function() {
+        return "~";
+      },
+      lowercase: function() {
+        return "null";
+      },
+      uppercase: function() {
+        return "NULL";
+      },
+      camelcase: function() {
+        return "Null";
+      },
+      empty: function() {
+        return "";
+      }
+    },
+    defaultStyle: "lowercase"
+  });
+  return _null;
+}
+function requireBool() {
+  if (hasRequiredBool) return bool;
+  hasRequiredBool = 1;
+  const Type2 = requireType();
+  function resolveYamlBoolean(data) {
+    if (data === null) return false;
+    const max = data.length;
+    return max === 4 && (data === "true" || data === "True" || data === "TRUE") || max === 5 && (data === "false" || data === "False" || data === "FALSE");
+  }
+  function constructYamlBoolean(data) {
+    return data === "true" || data === "True" || data === "TRUE";
+  }
+  function isBoolean(object) {
+    return Object.prototype.toString.call(object) === "[object Boolean]";
+  }
+  bool = new Type2("tag:yaml.org,2002:bool", {
+    kind: "scalar",
+    resolve: resolveYamlBoolean,
+    construct: constructYamlBoolean,
+    predicate: isBoolean,
+    represent: {
+      lowercase: function(object) {
+        return object ? "true" : "false";
+      },
+      uppercase: function(object) {
+        return object ? "TRUE" : "FALSE";
+      },
+      camelcase: function(object) {
+        return object ? "True" : "False";
+      }
+    },
+    defaultStyle: "lowercase"
+  });
+  return bool;
+}
+function requireInt() {
+  if (hasRequiredInt) return int;
+  hasRequiredInt = 1;
+  const common2 = requireCommon();
+  const Type2 = requireType();
+  function isHexCode(c) {
+    return c >= 48 && c <= 57 || c >= 65 && c <= 70 || c >= 97 && c <= 102;
+  }
+  function isOctCode(c) {
+    return c >= 48 && c <= 55;
+  }
+  function isDecCode(c) {
+    return c >= 48 && c <= 57;
+  }
+  function resolveYamlInteger(data) {
+    if (data === null) return false;
+    const max = data.length;
+    let index = 0;
+    let hasDigits = false;
+    if (!max) return false;
+    let ch = data[index];
+    if (ch === "-" || ch === "+") {
+      ch = data[++index];
+    }
+    if (ch === "0") {
+      if (index + 1 === max) return true;
+      ch = data[++index];
+      if (ch === "b") {
+        index++;
+        for (; index < max; index++) {
+          ch = data[index];
+          if (ch !== "0" && ch !== "1") return false;
+          hasDigits = true;
+        }
+        return hasDigits && isFinite(parseYamlInteger(data));
+      }
+      if (ch === "x") {
+        index++;
+        for (; index < max; index++) {
+          if (!isHexCode(data.charCodeAt(index))) return false;
+          hasDigits = true;
+        }
+        return hasDigits && isFinite(parseYamlInteger(data));
+      }
+      if (ch === "o") {
+        index++;
+        for (; index < max; index++) {
+          if (!isOctCode(data.charCodeAt(index))) return false;
+          hasDigits = true;
+        }
+        return hasDigits && isFinite(parseYamlInteger(data));
+      }
+    }
+    for (; index < max; index++) {
+      if (!isDecCode(data.charCodeAt(index))) {
+        return false;
+      }
+      hasDigits = true;
+    }
+    if (!hasDigits) return false;
+    return isFinite(parseYamlInteger(data));
+  }
+  function parseYamlInteger(data) {
+    let value = data;
+    let sign = 1;
+    let ch = value[0];
+    if (ch === "-" || ch === "+") {
+      if (ch === "-") sign = -1;
+      value = value.slice(1);
+      ch = value[0];
+    }
+    if (value === "0") return 0;
+    if (ch === "0") {
+      if (value[1] === "b") return sign * parseInt(value.slice(2), 2);
+      if (value[1] === "x") return sign * parseInt(value.slice(2), 16);
+      if (value[1] === "o") return sign * parseInt(value.slice(2), 8);
+    }
+    return sign * parseInt(value, 10);
+  }
+  function constructYamlInteger(data) {
+    return parseYamlInteger(data);
+  }
+  function isInteger(object) {
+    return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 === 0 && !common2.isNegativeZero(object));
+  }
+  int = new Type2("tag:yaml.org,2002:int", {
+    kind: "scalar",
+    resolve: resolveYamlInteger,
+    construct: constructYamlInteger,
+    predicate: isInteger,
+    represent: {
+      binary: function(obj) {
+        return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
+      },
+      octal: function(obj) {
+        return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
+      },
+      decimal: function(obj) {
+        return obj.toString(10);
+      },
+      hexadecimal: function(obj) {
+        return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
+      }
+    },
+    defaultStyle: "decimal",
+    styleAliases: {
+      binary: [2, "bin"],
+      octal: [8, "oct"],
+      decimal: [10, "dec"],
+      hexadecimal: [16, "hex"]
+    }
+  });
+  return int;
+}
+function requireFloat() {
+  if (hasRequiredFloat) return float;
+  hasRequiredFloat = 1;
+  const common2 = requireCommon();
+  const Type2 = requireType();
+  const YAML_FLOAT_PATTERN = new RegExp(
+    // 2.5e4, 2.5 and integers
+    "^(?:[-+]?(?:[0-9]+)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9]+(?:[eE][-+]?[0-9]+)?|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
+  );
+  const YAML_FLOAT_SPECIAL_PATTERN = new RegExp(
+    "^(?:[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
+  );
+  function resolveYamlFloat(data) {
+    if (data === null) return false;
+    if (!YAML_FLOAT_PATTERN.test(data)) {
+      return false;
+    }
+    if (isFinite(parseFloat(data, 10))) {
+      return true;
+    }
+    return YAML_FLOAT_SPECIAL_PATTERN.test(data);
+  }
+  function constructYamlFloat(data) {
+    let value = data.toLowerCase();
+    const sign = value[0] === "-" ? -1 : 1;
+    if ("+-".indexOf(value[0]) >= 0) {
+      value = value.slice(1);
+    }
+    if (value === ".inf") {
+      return sign === 1 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+    } else if (value === ".nan") {
+      return NaN;
+    }
+    return sign * parseFloat(value, 10);
+  }
+  const SCIENTIFIC_WITHOUT_DOT = /^[-+]?[0-9]+e/;
+  function representYamlFloat(object, style) {
+    if (isNaN(object)) {
+      switch (style) {
+        case "lowercase":
+          return ".nan";
+        case "uppercase":
+          return ".NAN";
+        case "camelcase":
+          return ".NaN";
+      }
+    } else if (Number.POSITIVE_INFINITY === object) {
+      switch (style) {
+        case "lowercase":
+          return ".inf";
+        case "uppercase":
+          return ".INF";
+        case "camelcase":
+          return ".Inf";
+      }
+    } else if (Number.NEGATIVE_INFINITY === object) {
+      switch (style) {
+        case "lowercase":
+          return "-.inf";
+        case "uppercase":
+          return "-.INF";
+        case "camelcase":
+          return "-.Inf";
+      }
+    } else if (common2.isNegativeZero(object)) {
+      return "-0.0";
+    }
+    const res = object.toString(10);
+    return SCIENTIFIC_WITHOUT_DOT.test(res) ? res.replace("e", ".e") : res;
+  }
+  function isFloat(object) {
+    return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 !== 0 || common2.isNegativeZero(object));
+  }
+  float = new Type2("tag:yaml.org,2002:float", {
+    kind: "scalar",
+    resolve: resolveYamlFloat,
+    construct: constructYamlFloat,
+    predicate: isFloat,
+    represent: representYamlFloat,
+    defaultStyle: "lowercase"
+  });
+  return float;
+}
+function requireJson() {
+  if (hasRequiredJson) return json;
+  hasRequiredJson = 1;
+  json = requireFailsafe().extend({
+    implicit: [
+      require_null(),
+      requireBool(),
+      requireInt(),
+      requireFloat()
+    ]
+  });
+  return json;
+}
+function requireCore() {
+  if (hasRequiredCore) return core;
+  hasRequiredCore = 1;
+  core = requireJson();
+  return core;
+}
+function requireTimestamp() {
+  if (hasRequiredTimestamp) return timestamp;
+  hasRequiredTimestamp = 1;
+  const Type2 = requireType();
+  const YAML_DATE_REGEXP = new RegExp(
+    "^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$"
+  );
+  const YAML_TIMESTAMP_REGEXP = new RegExp(
+    "^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$"
+  );
+  function resolveYamlTimestamp(data) {
+    if (data === null) return false;
+    if (YAML_DATE_REGEXP.exec(data) !== null) return true;
+    if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
+    return false;
+  }
+  function constructYamlTimestamp(data) {
+    let fraction = 0;
+    let delta = null;
+    let match = YAML_DATE_REGEXP.exec(data);
+    if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
+    if (match === null) throw new Error("Date resolve error");
+    const year = +match[1];
+    const month = +match[2] - 1;
+    const day = +match[3];
+    if (!match[4]) {
+      return new Date(Date.UTC(year, month, day));
+    }
+    const hour = +match[4];
+    const minute = +match[5];
+    const second = +match[6];
+    if (match[7]) {
+      fraction = match[7].slice(0, 3);
+      while (fraction.length < 3) {
+        fraction += "0";
+      }
+      fraction = +fraction;
+    }
+    if (match[9]) {
+      const tzHour = +match[10];
+      const tzMinute = +(match[11] || 0);
+      delta = (tzHour * 60 + tzMinute) * 6e4;
+      if (match[9] === "-") delta = -delta;
+    }
+    const date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
+    if (delta) date.setTime(date.getTime() - delta);
+    return date;
+  }
+  function representYamlTimestamp(object) {
+    return object.toISOString();
+  }
+  timestamp = new Type2("tag:yaml.org,2002:timestamp", {
+    kind: "scalar",
+    resolve: resolveYamlTimestamp,
+    construct: constructYamlTimestamp,
+    instanceOf: Date,
+    represent: representYamlTimestamp
+  });
+  return timestamp;
+}
+function requireMerge() {
+  if (hasRequiredMerge) return merge;
+  hasRequiredMerge = 1;
+  const Type2 = requireType();
+  function resolveYamlMerge(data) {
+    return data === "<<" || data === null;
+  }
+  merge = new Type2("tag:yaml.org,2002:merge", {
+    kind: "scalar",
+    resolve: resolveYamlMerge
+  });
+  return merge;
+}
+function requireBinary() {
+  if (hasRequiredBinary) return binary;
+  hasRequiredBinary = 1;
+  const Type2 = requireType();
+  const BASE64_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r";
+  function resolveYamlBinary(data) {
+    if (data === null) return false;
+    let bitlen = 0;
+    const max = data.length;
+    const map2 = BASE64_MAP;
+    for (let idx = 0; idx < max; idx++) {
+      const code = map2.indexOf(data.charAt(idx));
+      if (code > 64) continue;
+      if (code < 0) return false;
+      bitlen += 6;
+    }
+    return bitlen % 8 === 0;
+  }
+  function constructYamlBinary(data) {
+    const input2 = data.replace(/[\r\n=]/g, "");
+    const max = input2.length;
+    const map2 = BASE64_MAP;
+    let bits = 0;
+    const result = [];
+    for (let idx = 0; idx < max; idx++) {
+      if (idx % 4 === 0 && idx) {
+        result.push(bits >> 16 & 255);
+        result.push(bits >> 8 & 255);
+        result.push(bits & 255);
+      }
+      bits = bits << 6 | map2.indexOf(input2.charAt(idx));
+    }
+    const tailbits = max % 4 * 6;
+    if (tailbits === 0) {
+      result.push(bits >> 16 & 255);
+      result.push(bits >> 8 & 255);
+      result.push(bits & 255);
+    } else if (tailbits === 18) {
+      result.push(bits >> 10 & 255);
+      result.push(bits >> 2 & 255);
+    } else if (tailbits === 12) {
+      result.push(bits >> 4 & 255);
+    }
+    return new Uint8Array(result);
+  }
+  function representYamlBinary(object) {
+    let result = "";
+    let bits = 0;
+    const max = object.length;
+    const map2 = BASE64_MAP;
+    for (let idx = 0; idx < max; idx++) {
+      if (idx % 3 === 0 && idx) {
+        result += map2[bits >> 18 & 63];
+        result += map2[bits >> 12 & 63];
+        result += map2[bits >> 6 & 63];
+        result += map2[bits & 63];
+      }
+      bits = (bits << 8) + object[idx];
+    }
+    const tail = max % 3;
+    if (tail === 0) {
+      result += map2[bits >> 18 & 63];
+      result += map2[bits >> 12 & 63];
+      result += map2[bits >> 6 & 63];
+      result += map2[bits & 63];
+    } else if (tail === 2) {
+      result += map2[bits >> 10 & 63];
+      result += map2[bits >> 4 & 63];
+      result += map2[bits << 2 & 63];
+      result += map2[64];
+    } else if (tail === 1) {
+      result += map2[bits >> 2 & 63];
+      result += map2[bits << 4 & 63];
+      result += map2[64];
+      result += map2[64];
+    }
+    return result;
+  }
+  function isBinary(obj) {
+    return Object.prototype.toString.call(obj) === "[object Uint8Array]";
+  }
+  binary = new Type2("tag:yaml.org,2002:binary", {
+    kind: "scalar",
+    resolve: resolveYamlBinary,
+    construct: constructYamlBinary,
+    predicate: isBinary,
+    represent: representYamlBinary
+  });
+  return binary;
+}
+function requireOmap() {
+  if (hasRequiredOmap) return omap;
+  hasRequiredOmap = 1;
+  const Type2 = requireType();
+  const _hasOwnProperty = Object.prototype.hasOwnProperty;
+  const _toString = Object.prototype.toString;
+  function resolveYamlOmap(data) {
+    if (data === null) return true;
+    const objectKeys = {};
+    const object = data;
+    for (let index = 0, length = object.length; index < length; index += 1) {
+      const pair = object[index];
+      let pairHasKey = false;
+      if (_toString.call(pair) !== "[object Object]") return false;
+      let pairKey;
+      for (pairKey in pair) {
+        if (_hasOwnProperty.call(pair, pairKey)) {
+          if (!pairHasKey) pairHasKey = true;
+          else return false;
+        }
+      }
+      if (!pairHasKey) return false;
+      if (_hasOwnProperty.call(objectKeys, pairKey)) return false;
+      Object.defineProperty(objectKeys, pairKey, { value: true });
+    }
+    return true;
+  }
+  function constructYamlOmap(data) {
+    return data !== null ? data : [];
+  }
+  omap = new Type2("tag:yaml.org,2002:omap", {
+    kind: "sequence",
+    resolve: resolveYamlOmap,
+    construct: constructYamlOmap
+  });
+  return omap;
+}
+function requirePairs() {
+  if (hasRequiredPairs) return pairs;
+  hasRequiredPairs = 1;
+  const Type2 = requireType();
+  const _toString = Object.prototype.toString;
+  function resolveYamlPairs(data) {
+    if (data === null) return true;
+    const object = data;
+    const result = new Array(object.length);
+    for (let index = 0, length = object.length; index < length; index += 1) {
+      const pair = object[index];
+      if (_toString.call(pair) !== "[object Object]") return false;
+      const keys = Object.keys(pair);
+      if (keys.length !== 1) return false;
+      result[index] = [keys[0], pair[keys[0]]];
+    }
+    return true;
+  }
+  function constructYamlPairs(data) {
+    if (data === null) return [];
+    const object = data;
+    const result = new Array(object.length);
+    for (let index = 0, length = object.length; index < length; index += 1) {
+      const pair = object[index];
+      const keys = Object.keys(pair);
+      result[index] = [keys[0], pair[keys[0]]];
+    }
+    return result;
+  }
+  pairs = new Type2("tag:yaml.org,2002:pairs", {
+    kind: "sequence",
+    resolve: resolveYamlPairs,
+    construct: constructYamlPairs
+  });
+  return pairs;
+}
+function requireSet() {
+  if (hasRequiredSet) return set;
+  hasRequiredSet = 1;
+  const Type2 = requireType();
+  const _hasOwnProperty = Object.prototype.hasOwnProperty;
+  function resolveYamlSet(data) {
+    if (data === null) return true;
+    const object = data;
+    for (const key in object) {
+      if (_hasOwnProperty.call(object, key)) {
+        if (object[key] !== null) return false;
+      }
+    }
+    return true;
+  }
+  function constructYamlSet(data) {
+    return data !== null ? data : {};
+  }
+  set = new Type2("tag:yaml.org,2002:set", {
+    kind: "mapping",
+    resolve: resolveYamlSet,
+    construct: constructYamlSet
+  });
+  return set;
+}
+function require_default() {
+  if (hasRequired_default) return _default;
+  hasRequired_default = 1;
+  _default = requireCore().extend({
+    implicit: [
+      requireTimestamp(),
+      requireMerge()
+    ],
+    explicit: [
+      requireBinary(),
+      requireOmap(),
+      requirePairs(),
+      requireSet()
+    ]
+  });
+  return _default;
+}
+function requireLoader() {
+  if (hasRequiredLoader) return loader;
+  hasRequiredLoader = 1;
+  const common2 = requireCommon();
+  const YAMLException2 = requireException();
+  const makeSnippet = requireSnippet();
+  const DEFAULT_SCHEMA2 = require_default();
+  const _hasOwnProperty = Object.prototype.hasOwnProperty;
+  const CONTEXT_FLOW_IN = 1;
+  const CONTEXT_FLOW_OUT = 2;
+  const CONTEXT_BLOCK_IN = 3;
+  const CONTEXT_BLOCK_OUT = 4;
+  const CHOMPING_CLIP = 1;
+  const CHOMPING_STRIP = 2;
+  const CHOMPING_KEEP = 3;
+  const PATTERN_NON_PRINTABLE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+  const PATTERN_NON_ASCII_LINE_BREAKS = /[\x85\u2028\u2029]/;
+  const PATTERN_FLOW_INDICATORS = /[,\[\]{}]/;
+  const PATTERN_TAG_HANDLE = /^(?:!|!!|![0-9A-Za-z-]+!)$/;
+  const PATTERN_TAG_URI = /^(?:!|[^,\[\]{}])(?:%[0-9a-f]{2}|[0-9a-z\-#;/?:@&=+$,_.!~*'()\[\]])*$/i;
+  function _class(obj) {
+    return Object.prototype.toString.call(obj);
+  }
+  function isEol(c) {
+    return c === 10 || c === 13;
+  }
+  function isWhiteSpace(c) {
+    return c === 9 || c === 32;
+  }
+  function isWsOrEol(c) {
+    return c === 9 || c === 32 || c === 10 || c === 13;
+  }
+  function isFlowIndicator(c) {
+    return c === 44 || c === 91 || c === 93 || c === 123 || c === 125;
+  }
+  function fromHexCode(c) {
+    if (c >= 48 && c <= 57) {
+      return c - 48;
+    }
+    const lc = c | 32;
+    if (lc >= 97 && lc <= 102) {
+      return lc - 97 + 10;
+    }
+    return -1;
+  }
+  function escapedHexLen(c) {
+    if (c === 120) {
+      return 2;
+    }
+    if (c === 117) {
+      return 4;
+    }
+    if (c === 85) {
+      return 8;
+    }
+    return 0;
+  }
+  function fromDecimalCode(c) {
+    if (c >= 48 && c <= 57) {
+      return c - 48;
+    }
+    return -1;
+  }
+  function simpleEscapeSequence(c) {
+    switch (c) {
+      case 48:
+        return "\0";
+      case 97:
+        return "\x07";
+      case 98:
+        return "\b";
+      case 116:
+        return "	";
+      case 9:
+        return "	";
+      case 110:
+        return "\n";
+      case 118:
+        return "\v";
+      case 102:
+        return "\f";
+      case 114:
+        return "\r";
+      case 101:
+        return "\x1B";
+      case 32:
+        return " ";
+      case 34:
+        return '"';
+      case 47:
+        return "/";
+      case 92:
+        return "\\";
+      case 78:
+        return "\x85";
+      case 95:
+        return "\xA0";
+      case 76:
+        return "\u2028";
+      case 80:
+        return "\u2029";
+      default:
+        return "";
+    }
+  }
+  function charFromCodepoint(c) {
+    if (c <= 65535) {
+      return String.fromCharCode(c);
+    }
+    return String.fromCharCode(
+      (c - 65536 >> 10) + 55296,
+      (c - 65536 & 1023) + 56320
+    );
+  }
+  function setProperty(object, key, value) {
+    if (key === "__proto__") {
+      Object.defineProperty(object, key, {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value
+      });
+    } else {
+      object[key] = value;
+    }
+  }
+  const simpleEscapeCheck = new Array(256);
+  const simpleEscapeMap = new Array(256);
+  for (let i = 0; i < 256; i++) {
+    simpleEscapeCheck[i] = simpleEscapeSequence(i) ? 1 : 0;
+    simpleEscapeMap[i] = simpleEscapeSequence(i);
+  }
+  function State(input2, options) {
+    this.input = input2;
+    this.filename = options["filename"] || null;
+    this.schema = options["schema"] || DEFAULT_SCHEMA2;
+    this.onWarning = options["onWarning"] || null;
+    this.legacy = options["legacy"] || false;
+    this.json = options["json"] || false;
+    this.listener = options["listener"] || null;
+    this.maxDepth = typeof options["maxDepth"] === "number" ? options["maxDepth"] : 100;
+    this.maxTotalMergeKeys = typeof options["maxTotalMergeKeys"] === "number" ? options["maxTotalMergeKeys"] : 1e4;
+    this.implicitTypes = this.schema.compiledImplicit;
+    this.typeMap = this.schema.compiledTypeMap;
+    this.length = input2.length;
+    this.position = 0;
+    this.line = 0;
+    this.lineStart = 0;
+    this.lineIndent = 0;
+    this.depth = 0;
+    this.totalMergeKeys = 0;
+    this.firstTabInLine = -1;
+    this.documents = [];
+    this.anchorMapTransactions = [];
+  }
+  function generateError(state, message) {
+    const mark = {
+      name: state.filename,
+      buffer: state.input.slice(0, -1),
+      // omit trailing \0
+      position: state.position,
+      line: state.line,
+      column: state.position - state.lineStart
+    };
+    mark.snippet = makeSnippet(mark);
+    return new YAMLException2(message, mark);
+  }
+  function throwError(state, message) {
+    throw generateError(state, message);
+  }
+  function throwWarning(state, message) {
+    if (state.onWarning) {
+      state.onWarning.call(null, generateError(state, message));
+    }
+  }
+  function storeAnchor(state, name, value) {
+    const transactions = state.anchorMapTransactions;
+    if (transactions.length !== 0) {
+      const transaction = transactions[transactions.length - 1];
+      if (!_hasOwnProperty.call(transaction, name)) {
+        transaction[name] = {
+          existed: _hasOwnProperty.call(state.anchorMap, name),
+          value: state.anchorMap[name]
+        };
+      }
+    }
+    state.anchorMap[name] = value;
+  }
+  function beginAnchorTransaction(state) {
+    state.anchorMapTransactions.push(/* @__PURE__ */ Object.create(null));
+  }
+  function commitAnchorTransaction(state) {
+    const transaction = state.anchorMapTransactions.pop();
+    const transactions = state.anchorMapTransactions;
+    if (transactions.length === 0) return;
+    const parent = transactions[transactions.length - 1];
+    const names = Object.keys(transaction);
+    for (let index = 0, length = names.length; index < length; index += 1) {
+      const name = names[index];
+      if (!_hasOwnProperty.call(parent, name)) {
+        parent[name] = transaction[name];
+      }
+    }
+  }
+  function rollbackAnchorTransaction(state) {
+    const transaction = state.anchorMapTransactions.pop();
+    const names = Object.keys(transaction);
+    for (let index = names.length - 1; index >= 0; index -= 1) {
+      const entry = transaction[names[index]];
+      if (entry.existed) {
+        state.anchorMap[names[index]] = entry.value;
+      } else {
+        delete state.anchorMap[names[index]];
+      }
+    }
+  }
+  function snapshotState(state) {
+    return {
+      position: state.position,
+      line: state.line,
+      lineStart: state.lineStart,
+      lineIndent: state.lineIndent,
+      firstTabInLine: state.firstTabInLine,
+      tag: state.tag,
+      anchor: state.anchor,
+      kind: state.kind,
+      result: state.result
+    };
+  }
+  function restoreState(state, snapshot) {
+    state.position = snapshot.position;
+    state.line = snapshot.line;
+    state.lineStart = snapshot.lineStart;
+    state.lineIndent = snapshot.lineIndent;
+    state.firstTabInLine = snapshot.firstTabInLine;
+    state.tag = snapshot.tag;
+    state.anchor = snapshot.anchor;
+    state.kind = snapshot.kind;
+    state.result = snapshot.result;
+  }
+  const directiveHandlers = {
+    YAML: function handleYamlDirective(state, name, args) {
+      if (state.version !== null) {
+        throwError(state, "duplication of %YAML directive");
+      }
+      if (args.length !== 1) {
+        throwError(state, "YAML directive accepts exactly one argument");
+      }
+      const match = /^([0-9]+)\.([0-9]+)$/.exec(args[0]);
+      if (match === null) {
+        throwError(state, "ill-formed argument of the YAML directive");
+      }
+      const major = parseInt(match[1], 10);
+      const minor = parseInt(match[2], 10);
+      if (major !== 1) {
+        throwError(state, "unacceptable YAML version of the document");
+      }
+      state.version = args[0];
+      state.checkLineBreaks = minor < 2;
+      if (minor !== 1 && minor !== 2) {
+        throwWarning(state, "unsupported YAML version of the document");
+      }
+    },
+    TAG: function handleTagDirective(state, name, args) {
+      let prefix;
+      if (args.length !== 2) {
+        throwError(state, "TAG directive accepts exactly two arguments");
+      }
+      const handle = args[0];
+      prefix = args[1];
+      if (!PATTERN_TAG_HANDLE.test(handle)) {
+        throwError(state, "ill-formed tag handle (first argument) of the TAG directive");
+      }
+      if (_hasOwnProperty.call(state.tagMap, handle)) {
+        throwError(state, 'there is a previously declared suffix for "' + handle + '" tag handle');
+      }
+      if (!PATTERN_TAG_URI.test(prefix)) {
+        throwError(state, "ill-formed tag prefix (second argument) of the TAG directive");
+      }
+      try {
+        prefix = decodeURIComponent(prefix);
+      } catch (err) {
+        throwError(state, "tag prefix is malformed: " + prefix);
+      }
+      state.tagMap[handle] = prefix;
+    }
+  };
+  function captureSegment(state, start, end, checkJson) {
+    if (start < end) {
+      const _result = state.input.slice(start, end);
+      if (checkJson) {
+        for (let _position = 0, _length = _result.length; _position < _length; _position += 1) {
+          const _character = _result.charCodeAt(_position);
+          if (!(_character === 9 || _character >= 32 && _character <= 1114111)) {
+            throwError(state, "expected valid JSON character");
+          }
+        }
+      } else if (PATTERN_NON_PRINTABLE.test(_result)) {
+        throwError(state, "the stream contains non-printable characters");
+      }
+      state.result += _result;
+    }
+  }
+  function chargeMergeWork(state) {
+    state.totalMergeKeys++;
+    if (state.maxTotalMergeKeys !== -1 && state.totalMergeKeys > state.maxTotalMergeKeys) {
+      throwError(state, "merge keys exceeded maxTotalMergeKeys (" + state.maxTotalMergeKeys + ")");
+    }
+  }
+  function mergeMappings(state, destination, source, overridableKeys) {
+    if (!common2.isObject(source)) {
+      throwError(state, "cannot merge mappings; the provided source object is unacceptable");
+    }
+    chargeMergeWork(state);
+    const sourceKeys = Object.keys(source);
+    for (let index = 0, quantity = sourceKeys.length; index < quantity; index += 1) {
+      const key = sourceKeys[index];
+      chargeMergeWork(state);
+      if (!_hasOwnProperty.call(destination, key)) {
+        setProperty(destination, key, source[key]);
+        overridableKeys[key] = true;
+      }
+    }
+  }
+  function storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, startLine, startLineStart, startPos) {
+    if (Array.isArray(keyNode)) {
+      keyNode = Array.prototype.slice.call(keyNode);
+      for (let index = 0, quantity = keyNode.length; index < quantity; index += 1) {
+        if (Array.isArray(keyNode[index])) {
+          throwError(state, "nested arrays are not supported inside keys");
+        }
+        if (typeof keyNode === "object" && _class(keyNode[index]) === "[object Object]") {
+          keyNode[index] = "[object Object]";
+        }
+      }
+    }
+    if (typeof keyNode === "object" && _class(keyNode) === "[object Object]") {
+      keyNode = "[object Object]";
+    }
+    keyNode = String(keyNode);
+    if (_result === null) {
+      _result = {};
+    }
+    if (keyTag === "tag:yaml.org,2002:merge") {
+      if (Array.isArray(valueNode)) {
+        if (valueNode.length > 100) {
+          throwError(state, "abnormal merge sequence size");
+        }
+        for (let index = 0, quantity = valueNode.length; index < quantity; index += 1) {
+          mergeMappings(state, _result, valueNode[index], overridableKeys);
+        }
+      } else {
+        mergeMappings(state, _result, valueNode, overridableKeys);
+      }
+    } else {
+      if (!state.json && !_hasOwnProperty.call(overridableKeys, keyNode) && _hasOwnProperty.call(_result, keyNode)) {
+        state.line = startLine || state.line;
+        state.lineStart = startLineStart || state.lineStart;
+        state.position = startPos || state.position;
+        throwError(state, "duplicated mapping key");
+      }
+      setProperty(_result, keyNode, valueNode);
+      delete overridableKeys[keyNode];
+    }
+    return _result;
+  }
+  function readLineBreak(state) {
+    const ch = state.input.charCodeAt(state.position);
+    if (ch === 10) {
+      state.position++;
+    } else if (ch === 13) {
+      state.position++;
+      if (state.input.charCodeAt(state.position) === 10) {
+        state.position++;
+      }
+    } else {
+      throwError(state, "a line break is expected");
+    }
+    state.line += 1;
+    state.lineStart = state.position;
+    state.firstTabInLine = -1;
+  }
+  function skipSeparationSpace(state, allowComments, checkIndent) {
+    let lineBreaks = 0;
+    let ch = state.input.charCodeAt(state.position);
+    while (ch !== 0) {
+      while (isWhiteSpace(ch)) {
+        if (ch === 9 && state.firstTabInLine === -1) {
+          state.firstTabInLine = state.position;
+        }
+        ch = state.input.charCodeAt(++state.position);
+      }
+      if (allowComments && ch === 35) {
+        do {
+          ch = state.input.charCodeAt(++state.position);
+        } while (ch !== 10 && ch !== 13 && ch !== 0);
+      }
+      if (isEol(ch)) {
+        readLineBreak(state);
+        ch = state.input.charCodeAt(state.position);
+        lineBreaks++;
+        state.lineIndent = 0;
+        while (ch === 32) {
+          state.lineIndent++;
+          ch = state.input.charCodeAt(++state.position);
+        }
+      } else {
+        break;
+      }
+    }
+    if (checkIndent !== -1 && lineBreaks !== 0 && state.lineIndent < checkIndent) {
+      throwWarning(state, "deficient indentation");
+    }
+    return lineBreaks;
+  }
+  function testDocumentSeparator(state) {
+    let _position = state.position;
+    let ch = state.input.charCodeAt(_position);
+    if ((ch === 45 || ch === 46) && ch === state.input.charCodeAt(_position + 1) && ch === state.input.charCodeAt(_position + 2)) {
+      _position += 3;
+      ch = state.input.charCodeAt(_position);
+      if (ch === 0 || isWsOrEol(ch)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function writeFoldedLines(state, count) {
+    if (count === 1) {
+      state.result += " ";
+    } else if (count > 1) {
+      state.result += common2.repeat("\n", count - 1);
+    }
+  }
+  function readPlainScalar(state, nodeIndent, withinFlowCollection) {
+    let captureStart;
+    let captureEnd;
+    let hasPendingContent;
+    let _line;
+    let _lineStart;
+    let _lineIndent;
+    const _kind = state.kind;
+    const _result = state.result;
+    let ch = state.input.charCodeAt(state.position);
+    if (isWsOrEol(ch) || isFlowIndicator(ch) || ch === 35 || ch === 38 || ch === 42 || ch === 33 || ch === 124 || ch === 62 || ch === 39 || ch === 34 || ch === 37 || ch === 64 || ch === 96) {
+      return false;
+    }
+    if (ch === 63 || ch === 45) {
+      const following = state.input.charCodeAt(state.position + 1);
+      if (isWsOrEol(following) || withinFlowCollection && isFlowIndicator(following)) {
+        return false;
+      }
+    }
+    state.kind = "scalar";
+    state.result = "";
+    captureStart = captureEnd = state.position;
+    hasPendingContent = false;
+    while (ch !== 0) {
+      if (ch === 58) {
+        const following = state.input.charCodeAt(state.position + 1);
+        if (isWsOrEol(following) || withinFlowCollection && isFlowIndicator(following)) {
+          break;
+        }
+      } else if (ch === 35) {
+        const preceding = state.input.charCodeAt(state.position - 1);
+        if (isWsOrEol(preceding)) {
+          break;
+        }
+      } else if (state.position === state.lineStart && testDocumentSeparator(state) || withinFlowCollection && isFlowIndicator(ch)) {
+        break;
+      } else if (isEol(ch)) {
+        _line = state.line;
+        _lineStart = state.lineStart;
+        _lineIndent = state.lineIndent;
+        skipSeparationSpace(state, false, -1);
+        if (state.lineIndent >= nodeIndent) {
+          hasPendingContent = true;
+          ch = state.input.charCodeAt(state.position);
+          continue;
+        } else {
+          state.position = captureEnd;
+          state.line = _line;
+          state.lineStart = _lineStart;
+          state.lineIndent = _lineIndent;
+          break;
+        }
+      }
+      if (hasPendingContent) {
+        captureSegment(state, captureStart, captureEnd, false);
+        writeFoldedLines(state, state.line - _line);
+        captureStart = captureEnd = state.position;
+        hasPendingContent = false;
+      }
+      if (!isWhiteSpace(ch)) {
+        captureEnd = state.position + 1;
+      }
+      ch = state.input.charCodeAt(++state.position);
+    }
+    captureSegment(state, captureStart, captureEnd, false);
+    if (state.result) {
+      return true;
+    }
+    state.kind = _kind;
+    state.result = _result;
+    return false;
+  }
+  function readSingleQuotedScalar(state, nodeIndent) {
+    let captureStart;
+    let captureEnd;
+    let ch = state.input.charCodeAt(state.position);
+    if (ch !== 39) {
+      return false;
+    }
+    state.kind = "scalar";
+    state.result = "";
+    state.position++;
+    captureStart = captureEnd = state.position;
+    while ((ch = state.input.charCodeAt(state.position)) !== 0) {
+      if (ch === 39) {
+        captureSegment(state, captureStart, state.position, true);
+        ch = state.input.charCodeAt(++state.position);
+        if (ch === 39) {
+          captureStart = state.position;
+          state.position++;
+          captureEnd = state.position;
+        } else {
+          return true;
+        }
+      } else if (isEol(ch)) {
+        captureSegment(state, captureStart, captureEnd, true);
+        writeFoldedLines(state, skipSeparationSpace(state, false, nodeIndent));
+        captureStart = captureEnd = state.position;
+      } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
+        throwError(state, "unexpected end of the document within a single quoted scalar");
+      } else {
+        state.position++;
+        if (!isWhiteSpace(ch)) {
+          captureEnd = state.position;
+        }
+      }
+    }
+    throwError(state, "unexpected end of the stream within a single quoted scalar");
+  }
+  function readDoubleQuotedScalar(state, nodeIndent) {
+    let captureStart;
+    let captureEnd;
+    let tmp;
+    let ch = state.input.charCodeAt(state.position);
+    if (ch !== 34) {
+      return false;
+    }
+    state.kind = "scalar";
+    state.result = "";
+    state.position++;
+    captureStart = captureEnd = state.position;
+    while ((ch = state.input.charCodeAt(state.position)) !== 0) {
+      if (ch === 34) {
+        captureSegment(state, captureStart, state.position, true);
+        state.position++;
+        return true;
+      } else if (ch === 92) {
+        captureSegment(state, captureStart, state.position, true);
+        ch = state.input.charCodeAt(++state.position);
+        if (isEol(ch)) {
+          skipSeparationSpace(state, false, nodeIndent);
+        } else if (ch < 256 && simpleEscapeCheck[ch]) {
+          state.result += simpleEscapeMap[ch];
+          state.position++;
+        } else if ((tmp = escapedHexLen(ch)) > 0) {
+          let hexLength = tmp;
+          let hexResult = 0;
+          for (; hexLength > 0; hexLength--) {
+            ch = state.input.charCodeAt(++state.position);
+            if ((tmp = fromHexCode(ch)) >= 0) {
+              hexResult = (hexResult << 4) + tmp;
+            } else {
+              throwError(state, "expected hexadecimal character");
+            }
+          }
+          state.result += charFromCodepoint(hexResult);
+          state.position++;
+        } else {
+          throwError(state, "unknown escape sequence");
+        }
+        captureStart = captureEnd = state.position;
+      } else if (isEol(ch)) {
+        captureSegment(state, captureStart, captureEnd, true);
+        writeFoldedLines(state, skipSeparationSpace(state, false, nodeIndent));
+        captureStart = captureEnd = state.position;
+      } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
+        throwError(state, "unexpected end of the document within a double quoted scalar");
+      } else {
+        state.position++;
+        if (!isWhiteSpace(ch)) {
+          captureEnd = state.position;
+        }
+      }
+    }
+    throwError(state, "unexpected end of the stream within a double quoted scalar");
+  }
+  function readFlowCollection(state, nodeIndent) {
+    let readNext = true;
+    let _line;
+    let _lineStart;
+    let _pos;
+    const _tag = state.tag;
+    let _result;
+    const _anchor = state.anchor;
+    let terminator;
+    let isPair;
+    let isExplicitPair;
+    let isMapping;
+    const overridableKeys = /* @__PURE__ */ Object.create(null);
+    let keyNode;
+    let keyTag;
+    let valueNode;
+    let ch = state.input.charCodeAt(state.position);
+    if (ch === 91) {
+      terminator = 93;
+      isMapping = false;
+      _result = [];
+    } else if (ch === 123) {
+      terminator = 125;
+      isMapping = true;
+      _result = {};
+    } else {
+      return false;
+    }
+    if (state.anchor !== null) {
+      storeAnchor(state, state.anchor, _result);
+    }
+    ch = state.input.charCodeAt(++state.position);
+    while (ch !== 0) {
+      skipSeparationSpace(state, true, nodeIndent);
+      ch = state.input.charCodeAt(state.position);
+      if (ch === terminator) {
+        state.position++;
+        state.tag = _tag;
+        state.anchor = _anchor;
+        state.kind = isMapping ? "mapping" : "sequence";
+        state.result = _result;
+        return true;
+      } else if (!readNext) {
+        throwError(state, "missed comma between flow collection entries");
+      } else if (ch === 44) {
+        throwError(state, "expected the node content, but found ','");
+      }
+      keyTag = keyNode = valueNode = null;
+      isPair = isExplicitPair = false;
+      if (ch === 63) {
+        const following = state.input.charCodeAt(state.position + 1);
+        if (isWsOrEol(following)) {
+          isPair = isExplicitPair = true;
+          state.position++;
+          skipSeparationSpace(state, true, nodeIndent);
+        }
+      }
+      _line = state.line;
+      _lineStart = state.lineStart;
+      _pos = state.position;
+      composeNode(state, nodeIndent, CONTEXT_FLOW_IN, false, true);
+      keyTag = state.tag;
+      keyNode = state.result;
+      skipSeparationSpace(state, true, nodeIndent);
+      ch = state.input.charCodeAt(state.position);
+      if ((isExplicitPair || state.line === _line) && ch === 58) {
+        isPair = true;
+        ch = state.input.charCodeAt(++state.position);
+        skipSeparationSpace(state, true, nodeIndent);
+        composeNode(state, nodeIndent, CONTEXT_FLOW_IN, false, true);
+        valueNode = state.result;
+      }
+      if (isMapping) {
+        storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, _line, _lineStart, _pos);
+      } else if (isPair) {
+        _result.push(storeMappingPair(state, null, overridableKeys, keyTag, keyNode, valueNode, _line, _lineStart, _pos));
+      } else {
+        _result.push(keyNode);
+      }
+      skipSeparationSpace(state, true, nodeIndent);
+      ch = state.input.charCodeAt(state.position);
+      if (ch === 44) {
+        readNext = true;
+        ch = state.input.charCodeAt(++state.position);
+      } else {
+        readNext = false;
+      }
+    }
+    throwError(state, "unexpected end of the stream within a flow collection");
+  }
+  function readBlockScalar(state, nodeIndent) {
+    let folding;
+    let chomping = CHOMPING_CLIP;
+    let didReadContent = false;
+    let detectedIndent = false;
+    let textIndent = nodeIndent;
+    let emptyLines = 0;
+    let atMoreIndented = false;
+    let tmp;
+    let ch = state.input.charCodeAt(state.position);
+    if (ch === 124) {
+      folding = false;
+    } else if (ch === 62) {
+      folding = true;
+    } else {
+      return false;
+    }
+    state.kind = "scalar";
+    state.result = "";
+    while (ch !== 0) {
+      ch = state.input.charCodeAt(++state.position);
+      if (ch === 43 || ch === 45) {
+        if (CHOMPING_CLIP === chomping) {
+          chomping = ch === 43 ? CHOMPING_KEEP : CHOMPING_STRIP;
+        } else {
+          throwError(state, "repeat of a chomping mode identifier");
+        }
+      } else if ((tmp = fromDecimalCode(ch)) >= 0) {
+        if (tmp === 0) {
+          throwError(state, "bad explicit indentation width of a block scalar; it cannot be less than one");
+        } else if (!detectedIndent) {
+          textIndent = nodeIndent + tmp - 1;
+          detectedIndent = true;
+        } else {
+          throwError(state, "repeat of an indentation width identifier");
+        }
+      } else {
+        break;
+      }
+    }
+    if (isWhiteSpace(ch)) {
+      do {
+        ch = state.input.charCodeAt(++state.position);
+      } while (isWhiteSpace(ch));
+      if (ch === 35) {
+        do {
+          ch = state.input.charCodeAt(++state.position);
+        } while (!isEol(ch) && ch !== 0);
+      }
+    }
+    while (ch !== 0) {
+      readLineBreak(state);
+      state.lineIndent = 0;
+      ch = state.input.charCodeAt(state.position);
+      while ((!detectedIndent || state.lineIndent < textIndent) && ch === 32) {
+        state.lineIndent++;
+        ch = state.input.charCodeAt(++state.position);
+      }
+      if (!detectedIndent && state.lineIndent > textIndent) {
+        textIndent = state.lineIndent;
+      }
+      if (isEol(ch)) {
+        emptyLines++;
+        continue;
+      }
+      if (!detectedIndent && textIndent === 0) {
+        throwError(state, "missing indentation for block scalar");
+      }
+      if (state.lineIndent < textIndent) {
+        if (chomping === CHOMPING_KEEP) {
+          state.result += common2.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+        } else if (chomping === CHOMPING_CLIP) {
+          if (didReadContent) {
+            state.result += "\n";
+          }
+        }
+        break;
+      }
+      if (folding) {
+        if (isWhiteSpace(ch)) {
+          atMoreIndented = true;
+          state.result += common2.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+        } else if (atMoreIndented) {
+          atMoreIndented = false;
+          state.result += common2.repeat("\n", emptyLines + 1);
+        } else if (emptyLines === 0) {
+          if (didReadContent) {
+            state.result += " ";
+          }
+        } else {
+          state.result += common2.repeat("\n", emptyLines);
+        }
+      } else {
+        state.result += common2.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+      }
+      didReadContent = true;
+      detectedIndent = true;
+      emptyLines = 0;
+      const captureStart = state.position;
+      while (!isEol(ch) && ch !== 0) {
+        ch = state.input.charCodeAt(++state.position);
+      }
+      captureSegment(state, captureStart, state.position, false);
+    }
+    return true;
+  }
+  function readBlockSequence(state, nodeIndent) {
+    const _tag = state.tag;
+    const _anchor = state.anchor;
+    const _result = [];
+    let detected = false;
+    if (state.firstTabInLine !== -1) return false;
+    if (state.anchor !== null) {
+      storeAnchor(state, state.anchor, _result);
+    }
+    let ch = state.input.charCodeAt(state.position);
+    while (ch !== 0) {
+      if (state.firstTabInLine !== -1) {
+        state.position = state.firstTabInLine;
+        throwError(state, "tab characters must not be used in indentation");
+      }
+      if (ch !== 45) {
+        break;
+      }
+      const following = state.input.charCodeAt(state.position + 1);
+      if (!isWsOrEol(following)) {
+        break;
+      }
+      detected = true;
+      state.position++;
+      if (skipSeparationSpace(state, true, -1)) {
+        if (state.lineIndent <= nodeIndent) {
+          _result.push(null);
+          ch = state.input.charCodeAt(state.position);
+          continue;
+        }
+      }
+      const _line = state.line;
+      composeNode(state, nodeIndent, CONTEXT_BLOCK_IN, false, true);
+      _result.push(state.result);
+      skipSeparationSpace(state, true, -1);
+      ch = state.input.charCodeAt(state.position);
+      if ((state.line === _line || state.lineIndent > nodeIndent) && ch !== 0) {
+        throwError(state, "bad indentation of a sequence entry");
+      } else if (state.lineIndent < nodeIndent) {
+        break;
+      }
+    }
+    if (detected) {
+      state.tag = _tag;
+      state.anchor = _anchor;
+      state.kind = "sequence";
+      state.result = _result;
+      return true;
+    }
+    return false;
+  }
+  function readBlockMapping(state, nodeIndent, flowIndent) {
+    let allowCompact;
+    let _keyLine;
+    let _keyLineStart;
+    let _keyPos;
+    const _tag = state.tag;
+    const _anchor = state.anchor;
+    const _result = {};
+    const overridableKeys = /* @__PURE__ */ Object.create(null);
+    let keyTag = null;
+    let keyNode = null;
+    let valueNode = null;
+    let atExplicitKey = false;
+    let detected = false;
+    if (state.firstTabInLine !== -1) return false;
+    if (state.anchor !== null) {
+      storeAnchor(state, state.anchor, _result);
+    }
+    let ch = state.input.charCodeAt(state.position);
+    while (ch !== 0) {
+      if (!atExplicitKey && state.firstTabInLine !== -1) {
+        state.position = state.firstTabInLine;
+        throwError(state, "tab characters must not be used in indentation");
+      }
+      const following = state.input.charCodeAt(state.position + 1);
+      const _line = state.line;
+      if ((ch === 63 || ch === 58) && isWsOrEol(following)) {
+        if (ch === 63) {
+          if (atExplicitKey) {
+            storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null, _keyLine, _keyLineStart, _keyPos);
+            keyTag = keyNode = valueNode = null;
+          }
+          detected = true;
+          atExplicitKey = true;
+          allowCompact = true;
+        } else if (atExplicitKey) {
+          atExplicitKey = false;
+          allowCompact = true;
+        } else {
+          throwError(state, "incomplete explicit mapping pair; a key node is missed; or followed by a non-tabulated empty line");
+        }
+        state.position += 1;
+        ch = following;
+      } else {
+        _keyLine = state.line;
+        _keyLineStart = state.lineStart;
+        _keyPos = state.position;
+        if (!composeNode(state, flowIndent, CONTEXT_FLOW_OUT, false, true)) {
+          break;
+        }
+        if (state.line === _line) {
+          ch = state.input.charCodeAt(state.position);
+          while (isWhiteSpace(ch)) {
+            ch = state.input.charCodeAt(++state.position);
+          }
+          if (ch === 58) {
+            ch = state.input.charCodeAt(++state.position);
+            if (!isWsOrEol(ch)) {
+              throwError(state, "a whitespace character is expected after the key-value separator within a block mapping");
+            }
+            if (atExplicitKey) {
+              storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null, _keyLine, _keyLineStart, _keyPos);
+              keyTag = keyNode = valueNode = null;
+            }
+            detected = true;
+            atExplicitKey = false;
+            allowCompact = false;
+            keyTag = state.tag;
+            keyNode = state.result;
+          } else if (detected) {
+            throwError(state, "can not read an implicit mapping pair; a colon is missed");
+          } else {
+            state.tag = _tag;
+            state.anchor = _anchor;
+            return true;
+          }
+        } else if (detected) {
+          throwError(state, "can not read a block mapping entry; a multiline key may not be an implicit key");
+        } else {
+          state.tag = _tag;
+          state.anchor = _anchor;
+          return true;
+        }
+      }
+      if (state.line === _line || state.lineIndent > nodeIndent) {
+        if (atExplicitKey) {
+          _keyLine = state.line;
+          _keyLineStart = state.lineStart;
+          _keyPos = state.position;
+        }
+        if (composeNode(state, nodeIndent, CONTEXT_BLOCK_OUT, true, allowCompact)) {
+          if (atExplicitKey) {
+            keyNode = state.result;
+          } else {
+            valueNode = state.result;
+          }
+        }
+        if (!atExplicitKey) {
+          storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, _keyLine, _keyLineStart, _keyPos);
+          keyTag = keyNode = valueNode = null;
+        }
+        skipSeparationSpace(state, true, -1);
+        ch = state.input.charCodeAt(state.position);
+      }
+      if ((state.line === _line || state.lineIndent > nodeIndent) && ch !== 0) {
+        throwError(state, "bad indentation of a mapping entry");
+      } else if (state.lineIndent < nodeIndent) {
+        break;
+      }
+    }
+    if (atExplicitKey) {
+      storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null, _keyLine, _keyLineStart, _keyPos);
+    }
+    if (detected) {
+      state.tag = _tag;
+      state.anchor = _anchor;
+      state.kind = "mapping";
+      state.result = _result;
+    }
+    return detected;
+  }
+  function readTagProperty(state) {
+    let isVerbatim = false;
+    let isNamed = false;
+    let tagHandle;
+    let tagName;
+    let ch = state.input.charCodeAt(state.position);
+    if (ch !== 33) return false;
+    if (state.tag !== null) {
+      throwError(state, "duplication of a tag property");
+    }
+    ch = state.input.charCodeAt(++state.position);
+    if (ch === 60) {
+      isVerbatim = true;
+      ch = state.input.charCodeAt(++state.position);
+    } else if (ch === 33) {
+      isNamed = true;
+      tagHandle = "!!";
+      ch = state.input.charCodeAt(++state.position);
+    } else {
+      tagHandle = "!";
+    }
+    let _position = state.position;
+    if (isVerbatim) {
+      do {
+        ch = state.input.charCodeAt(++state.position);
+      } while (ch !== 0 && ch !== 62);
+      if (state.position < state.length) {
+        tagName = state.input.slice(_position, state.position);
+        ch = state.input.charCodeAt(++state.position);
+      } else {
+        throwError(state, "unexpected end of the stream within a verbatim tag");
+      }
+    } else {
+      while (ch !== 0 && !isWsOrEol(ch)) {
+        if (ch === 33) {
+          if (!isNamed) {
+            tagHandle = state.input.slice(_position - 1, state.position + 1);
+            if (!PATTERN_TAG_HANDLE.test(tagHandle)) {
+              throwError(state, "named tag handle cannot contain such characters");
+            }
+            isNamed = true;
+            _position = state.position + 1;
+          } else {
+            throwError(state, "tag suffix cannot contain exclamation marks");
+          }
+        }
+        ch = state.input.charCodeAt(++state.position);
+      }
+      tagName = state.input.slice(_position, state.position);
+      if (PATTERN_FLOW_INDICATORS.test(tagName)) {
+        throwError(state, "tag suffix cannot contain flow indicator characters");
+      }
+    }
+    if (tagName && !PATTERN_TAG_URI.test(tagName)) {
+      throwError(state, "tag name cannot contain such characters: " + tagName);
+    }
+    try {
+      tagName = decodeURIComponent(tagName);
+    } catch (err) {
+      throwError(state, "tag name is malformed: " + tagName);
+    }
+    if (isVerbatim) {
+      state.tag = tagName;
+    } else if (_hasOwnProperty.call(state.tagMap, tagHandle)) {
+      state.tag = state.tagMap[tagHandle] + tagName;
+    } else if (tagHandle === "!") {
+      state.tag = "!" + tagName;
+    } else if (tagHandle === "!!") {
+      state.tag = "tag:yaml.org,2002:" + tagName;
+    } else {
+      throwError(state, 'undeclared tag handle "' + tagHandle + '"');
+    }
+    return true;
+  }
+  function readAnchorProperty(state) {
+    let ch = state.input.charCodeAt(state.position);
+    if (ch !== 38) return false;
+    if (state.anchor !== null) {
+      throwError(state, "duplication of an anchor property");
+    }
+    ch = state.input.charCodeAt(++state.position);
+    const _position = state.position;
+    while (ch !== 0 && !isWsOrEol(ch) && !isFlowIndicator(ch)) {
+      ch = state.input.charCodeAt(++state.position);
+    }
+    if (state.position === _position) {
+      throwError(state, "name of an anchor node must contain at least one character");
+    }
+    state.anchor = state.input.slice(_position, state.position);
+    return true;
+  }
+  function readAlias(state) {
+    let ch = state.input.charCodeAt(state.position);
+    if (ch !== 42) return false;
+    ch = state.input.charCodeAt(++state.position);
+    const _position = state.position;
+    while (ch !== 0 && !isWsOrEol(ch) && !isFlowIndicator(ch)) {
+      ch = state.input.charCodeAt(++state.position);
+    }
+    if (state.position === _position) {
+      throwError(state, "name of an alias node must contain at least one character");
+    }
+    const alias = state.input.slice(_position, state.position);
+    if (!_hasOwnProperty.call(state.anchorMap, alias)) {
+      throwError(state, 'unidentified alias "' + alias + '"');
+    }
+    state.result = state.anchorMap[alias];
+    skipSeparationSpace(state, true, -1);
+    return true;
+  }
+  function tryReadBlockMappingFromProperty(state, propertyStart, nodeIndent, flowIndent) {
+    const fallbackState = snapshotState(state);
+    beginAnchorTransaction(state);
+    restoreState(state, propertyStart);
+    state.tag = null;
+    state.anchor = null;
+    state.kind = null;
+    state.result = null;
+    if (readBlockMapping(state, nodeIndent, flowIndent) && state.kind === "mapping") {
+      commitAnchorTransaction(state);
+      return true;
+    }
+    rollbackAnchorTransaction(state);
+    restoreState(state, fallbackState);
+    return false;
+  }
+  function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact) {
+    let allowBlockScalars;
+    let allowBlockCollections;
+    let indentStatus = 1;
+    let atNewLine = false;
+    let hasContent = false;
+    let propertyStart = null;
+    let type2;
+    let flowIndent;
+    let blockIndent;
+    if (state.depth >= state.maxDepth) {
+      throwError(state, "nesting exceeded maxDepth (" + state.maxDepth + ")");
+    }
+    state.depth += 1;
+    if (state.listener !== null) {
+      state.listener("open", state);
+    }
+    state.tag = null;
+    state.anchor = null;
+    state.kind = null;
+    state.result = null;
+    const allowBlockStyles = allowBlockScalars = allowBlockCollections = CONTEXT_BLOCK_OUT === nodeContext || CONTEXT_BLOCK_IN === nodeContext;
+    if (allowToSeek) {
+      if (skipSeparationSpace(state, true, -1)) {
+        atNewLine = true;
+        if (state.lineIndent > parentIndent) {
+          indentStatus = 1;
+        } else if (state.lineIndent === parentIndent) {
+          indentStatus = 0;
+        } else if (state.lineIndent < parentIndent) {
+          indentStatus = -1;
+        }
+      }
+    }
+    if (indentStatus === 1) {
+      while (true) {
+        const ch = state.input.charCodeAt(state.position);
+        const propertyState = snapshotState(state);
+        if (atNewLine && (ch === 33 && state.tag !== null || ch === 38 && state.anchor !== null)) {
+          break;
+        }
+        if (!readTagProperty(state) && !readAnchorProperty(state)) {
+          break;
+        }
+        if (propertyStart === null) {
+          propertyStart = propertyState;
+        }
+        if (skipSeparationSpace(state, true, -1)) {
+          atNewLine = true;
+          allowBlockCollections = allowBlockStyles;
+          if (state.lineIndent > parentIndent) {
+            indentStatus = 1;
+          } else if (state.lineIndent === parentIndent) {
+            indentStatus = 0;
+          } else if (state.lineIndent < parentIndent) {
+            indentStatus = -1;
+          }
+        } else {
+          allowBlockCollections = false;
+        }
+      }
+    }
+    if (allowBlockCollections) {
+      allowBlockCollections = atNewLine || allowCompact;
+    }
+    if (indentStatus === 1 || CONTEXT_BLOCK_OUT === nodeContext) {
+      if (CONTEXT_FLOW_IN === nodeContext || CONTEXT_FLOW_OUT === nodeContext) {
+        flowIndent = parentIndent;
+      } else {
+        flowIndent = parentIndent + 1;
+      }
+      blockIndent = state.position - state.lineStart;
+      if (indentStatus === 1) {
+        if (allowBlockCollections && (readBlockSequence(state, blockIndent) || readBlockMapping(state, blockIndent, flowIndent)) || readFlowCollection(state, flowIndent)) {
+          hasContent = true;
+        } else {
+          const ch = state.input.charCodeAt(state.position);
+          if (propertyStart !== null && allowBlockStyles && !allowBlockCollections && ch !== 124 && ch !== 62 && tryReadBlockMappingFromProperty(
+            state,
+            propertyStart,
+            propertyStart.position - propertyStart.lineStart,
+            flowIndent
+          )) {
+            hasContent = true;
+          } else if (allowBlockScalars && readBlockScalar(state, flowIndent) || readSingleQuotedScalar(state, flowIndent) || readDoubleQuotedScalar(state, flowIndent)) {
+            hasContent = true;
+          } else if (readAlias(state)) {
+            hasContent = true;
+            if (state.tag !== null || state.anchor !== null) {
+              throwError(state, "alias node should not have any properties");
+            }
+          } else if (readPlainScalar(state, flowIndent, CONTEXT_FLOW_IN === nodeContext)) {
+            hasContent = true;
+            if (state.tag === null) {
+              state.tag = "?";
+            }
+          }
+          if (state.anchor !== null) {
+            storeAnchor(state, state.anchor, state.result);
+          }
+        }
+      } else if (indentStatus === 0) {
+        hasContent = allowBlockCollections && readBlockSequence(state, blockIndent);
+      }
+    }
+    if (state.tag === null) {
+      if (state.anchor !== null) {
+        storeAnchor(state, state.anchor, state.result);
+      }
+    } else if (state.tag === "?") {
+      if (state.result !== null && state.kind !== "scalar") {
+        throwError(state, 'unacceptable node kind for !<?> tag; it should be "scalar", not "' + state.kind + '"');
+      }
+      for (let typeIndex = 0, typeQuantity = state.implicitTypes.length; typeIndex < typeQuantity; typeIndex += 1) {
+        type2 = state.implicitTypes[typeIndex];
+        if (type2.resolve(state.result)) {
+          state.result = type2.construct(state.result);
+          state.tag = type2.tag;
+          if (state.anchor !== null) {
+            storeAnchor(state, state.anchor, state.result);
+          }
+          break;
+        }
+      }
+    } else if (state.tag !== "!") {
+      if (_hasOwnProperty.call(state.typeMap[state.kind || "fallback"], state.tag)) {
+        type2 = state.typeMap[state.kind || "fallback"][state.tag];
+      } else {
+        type2 = null;
+        const typeList = state.typeMap.multi[state.kind || "fallback"];
+        for (let typeIndex = 0, typeQuantity = typeList.length; typeIndex < typeQuantity; typeIndex += 1) {
+          if (state.tag.slice(0, typeList[typeIndex].tag.length) === typeList[typeIndex].tag) {
+            type2 = typeList[typeIndex];
+            break;
+          }
+        }
+      }
+      if (!type2) {
+        throwError(state, "unknown tag !<" + state.tag + ">");
+      }
+      if (state.result !== null && type2.kind !== state.kind) {
+        throwError(state, "unacceptable node kind for !<" + state.tag + '> tag; it should be "' + type2.kind + '", not "' + state.kind + '"');
+      }
+      if (!type2.resolve(state.result, state.tag)) {
+        throwError(state, "cannot resolve a node with !<" + state.tag + "> explicit tag");
+      } else {
+        state.result = type2.construct(state.result, state.tag);
+        if (state.anchor !== null) {
+          storeAnchor(state, state.anchor, state.result);
+        }
+      }
+    }
+    if (state.listener !== null) {
+      state.listener("close", state);
+    }
+    state.depth -= 1;
+    return state.tag !== null || state.anchor !== null || hasContent;
+  }
+  function readDocument(state) {
+    const documentStart = state.position;
+    let hasDirectives = false;
+    let ch;
+    state.version = null;
+    state.checkLineBreaks = state.legacy;
+    state.tagMap = /* @__PURE__ */ Object.create(null);
+    state.anchorMap = /* @__PURE__ */ Object.create(null);
+    while ((ch = state.input.charCodeAt(state.position)) !== 0) {
+      skipSeparationSpace(state, true, -1);
+      ch = state.input.charCodeAt(state.position);
+      if (state.lineIndent > 0 || ch !== 37) {
+        break;
+      }
+      hasDirectives = true;
+      ch = state.input.charCodeAt(++state.position);
+      let _position = state.position;
+      while (ch !== 0 && !isWsOrEol(ch)) {
+        ch = state.input.charCodeAt(++state.position);
+      }
+      const directiveName = state.input.slice(_position, state.position);
+      const directiveArgs = [];
+      if (directiveName.length < 1) {
+        throwError(state, "directive name must not be less than one character in length");
+      }
+      while (ch !== 0) {
+        while (isWhiteSpace(ch)) {
+          ch = state.input.charCodeAt(++state.position);
+        }
+        if (ch === 35) {
+          do {
+            ch = state.input.charCodeAt(++state.position);
+          } while (ch !== 0 && !isEol(ch));
+          break;
+        }
+        if (isEol(ch)) break;
+        _position = state.position;
+        while (ch !== 0 && !isWsOrEol(ch)) {
+          ch = state.input.charCodeAt(++state.position);
+        }
+        directiveArgs.push(state.input.slice(_position, state.position));
+      }
+      if (ch !== 0) readLineBreak(state);
+      if (_hasOwnProperty.call(directiveHandlers, directiveName)) {
+        directiveHandlers[directiveName](state, directiveName, directiveArgs);
+      } else {
+        throwWarning(state, 'unknown document directive "' + directiveName + '"');
+      }
+    }
+    skipSeparationSpace(state, true, -1);
+    if (state.lineIndent === 0 && state.input.charCodeAt(state.position) === 45 && state.input.charCodeAt(state.position + 1) === 45 && state.input.charCodeAt(state.position + 2) === 45) {
+      state.position += 3;
+      skipSeparationSpace(state, true, -1);
+    } else if (hasDirectives) {
+      throwError(state, "directives end mark is expected");
+    }
+    composeNode(state, state.lineIndent - 1, CONTEXT_BLOCK_OUT, false, true);
+    skipSeparationSpace(state, true, -1);
+    if (state.checkLineBreaks && PATTERN_NON_ASCII_LINE_BREAKS.test(state.input.slice(documentStart, state.position))) {
+      throwWarning(state, "non-ASCII line breaks are interpreted as content");
+    }
+    state.documents.push(state.result);
+    if (state.position === state.lineStart && testDocumentSeparator(state)) {
+      if (state.input.charCodeAt(state.position) === 46) {
+        state.position += 3;
+        skipSeparationSpace(state, true, -1);
+      }
+      return;
+    }
+    if (state.position < state.length - 1) {
+      throwError(state, "end of the stream or a document separator is expected");
+    }
+  }
+  function loadDocuments(input2, options) {
+    input2 = String(input2);
+    options = options || {};
+    if (input2.length !== 0) {
+      if (input2.charCodeAt(input2.length - 1) !== 10 && input2.charCodeAt(input2.length - 1) !== 13) {
+        input2 += "\n";
+      }
+      if (input2.charCodeAt(0) === 65279) {
+        input2 = input2.slice(1);
+      }
+    }
+    const state = new State(input2, options);
+    const nullpos = input2.indexOf("\0");
+    if (nullpos !== -1) {
+      state.position = nullpos;
+      throwError(state, "null byte is not allowed in input");
+    }
+    state.input += "\0";
+    while (state.input.charCodeAt(state.position) === 32) {
+      state.lineIndent += 1;
+      state.position += 1;
+    }
+    while (state.position < state.length - 1) {
+      readDocument(state);
+    }
+    return state.documents;
+  }
+  function loadAll2(input2, iterator, options) {
+    if (iterator !== null && typeof iterator === "object" && typeof options === "undefined") {
+      options = iterator;
+      iterator = null;
+    }
+    const documents = loadDocuments(input2, options);
+    if (typeof iterator !== "function") {
+      return documents;
+    }
+    for (let index = 0, length = documents.length; index < length; index += 1) {
+      iterator(documents[index]);
+    }
+  }
+  function load2(input2, options) {
+    const documents = loadDocuments(input2, options);
+    if (documents.length === 0) {
+      return void 0;
+    } else if (documents.length === 1) {
+      return documents[0];
+    }
+    throw new YAMLException2("expected a single document in the stream, but found more");
+  }
+  loader.loadAll = loadAll2;
+  loader.load = load2;
+  return loader;
+}
+function requireDumper() {
+  if (hasRequiredDumper) return dumper;
+  hasRequiredDumper = 1;
+  const common2 = requireCommon();
+  const YAMLException2 = requireException();
+  const DEFAULT_SCHEMA2 = require_default();
+  const _toString = Object.prototype.toString;
+  const _hasOwnProperty = Object.prototype.hasOwnProperty;
+  const CHAR_BOM = 65279;
+  const CHAR_TAB = 9;
+  const CHAR_LINE_FEED = 10;
+  const CHAR_CARRIAGE_RETURN = 13;
+  const CHAR_SPACE = 32;
+  const CHAR_EXCLAMATION = 33;
+  const CHAR_DOUBLE_QUOTE = 34;
+  const CHAR_SHARP = 35;
+  const CHAR_PERCENT = 37;
+  const CHAR_AMPERSAND = 38;
+  const CHAR_SINGLE_QUOTE = 39;
+  const CHAR_ASTERISK = 42;
+  const CHAR_COMMA = 44;
+  const CHAR_MINUS = 45;
+  const CHAR_COLON = 58;
+  const CHAR_EQUALS = 61;
+  const CHAR_GREATER_THAN = 62;
+  const CHAR_QUESTION = 63;
+  const CHAR_COMMERCIAL_AT = 64;
+  const CHAR_LEFT_SQUARE_BRACKET = 91;
+  const CHAR_RIGHT_SQUARE_BRACKET = 93;
+  const CHAR_GRAVE_ACCENT = 96;
+  const CHAR_LEFT_CURLY_BRACKET = 123;
+  const CHAR_VERTICAL_LINE = 124;
+  const CHAR_RIGHT_CURLY_BRACKET = 125;
+  const ESCAPE_SEQUENCES = {};
+  ESCAPE_SEQUENCES[0] = "\\0";
+  ESCAPE_SEQUENCES[7] = "\\a";
+  ESCAPE_SEQUENCES[8] = "\\b";
+  ESCAPE_SEQUENCES[9] = "\\t";
+  ESCAPE_SEQUENCES[10] = "\\n";
+  ESCAPE_SEQUENCES[11] = "\\v";
+  ESCAPE_SEQUENCES[12] = "\\f";
+  ESCAPE_SEQUENCES[13] = "\\r";
+  ESCAPE_SEQUENCES[27] = "\\e";
+  ESCAPE_SEQUENCES[34] = '\\"';
+  ESCAPE_SEQUENCES[92] = "\\\\";
+  ESCAPE_SEQUENCES[133] = "\\N";
+  ESCAPE_SEQUENCES[160] = "\\_";
+  ESCAPE_SEQUENCES[8232] = "\\L";
+  ESCAPE_SEQUENCES[8233] = "\\P";
+  const DEPRECATED_BOOLEANS_SYNTAX = [
+    "y",
+    "Y",
+    "yes",
+    "Yes",
+    "YES",
+    "on",
+    "On",
+    "ON",
+    "n",
+    "N",
+    "no",
+    "No",
+    "NO",
+    "off",
+    "Off",
+    "OFF"
+  ];
+  const DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/;
+  function compileStyleMap(schema2, map2) {
+    if (map2 === null) return {};
+    const result = {};
+    const keys = Object.keys(map2);
+    for (let index = 0, length = keys.length; index < length; index += 1) {
+      let tag = keys[index];
+      let style = String(map2[tag]);
+      if (tag.slice(0, 2) === "!!") {
+        tag = "tag:yaml.org,2002:" + tag.slice(2);
+      }
+      const type2 = schema2.compiledTypeMap["fallback"][tag];
+      if (type2 && _hasOwnProperty.call(type2.styleAliases, style)) {
+        style = type2.styleAliases[style];
+      }
+      result[tag] = style;
+    }
+    return result;
+  }
+  function encodeHex(character) {
+    let handle;
+    let length;
+    const string = character.toString(16).toUpperCase();
+    if (character <= 255) {
+      handle = "x";
+      length = 2;
+    } else if (character <= 65535) {
+      handle = "u";
+      length = 4;
+    } else if (character <= 4294967295) {
+      handle = "U";
+      length = 8;
+    } else {
+      throw new YAMLException2("code point within a string may not be greater than 0xFFFFFFFF");
+    }
+    return "\\" + handle + common2.repeat("0", length - string.length) + string;
+  }
+  const QUOTING_TYPE_SINGLE = 1;
+  const QUOTING_TYPE_DOUBLE = 2;
+  function State(options) {
+    this.schema = options["schema"] || DEFAULT_SCHEMA2;
+    this.indent = Math.max(1, options["indent"] || 2);
+    this.noArrayIndent = options["noArrayIndent"] || false;
+    this.skipInvalid = options["skipInvalid"] || false;
+    this.flowLevel = common2.isNothing(options["flowLevel"]) ? -1 : options["flowLevel"];
+    this.styleMap = compileStyleMap(this.schema, options["styles"] || null);
+    this.sortKeys = options["sortKeys"] || false;
+    this.lineWidth = options["lineWidth"] || 80;
+    this.noRefs = options["noRefs"] || false;
+    this.noCompatMode = options["noCompatMode"] || false;
+    this.condenseFlow = options["condenseFlow"] || false;
+    this.quotingType = options["quotingType"] === '"' ? QUOTING_TYPE_DOUBLE : QUOTING_TYPE_SINGLE;
+    this.forceQuotes = options["forceQuotes"] || false;
+    this.replacer = typeof options["replacer"] === "function" ? options["replacer"] : null;
+    this.implicitTypes = this.schema.compiledImplicit;
+    this.explicitTypes = this.schema.compiledExplicit;
+    this.tag = null;
+    this.result = "";
+    this.duplicates = [];
+    this.usedDuplicates = null;
+  }
+  function indentString(string, spaces) {
+    const ind = common2.repeat(" ", spaces);
+    let position = 0;
+    let result = "";
+    const length = string.length;
+    while (position < length) {
+      let line;
+      const next = string.indexOf("\n", position);
+      if (next === -1) {
+        line = string.slice(position);
+        position = length;
+      } else {
+        line = string.slice(position, next + 1);
+        position = next + 1;
+      }
+      if (line.length && line !== "\n") result += ind;
+      result += line;
+    }
+    return result;
+  }
+  function generateNextLine(state, level) {
+    return "\n" + common2.repeat(" ", state.indent * level);
+  }
+  function testImplicitResolving(state, str2) {
+    for (let index = 0, length = state.implicitTypes.length; index < length; index += 1) {
+      const type2 = state.implicitTypes[index];
+      if (type2.resolve(str2)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function isWhitespace(c) {
+    return c === CHAR_SPACE || c === CHAR_TAB;
+  }
+  function isPrintable(c) {
+    return c >= 32 && c <= 126 || c >= 161 && c <= 55295 && c !== 8232 && c !== 8233 || c >= 57344 && c <= 65533 && c !== CHAR_BOM || c >= 65536 && c <= 1114111;
+  }
+  function isNsCharOrWhitespace(c) {
+    return isPrintable(c) && c !== CHAR_BOM && // - b-char
+    c !== CHAR_CARRIAGE_RETURN && c !== CHAR_LINE_FEED;
+  }
+  function isPlainSafe(c, prev, inblock) {
+    const cIsNsCharOrWhitespace = isNsCharOrWhitespace(c);
+    const cIsNsChar = cIsNsCharOrWhitespace && !isWhitespace(c);
+    return (
+      // ns-plain-safe
+      (inblock ? cIsNsCharOrWhitespace : cIsNsCharOrWhitespace && // - c-flow-indicator
+      c !== CHAR_COMMA && c !== CHAR_LEFT_SQUARE_BRACKET && c !== CHAR_RIGHT_SQUARE_BRACKET && c !== CHAR_LEFT_CURLY_BRACKET && c !== CHAR_RIGHT_CURLY_BRACKET) && // ns-plain-char
+      c !== CHAR_SHARP && // false on '#'
+      !(prev === CHAR_COLON && !cIsNsChar) || // false on ': '
+      isNsCharOrWhitespace(prev) && !isWhitespace(prev) && c === CHAR_SHARP || // change to true on '[^ ]#'
+      prev === CHAR_COLON && cIsNsChar
+    );
+  }
+  function isPlainSafeFirst(c) {
+    return isPrintable(c) && c !== CHAR_BOM && !isWhitespace(c) && // - s-white
+    // - (c-indicator ::=
+    // “-” | “?” | “:” | “,” | “[” | “]” | “{” | “}”
+    c !== CHAR_MINUS && c !== CHAR_QUESTION && c !== CHAR_COLON && c !== CHAR_COMMA && c !== CHAR_LEFT_SQUARE_BRACKET && c !== CHAR_RIGHT_SQUARE_BRACKET && c !== CHAR_LEFT_CURLY_BRACKET && c !== CHAR_RIGHT_CURLY_BRACKET && // | “#” | “&” | “*” | “!” | “|” | “=” | “>” | “'” | “"”
+    c !== CHAR_SHARP && c !== CHAR_AMPERSAND && c !== CHAR_ASTERISK && c !== CHAR_EXCLAMATION && c !== CHAR_VERTICAL_LINE && c !== CHAR_EQUALS && c !== CHAR_GREATER_THAN && c !== CHAR_SINGLE_QUOTE && c !== CHAR_DOUBLE_QUOTE && // | “%” | “@” | “`”)
+    c !== CHAR_PERCENT && c !== CHAR_COMMERCIAL_AT && c !== CHAR_GRAVE_ACCENT;
+  }
+  function isPlainSafeLast(c) {
+    return !isWhitespace(c) && c !== CHAR_COLON;
+  }
+  function codePointAt(string, pos) {
+    const first = string.charCodeAt(pos);
+    let second;
+    if (first >= 55296 && first <= 56319 && pos + 1 < string.length) {
+      second = string.charCodeAt(pos + 1);
+      if (second >= 56320 && second <= 57343) {
+        return (first - 55296) * 1024 + second - 56320 + 65536;
+      }
+    }
+    return first;
+  }
+  function needIndentIndicator(string) {
+    const leadingSpaceRe = /^\n* /;
+    return leadingSpaceRe.test(string);
+  }
+  const STYLE_PLAIN = 1;
+  const STYLE_SINGLE = 2;
+  const STYLE_LITERAL = 3;
+  const STYLE_FOLDED = 4;
+  const STYLE_DOUBLE = 5;
+  function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, testAmbiguousType, quotingType, forceQuotes, inblock) {
+    let i;
+    let char = 0;
+    let prevChar = null;
+    let hasLineBreak = false;
+    let hasFoldableLine = false;
+    const shouldTrackWidth = lineWidth !== -1;
+    let previousLineBreak = -1;
+    let plain = isPlainSafeFirst(codePointAt(string, 0)) && isPlainSafeLast(codePointAt(string, string.length - 1));
+    if (singleLineOnly || forceQuotes) {
+      for (i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
+        char = codePointAt(string, i);
+        if (!isPrintable(char)) {
+          return STYLE_DOUBLE;
+        }
+        plain = plain && isPlainSafe(char, prevChar, inblock);
+        prevChar = char;
+      }
+    } else {
+      for (i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
+        char = codePointAt(string, i);
+        if (char === CHAR_LINE_FEED) {
+          hasLineBreak = true;
+          if (shouldTrackWidth) {
+            hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
+            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+            previousLineBreak = i;
+          }
+        } else if (!isPrintable(char)) {
+          return STYLE_DOUBLE;
+        }
+        plain = plain && isPlainSafe(char, prevChar, inblock);
+        prevChar = char;
+      }
+      hasFoldableLine = hasFoldableLine || shouldTrackWidth && (i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ");
+    }
+    if (!hasLineBreak && !hasFoldableLine) {
+      if (plain && !forceQuotes && !testAmbiguousType(string)) {
+        return STYLE_PLAIN;
+      }
+      return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
+    }
+    if (indentPerLevel > 9 && needIndentIndicator(string)) {
+      return STYLE_DOUBLE;
+    }
+    if (!forceQuotes) {
+      return hasFoldableLine ? STYLE_FOLDED : STYLE_LITERAL;
+    }
+    return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
+  }
+  function writeScalar(state, string, level, iskey, inblock) {
+    state.dump = (function() {
+      if (string.length === 0) {
+        return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
+      }
+      if (!state.noCompatMode) {
+        if (DEPRECATED_BOOLEANS_SYNTAX.indexOf(string) !== -1 || DEPRECATED_BASE60_SYNTAX.test(string)) {
+          return state.quotingType === QUOTING_TYPE_DOUBLE ? '"' + string + '"' : "'" + string + "'";
+        }
+      }
+      const indent = state.indent * Math.max(1, level);
+      const lineWidth = state.lineWidth === -1 ? -1 : Math.max(Math.min(state.lineWidth, 40), state.lineWidth - indent);
+      const singleLineOnly = iskey || // No block styles in flow mode.
+      state.flowLevel > -1 && level >= state.flowLevel;
+      function testAmbiguity(string2) {
+        return testImplicitResolving(state, string2);
+      }
+      switch (chooseScalarStyle(
+        string,
+        singleLineOnly,
+        state.indent,
+        lineWidth,
+        testAmbiguity,
+        state.quotingType,
+        state.forceQuotes && !iskey,
+        inblock
+      )) {
+        case STYLE_PLAIN:
+          return string;
+        case STYLE_SINGLE:
+          return "'" + string.replace(/'/g, "''") + "'";
+        case STYLE_LITERAL:
+          return "|" + blockHeader(string, state.indent) + dropEndingNewline(indentString(string, indent));
+        case STYLE_FOLDED:
+          return ">" + blockHeader(string, state.indent) + dropEndingNewline(indentString(foldString(string, lineWidth), indent));
+        case STYLE_DOUBLE:
+          return '"' + escapeString(string) + '"';
+        default:
+          throw new YAMLException2("impossible error: invalid scalar style");
+      }
+    })();
+  }
+  function blockHeader(string, indentPerLevel) {
+    const indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : "";
+    const clip = string[string.length - 1] === "\n";
+    const keep = clip && (string[string.length - 2] === "\n" || string === "\n");
+    const chomp = keep ? "+" : clip ? "" : "-";
+    return indentIndicator + chomp + "\n";
+  }
+  function dropEndingNewline(string) {
+    return string[string.length - 1] === "\n" ? string.slice(0, -1) : string;
+  }
+  function foldString(string, width) {
+    const lineRe = /(\n+)([^\n]*)/g;
+    let result = (function() {
+      let nextLF = string.indexOf("\n");
+      nextLF = nextLF !== -1 ? nextLF : string.length;
+      lineRe.lastIndex = nextLF;
+      return foldLine(string.slice(0, nextLF), width);
+    })();
+    let prevMoreIndented = string[0] === "\n" || string[0] === " ";
+    let moreIndented;
+    let match;
+    while (match = lineRe.exec(string)) {
+      const prefix = match[1];
+      const line = match[2];
+      moreIndented = line[0] === " ";
+      result += prefix + (!prevMoreIndented && !moreIndented && line !== "" ? "\n" : "") + foldLine(line, width);
+      prevMoreIndented = moreIndented;
+    }
+    return result;
+  }
+  function foldLine(line, width) {
+    if (line === "" || line[0] === " ") return line;
+    const breakRe = / [^ ]/g;
+    let match;
+    let start = 0;
+    let end;
+    let curr = 0;
+    let next = 0;
+    let result = "";
+    while (match = breakRe.exec(line)) {
+      next = match.index;
+      if (next - start > width) {
+        end = curr > start ? curr : next;
+        result += "\n" + line.slice(start, end);
+        start = end + 1;
+      }
+      curr = next;
+    }
+    result += "\n";
+    if (line.length - start > width && curr > start) {
+      result += line.slice(start, curr) + "\n" + line.slice(curr + 1);
+    } else {
+      result += line.slice(start);
+    }
+    return result.slice(1);
+  }
+  function escapeString(string) {
+    let result = "";
+    let char = 0;
+    for (let i = 0; i < string.length; char >= 65536 ? i += 2 : i++) {
+      char = codePointAt(string, i);
+      const escapeSeq = ESCAPE_SEQUENCES[char];
+      if (!escapeSeq && isPrintable(char)) {
+        result += string[i];
+        if (char >= 65536) result += string[i + 1];
+      } else {
+        result += escapeSeq || encodeHex(char);
+      }
+    }
+    return result;
+  }
+  function writeFlowSequence(state, level, object) {
+    let _result = "";
+    const _tag = state.tag;
+    for (let index = 0, length = object.length; index < length; index += 1) {
+      let value = object[index];
+      if (state.replacer) {
+        value = state.replacer.call(object, String(index), value);
+      }
+      if (writeNode(state, level, value, false, false) || typeof value === "undefined" && writeNode(state, level, null, false, false)) {
+        if (_result !== "") _result += "," + (!state.condenseFlow ? " " : "");
+        _result += state.dump;
+      }
+    }
+    state.tag = _tag;
+    state.dump = "[" + _result + "]";
+  }
+  function writeBlockSequence(state, level, object, compact) {
+    let _result = "";
+    const _tag = state.tag;
+    for (let index = 0, length = object.length; index < length; index += 1) {
+      let value = object[index];
+      if (state.replacer) {
+        value = state.replacer.call(object, String(index), value);
+      }
+      if (writeNode(state, level + 1, value, true, true, false, true) || typeof value === "undefined" && writeNode(state, level + 1, null, true, true, false, true)) {
+        if (!compact || _result !== "") {
+          _result += generateNextLine(state, level);
+        }
+        if (state.dump && CHAR_LINE_FEED === state.dump.charCodeAt(0)) {
+          _result += "-";
+        } else {
+          _result += "- ";
+        }
+        _result += state.dump;
+      }
+    }
+    state.tag = _tag;
+    state.dump = _result || "[]";
+  }
+  function writeFlowMapping(state, level, object) {
+    let _result = "";
+    const _tag = state.tag;
+    const objectKeyList = Object.keys(object);
+    for (let index = 0, length = objectKeyList.length; index < length; index += 1) {
+      let pairBuffer = "";
+      if (_result !== "") pairBuffer += ", ";
+      if (state.condenseFlow) pairBuffer += '"';
+      const objectKey = objectKeyList[index];
+      let objectValue = object[objectKey];
+      if (state.replacer) {
+        objectValue = state.replacer.call(object, objectKey, objectValue);
+      }
+      if (!writeNode(state, level, objectKey, false, false)) {
+        continue;
+      }
+      if (state.dump.length > 1024) pairBuffer += "? ";
+      pairBuffer += state.dump + (state.condenseFlow ? '"' : "") + ":" + (state.condenseFlow ? "" : " ");
+      if (!writeNode(state, level, objectValue, false, false)) {
+        continue;
+      }
+      pairBuffer += state.dump;
+      _result += pairBuffer;
+    }
+    state.tag = _tag;
+    state.dump = "{" + _result + "}";
+  }
+  function writeBlockMapping(state, level, object, compact) {
+    let _result = "";
+    const _tag = state.tag;
+    const objectKeyList = Object.keys(object);
+    if (state.sortKeys === true) {
+      objectKeyList.sort();
+    } else if (typeof state.sortKeys === "function") {
+      objectKeyList.sort(state.sortKeys);
+    } else if (state.sortKeys) {
+      throw new YAMLException2("sortKeys must be a boolean or a function");
+    }
+    for (let index = 0, length = objectKeyList.length; index < length; index += 1) {
+      let pairBuffer = "";
+      if (!compact || _result !== "") {
+        pairBuffer += generateNextLine(state, level);
+      }
+      const objectKey = objectKeyList[index];
+      let objectValue = object[objectKey];
+      if (state.replacer) {
+        objectValue = state.replacer.call(object, objectKey, objectValue);
+      }
+      if (!writeNode(state, level + 1, objectKey, true, true, true)) {
+        continue;
+      }
+      const explicitPair = state.tag !== null && state.tag !== "?" || state.dump && state.dump.length > 1024;
+      if (explicitPair) {
+        if (state.dump && CHAR_LINE_FEED === state.dump.charCodeAt(0)) {
+          pairBuffer += "?";
+        } else {
+          pairBuffer += "? ";
+        }
+      }
+      pairBuffer += state.dump;
+      if (explicitPair) {
+        pairBuffer += generateNextLine(state, level);
+      }
+      if (!writeNode(state, level + 1, objectValue, true, explicitPair)) {
+        continue;
+      }
+      if (state.dump && CHAR_LINE_FEED === state.dump.charCodeAt(0)) {
+        pairBuffer += ":";
+      } else {
+        pairBuffer += ": ";
+      }
+      pairBuffer += state.dump;
+      _result += pairBuffer;
+    }
+    state.tag = _tag;
+    state.dump = _result || "{}";
+  }
+  function detectType(state, object, explicit) {
+    const typeList = explicit ? state.explicitTypes : state.implicitTypes;
+    for (let index = 0, length = typeList.length; index < length; index += 1) {
+      const type2 = typeList[index];
+      if ((type2.instanceOf || type2.predicate) && (!type2.instanceOf || typeof object === "object" && object instanceof type2.instanceOf) && (!type2.predicate || type2.predicate(object))) {
+        if (explicit) {
+          if (type2.multi && type2.representName) {
+            state.tag = type2.representName(object);
+          } else {
+            state.tag = type2.tag;
+          }
+        } else {
+          state.tag = "?";
+        }
+        if (type2.represent) {
+          const style = state.styleMap[type2.tag] || type2.defaultStyle;
+          let _result;
+          if (_toString.call(type2.represent) === "[object Function]") {
+            _result = type2.represent(object, style);
+          } else if (_hasOwnProperty.call(type2.represent, style)) {
+            _result = type2.represent[style](object, style);
+          } else {
+            throw new YAMLException2("!<" + type2.tag + '> tag resolver accepts not "' + style + '" style');
+          }
+          state.dump = _result;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+  function writeNode(state, level, object, block, compact, iskey, isblockseq) {
+    state.tag = null;
+    state.dump = object;
+    if (!detectType(state, object, false)) {
+      detectType(state, object, true);
+    }
+    const type2 = _toString.call(state.dump);
+    const inblock = block;
+    if (block) {
+      block = state.flowLevel < 0 || state.flowLevel > level;
+    }
+    const objectOrArray = type2 === "[object Object]" || type2 === "[object Array]";
+    let duplicateIndex;
+    let duplicate;
+    if (objectOrArray) {
+      duplicateIndex = state.duplicates.indexOf(object);
+      duplicate = duplicateIndex !== -1;
+    }
+    if (state.tag !== null && state.tag !== "?" || duplicate || state.indent !== 2 && level > 0) {
+      compact = false;
+    }
+    if (duplicate && state.usedDuplicates[duplicateIndex]) {
+      state.dump = "*ref_" + duplicateIndex;
+    } else {
+      if (objectOrArray && duplicate && !state.usedDuplicates[duplicateIndex]) {
+        state.usedDuplicates[duplicateIndex] = true;
+      }
+      if (type2 === "[object Object]") {
+        if (block && Object.keys(state.dump).length !== 0) {
+          writeBlockMapping(state, level, state.dump, compact);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + state.dump;
+          }
+        } else {
+          writeFlowMapping(state, level, state.dump);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + " " + state.dump;
+          }
+        }
+      } else if (type2 === "[object Array]") {
+        if (block && state.dump.length !== 0) {
+          if (state.noArrayIndent && !isblockseq && level > 0) {
+            writeBlockSequence(state, level - 1, state.dump, compact);
+          } else {
+            writeBlockSequence(state, level, state.dump, compact);
+          }
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + state.dump;
+          }
+        } else {
+          writeFlowSequence(state, level, state.dump);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + " " + state.dump;
+          }
+        }
+      } else if (type2 === "[object String]") {
+        if (state.tag !== "?") {
+          writeScalar(state, state.dump, level, iskey, inblock);
+        }
+      } else if (type2 === "[object Undefined]") {
+        return false;
+      } else {
+        if (state.skipInvalid) return false;
+        throw new YAMLException2("unacceptable kind of an object to dump " + type2);
+      }
+      if (state.tag !== null && state.tag !== "?") {
+        let tagStr = encodeURI(
+          state.tag[0] === "!" ? state.tag.slice(1) : state.tag
+        ).replace(/!/g, "%21");
+        if (state.tag[0] === "!") {
+          tagStr = "!" + tagStr;
+        } else if (tagStr.slice(0, 18) === "tag:yaml.org,2002:") {
+          tagStr = "!!" + tagStr.slice(18);
+        } else {
+          tagStr = "!<" + tagStr + ">";
+        }
+        state.dump = tagStr + " " + state.dump;
+      }
+    }
+    return true;
+  }
+  function getDuplicateReferences(object, state) {
+    const objects = [];
+    const duplicatesIndexes = [];
+    inspectNode(object, objects, duplicatesIndexes);
+    const length = duplicatesIndexes.length;
+    for (let index = 0; index < length; index += 1) {
+      state.duplicates.push(objects[duplicatesIndexes[index]]);
+    }
+    state.usedDuplicates = new Array(length);
+  }
+  function inspectNode(object, objects, duplicatesIndexes) {
+    if (object !== null && typeof object === "object") {
+      const index = objects.indexOf(object);
+      if (index !== -1) {
+        if (duplicatesIndexes.indexOf(index) === -1) {
+          duplicatesIndexes.push(index);
+        }
+      } else {
+        objects.push(object);
+        if (Array.isArray(object)) {
+          for (let i = 0, length = object.length; i < length; i += 1) {
+            inspectNode(object[i], objects, duplicatesIndexes);
+          }
+        } else {
+          const objectKeyList = Object.keys(object);
+          for (let i = 0, length = objectKeyList.length; i < length; i += 1) {
+            inspectNode(object[objectKeyList[i]], objects, duplicatesIndexes);
+          }
+        }
+      }
+    }
+  }
+  function dump2(input2, options) {
+    options = options || {};
+    const state = new State(options);
+    if (!state.noRefs) getDuplicateReferences(input2, state);
+    let value = input2;
+    if (state.replacer) {
+      value = state.replacer.call({ "": value }, "", value);
+    }
+    if (writeNode(state, 0, value, true, true)) return state.dump + "\n";
+    return "";
+  }
+  dumper.dump = dump2;
+  return dumper;
+}
+function requireJsYaml() {
+  if (hasRequiredJsYaml) return jsYaml;
+  hasRequiredJsYaml = 1;
+  const loader2 = requireLoader();
+  const dumper2 = requireDumper();
+  function renamed(from, to) {
+    return function() {
+      throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
+    };
+  }
+  jsYaml.Type = requireType();
+  jsYaml.Schema = requireSchema();
+  jsYaml.FAILSAFE_SCHEMA = requireFailsafe();
+  jsYaml.JSON_SCHEMA = requireJson();
+  jsYaml.CORE_SCHEMA = requireCore();
+  jsYaml.DEFAULT_SCHEMA = require_default();
+  jsYaml.load = loader2.load;
+  jsYaml.loadAll = loader2.loadAll;
+  jsYaml.dump = dumper2.dump;
+  jsYaml.YAMLException = requireException();
+  jsYaml.types = {
+    binary: requireBinary(),
+    float: requireFloat(),
+    map: requireMap(),
+    null: require_null(),
+    pairs: requirePairs(),
+    set: requireSet(),
+    timestamp: requireTimestamp(),
+    bool: requireBool(),
+    int: requireInt(),
+    merge: requireMerge(),
+    omap: requireOmap(),
+    seq: requireSeq(),
+    str: requireStr()
+  };
+  jsYaml.safeLoad = renamed("safeLoad", "load");
+  jsYaml.safeLoadAll = renamed("safeLoadAll", "loadAll");
+  jsYaml.safeDump = renamed("safeDump", "dump");
+  return jsYaml;
+}
+var jsYaml, loader, common, hasRequiredCommon, exception, hasRequiredException, snippet, hasRequiredSnippet, type, hasRequiredType, schema, hasRequiredSchema, str, hasRequiredStr, seq, hasRequiredSeq, map, hasRequiredMap, failsafe, hasRequiredFailsafe, _null, hasRequired_null, bool, hasRequiredBool, int, hasRequiredInt, float, hasRequiredFloat, json, hasRequiredJson, core, hasRequiredCore, timestamp, hasRequiredTimestamp, merge, hasRequiredMerge, binary, hasRequiredBinary, omap, hasRequiredOmap, pairs, hasRequiredPairs, set, hasRequiredSet, _default, hasRequired_default, hasRequiredLoader, dumper, hasRequiredDumper, hasRequiredJsYaml, jsYamlExports, yaml, Type, Schema, FAILSAFE_SCHEMA, JSON_SCHEMA, CORE_SCHEMA, DEFAULT_SCHEMA, load, loadAll, dump, YAMLException, types, safeLoad, safeLoadAll, safeDump;
+var init_js_yaml = __esm({
+  "node_modules/js-yaml/dist/js-yaml.mjs"() {
+    jsYaml = {};
+    loader = {};
+    common = {};
+    dumper = {};
+    jsYamlExports = requireJsYaml();
+    yaml = /* @__PURE__ */ getDefaultExportFromCjs(jsYamlExports);
+    ({
+      Type,
+      Schema,
+      FAILSAFE_SCHEMA,
+      JSON_SCHEMA,
+      CORE_SCHEMA,
+      DEFAULT_SCHEMA,
+      load,
+      loadAll,
+      dump,
+      YAMLException,
+      types,
+      safeLoad,
+      safeLoadAll,
+      safeDump
+    } = yaml);
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/yaml.js
+var yaml_default;
+var init_yaml = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/yaml.js"() {
+    init_errors();
+    init_js_yaml();
+    init_js_yaml();
+    yaml_default = {
+      /**
+       * The order that this parser will run, in relation to other parsers.
+       */
+      order: 200,
+      /**
+       * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
+       */
+      allowEmpty: true,
+      /**
+       * Determines whether this parser can parse a given file reference.
+       * Parsers that match will be tried, in order, until one successfully parses the file.
+       * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
+       * every parser will be tried.
+       */
+      canParse: [".yaml", ".yml", ".json"],
+      // JSON is valid YAML
+      /**
+       * Parses the given file as YAML
+       *
+       * @param file           - An object containing information about the referenced file
+       * @param file.url       - The full URL of the referenced file
+       * @param file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+       * @param file.data      - The file contents. This will be whatever data type was returned by the resolver
+       * @returns
+       */
+      async parse(file) {
+        let data = file.data;
+        if (Buffer.isBuffer(data)) {
+          data = data.toString();
+        }
+        if (typeof data === "string") {
+          try {
+            return yaml.load(data, { schema: JSON_SCHEMA });
+          } catch {
+            try {
+              return yaml.load(data);
+            } catch (e) {
+              throw new ParserError(e?.message || "Parser Error", file.url);
+            }
+          }
+        } else {
+          return data;
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/text.js
+var TEXT_REGEXP, text_default;
+var init_text = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/text.js"() {
+    init_errors();
+    TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
+    text_default = {
+      /**
+       * The order that this parser will run, in relation to other parsers.
+       */
+      order: 300,
+      /**
+       * Whether to allow "empty" files (zero bytes).
+       */
+      allowEmpty: true,
+      /**
+       * The encoding that the text is expected to be in.
+       */
+      encoding: "utf8",
+      /**
+       * Determines whether this parser can parse a given file reference.
+       * Parsers that return true will be tried, in order, until one successfully parses the file.
+       * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
+       * every parser will be tried.
+       */
+      canParse(file) {
+        return (typeof file.data === "string" || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
+      },
+      /**
+       * Parses the given file as text
+       */
+      parse(file) {
+        if (typeof file.data === "string") {
+          return file.data;
+        } else if (Buffer.isBuffer(file.data)) {
+          return file.data.toString(this.encoding);
+        } else {
+          throw new ParserError("data is not text", file.url);
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/binary.js
+var BINARY_REGEXP, binary_default;
+var init_binary = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/parsers/binary.js"() {
+    BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
+    binary_default = {
+      /**
+       * The order that this parser will run, in relation to other parsers.
+       */
+      order: 400,
+      /**
+       * Whether to allow "empty" files (zero bytes).
+       */
+      allowEmpty: true,
+      /**
+       * Determines whether this parser can parse a given file reference.
+       * Parsers that return true will be tried, in order, until one successfully parses the file.
+       * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
+       * every parser will be tried.
+       */
+      canParse(file) {
+        return Buffer.isBuffer(file.data) && BINARY_REGEXP.test(file.url);
+      },
+      /**
+       * Parses the given data as a Buffer (byte array).
+       */
+      parse(file) {
+        if (Buffer.isBuffer(file.data)) {
+          return file.data;
+        } else {
+          return Buffer.from(file.data);
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/resolvers/file.js
+var file_default;
+var init_file = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/resolvers/file.js"() {
+    init_url();
+    init_errors();
+    file_default = {
+      /**
+       * The order that this resolver will run, in relation to other resolvers.
+       */
+      order: 100,
+      /**
+       * Determines whether this resolver can read a given file reference.
+       * Resolvers that return true will be tried, in order, until one successfully resolves the file.
+       * Resolvers that return false will not be given a chance to resolve the file.
+       */
+      canRead(file) {
+        return isFileSystemPath(file.url);
+      },
+      /**
+       * Reads the given file and returns its raw contents as a Buffer.
+       */
+      async read(file) {
+        let path;
+        const fs = await import("fs");
+        try {
+          path = toFileSystemPath(file.url);
+        } catch (err) {
+          const e = err;
+          e.message = `Malformed URI: ${file.url}: ${e.message}`;
+          throw new ResolverError(e, file.url);
+        }
+        if (path.endsWith("/") || path.endsWith("\\")) {
+          path = path.slice(0, -1);
+        }
+        try {
+          return await fs.promises.readFile(path);
+        } catch (err) {
+          const e = err;
+          e.message = `Error opening file ${path}: ${e.message}`;
+          throw new ResolverError(e, path);
+        }
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/resolvers/http.js
+async function download(u, httpOptions, _redirects) {
+  u = parse(u);
+  const redirects = _redirects || [];
+  redirects.push(u.href);
+  try {
+    if (httpOptions.safeUrlResolver && isUnsafeUrl(u.href)) {
+      throw new Error(`Unsafe URL blocked by safeUrlResolver: ${u.href}`);
+    }
+    const res = await get(u, httpOptions);
+    if (res.status >= 400) {
+      const error = new Error(`HTTP ERROR ${res.status}`);
+      error.status = res.status;
+      throw error;
+    } else if (res.status >= 300) {
+      if (!Number.isNaN(httpOptions.redirects) && redirects.length > httpOptions.redirects) {
+        const error = new Error(`Error downloading ${redirects[0]}. 
+Too many redirects: 
+  ${redirects.join(" \n  ")}`);
+        error.status = res.status;
+        throw new ResolverError(error);
+      } else {
+        const location2 = getHeader(res, "location");
+        if (!location2) {
+          const error = new Error(`HTTP ${res.status} redirect with no location header`);
+          error.status = res.status;
+          throw error;
+        }
+        const redirectTo = resolve(u.href, location2);
+        return download(redirectTo, httpOptions, redirects);
+      }
+    } else {
+      if (res.body) {
+        const buf = await res.arrayBuffer();
+        return Buffer.from(buf);
+      }
+      return Buffer.alloc(0);
+    }
+  } catch (err) {
+    const e = err;
+    e.message = `Error downloading ${u.href}: ${e.message}`;
+    throw new ResolverError(e, u.href);
+  }
+}
+async function get(u, httpOptions) {
+  let controller;
+  let timeoutId;
+  if (httpOptions.timeout && typeof AbortController !== "undefined") {
+    controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), httpOptions.timeout);
+  }
+  const response = await fetch(u, {
+    method: "GET",
+    headers: httpOptions.headers || {},
+    credentials: httpOptions.withCredentials ? "include" : "same-origin",
+    redirect: "manual",
+    signal: controller ? controller.signal : null
+  });
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+  }
+  return response;
+}
+function getHeader(response, name) {
+  return response.headers.get(name);
+}
+var http_default;
+var init_http = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/resolvers/http.js"() {
+    init_url();
+    init_errors();
+    http_default = {
+      /**
+       * The order that this resolver will run, in relation to other resolvers.
+       */
+      order: 200,
+      /**
+       * HTTP headers to send when downloading files.
+       *
+       * @example:
+       * {
+       *   "User-Agent": "JSON Schema $Ref Parser",
+       *   Accept: "application/json"
+       * }
+       */
+      headers: null,
+      /**
+       * HTTP request timeout (in milliseconds).
+       */
+      timeout: 6e4,
+      // 60 seconds
+      /**
+       * The maximum number of HTTP redirects to follow.
+       * To disable automatic following of redirects, set this to zero.
+       */
+      redirects: 5,
+      /**
+       * The `withCredentials` option of XMLHttpRequest.
+       * Set this to `true` if you're downloading files from a CORS-enabled server that requires authentication
+       */
+      withCredentials: false,
+      /**
+       * Set this to `false` if you want to allow unsafe URLs (e.g., `127.0.0.1`, localhost, and other internal URLs).
+       */
+      safeUrlResolver: true,
+      /**
+       * Determines whether this resolver can read a given file reference.
+       * Resolvers that return true will be tried in order, until one successfully resolves the file.
+       * Resolvers that return false will not be given a chance to resolve the file.
+       */
+      canRead(file) {
+        return isHttp(file.url) && (!this.safeUrlResolver || !isUnsafeUrl(file.url));
+      },
+      /**
+       * Reads the given URL and returns its raw contents as a Buffer.
+       */
+      read(file) {
+        const u = parse(file.url);
+        if (typeof window !== "undefined" && !u.protocol) {
+          u.protocol = parse(location.href).protocol;
+        }
+        return download(u, this);
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/options.js
+function merge2(target, source) {
+  if (isMergeable(source)) {
+    const keys = Object.keys(source).filter((key) => !["__proto__", "constructor", "prototype"].includes(key));
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const sourceSetting = source[key];
+      const targetSetting = target[key];
+      if (isMergeable(sourceSetting)) {
+        target[key] = merge2(targetSetting || {}, sourceSetting);
+      } else if (sourceSetting !== void 0) {
+        target[key] = sourceSetting;
+      }
+    }
+  }
+  return target;
+}
+function isMergeable(val) {
+  return val && typeof val === "object" && !Array.isArray(val) && !(val instanceof RegExp) && !(val instanceof Date);
+}
+var getJsonSchemaRefParserDefaultOptions, getNewOptions;
+var init_options = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/options.js"() {
+    init_json();
+    init_yaml();
+    init_text();
+    init_binary();
+    init_file();
+    init_http();
+    getJsonSchemaRefParserDefaultOptions = () => {
+      const defaults = {
+        /**
+         * Determines how different types of files will be parsed.
+         *
+         * You can add additional parsers of your own, replace an existing one with
+         * your own implementation, or disable any parser by setting it to false.
+         */
+        parse: {
+          json: { ...json_default },
+          yaml: { ...yaml_default },
+          text: { ...text_default },
+          binary: { ...binary_default }
+        },
+        /**
+         * Determines how JSON References will be resolved.
+         *
+         * You can add additional resolvers of your own, replace an existing one with
+         * your own implementation, or disable any resolver by setting it to false.
+         */
+        resolve: {
+          file: { ...file_default },
+          http: { ...http_default },
+          /**
+           * Determines whether external $ref pointers will be resolved.
+           * If this option is disabled, then none of above resolvers will be called.
+           * Instead, external $ref pointers will simply be ignored.
+           *
+           * @type {boolean}
+           */
+          external: true
+        },
+        /**
+         * By default, JSON Schema $Ref Parser throws the first error it encounters. Setting `continueOnError` to `true`
+         * causes it to keep processing as much as possible and then throw a single error that contains all errors
+         * that were encountered.
+         */
+        continueOnError: false,
+        /**
+         * Determines the types of JSON references that are allowed.
+         */
+        bundle: {
+          /**
+           * A function, called for each path, which can return true to stop this path and all
+           * subpaths from being processed further. This is useful in schemas where some
+           * subpaths contain literal $ref keys that should not be changed.
+           *
+           * @type {function}
+           */
+          excludedPathMatcher: () => false
+        },
+        /**
+         * Determines the types of JSON references that are allowed.
+         */
+        dereference: {
+          /**
+           * Dereference circular (recursive) JSON references?
+           * If false, then a {@link ReferenceError} will be thrown if a circular reference is found.
+           * If "ignore", then circular references will not be dereferenced.
+           *
+           * @type {boolean|string}
+           */
+          circular: true,
+          /**
+           * A function, called for each path, which can return true to stop this path and all
+           * subpaths from being dereferenced further. This is useful in schemas where some
+           * subpaths contain literal $ref keys that should not be dereferenced.
+           *
+           * @type {function}
+           */
+          excludedPathMatcher: () => false,
+          referenceResolution: "relative",
+          mergeKeys: true
+        },
+        mutateInputSchema: true
+      };
+      return defaults;
+    };
+    getNewOptions = (options) => {
+      const newOptions = getJsonSchemaRefParserDefaultOptions();
+      if (options) {
+        merge2(newOptions, options);
+      }
+      return newOptions;
+    };
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/normalize-args.js
+function normalizeArgs(_args) {
+  let path;
+  let schema2;
+  let options;
+  let callback;
+  const args = Array.prototype.slice.call(_args);
+  if (typeof args[args.length - 1] === "function") {
+    callback = args.pop();
+  }
+  if (typeof args[0] === "string") {
+    path = args[0];
+    if (typeof args[2] === "object") {
+      schema2 = args[1];
+      options = args[2];
+    } else {
+      schema2 = void 0;
+      options = args[1];
+    }
+  } else {
+    path = "";
+    schema2 = args[0];
+    options = args[1];
+  }
+  try {
+    options = getNewOptions(options);
+  } catch (e) {
+    console.error(`JSON Schema Ref Parser: Error normalizing options: ${e}`);
+  }
+  if (!options.mutateInputSchema && typeof schema2 === "object") {
+    schema2 = JSON.parse(JSON.stringify(schema2));
+  }
+  return {
+    path,
+    schema: schema2,
+    options,
+    callback
+  };
+}
+var normalize_args_default;
+var init_normalize_args = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/normalize-args.js"() {
+    init_options();
+    normalize_args_default = normalizeArgs;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/resolve-external.js
+function resolveExternal(parser, options) {
+  if (!options.resolve?.external) {
+    return Promise.resolve();
+  }
+  try {
+    const rootScopeBase = parser.$refs._root$Ref.dynamicIdScope ? getSchemaBasePath(parser.$refs._root$Ref.path, parser.schema) : parser.$refs._root$Ref.path;
+    const promises = crawl(parser.schema, parser.$refs._root$Ref.path + "#", rootScopeBase, parser.$refs._root$Ref.dynamicIdScope, parser.$refs, options);
+    return Promise.all(promises);
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+function crawl(obj, path, scopeBase, dynamicIdScope, $refs, options, seen, external) {
+  seen ||= /* @__PURE__ */ new Set();
+  let promises = [];
+  if (obj && typeof obj === "object" && !ArrayBuffer.isView(obj) && !seen.has(obj)) {
+    seen.add(obj);
+    const currentScopeBase = scopeBase;
+    if (ref_default.isExternal$Ref(obj)) {
+      promises.push(resolve$Ref(obj, path, currentScopeBase, dynamicIdScope, $refs, options));
+    }
+    const keys = Object.keys(obj);
+    for (const key of keys) {
+      const keyPath = pointer_default.join(path, key);
+      const value = obj[key];
+      const childScopeBase = dynamicIdScope && value && typeof value === "object" && !ArrayBuffer.isView(value) ? getSchemaBasePath(currentScopeBase, value) : currentScopeBase;
+      promises = promises.concat(crawl(value, keyPath, childScopeBase, dynamicIdScope, $refs, options, seen, external));
+    }
+  }
+  return promises;
+}
+async function resolve$Ref($ref, path, scopeBase, dynamicIdScope, $refs, options) {
+  const shouldResolveOnCwd = options.dereference?.externalReferenceResolution === "root";
+  const resolutionBase = shouldResolveOnCwd ? cwd() : dynamicIdScope ? scopeBase : path;
+  const resolvedPath = resolve(resolutionBase, $ref.$ref);
+  const withoutHash = stripHash(resolvedPath);
+  const ref = $refs._get$Ref(withoutHash);
+  if (ref) {
+    return Promise.resolve(ref.value);
+  }
+  try {
+    const reference = $ref.$ref;
+    const parseTarget = {
+      url: resolvedPath,
+      baseUrl: resolutionBase
+    };
+    if (typeof reference === "string") {
+      parseTarget.reference = reference;
+    }
+    const result = await parse_default(parseTarget, $refs, options);
+    const parsedRef = $refs._get$Ref(withoutHash);
+    const promises = crawl(result, withoutHash + "#", withoutHash, parsedRef?.dynamicIdScope ?? false, $refs, options, /* @__PURE__ */ new Set(), true);
+    return Promise.all(promises);
+  } catch (err) {
+    if (!options?.continueOnError || !isHandledError(err)) {
+      throw err;
+    }
+    if ($refs._$refs[withoutHash]) {
+      err.source = decodeURI(stripHash(path));
+      err.path = safePointerToPath(getHash(path));
+    }
+    return [];
+  }
+}
+var resolve_external_default;
+var init_resolve_external = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/resolve-external.js"() {
+    init_ref();
+    init_pointer();
+    init_parse();
+    init_url();
+    init_errors();
+    init_schema_resources();
+    resolve_external_default = resolveExternal;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/bundle.js
+function bundle(parser, options) {
+  const rootScopeBase = parser.$refs._root$Ref.dynamicIdScope ? getSchemaBasePath(parser.$refs._root$Ref.path, parser.schema) : parser.$refs._root$Ref.path;
+  const inventory = [];
+  crawl2(parser, "schema", parser.$refs._root$Ref.path + "#", rootScopeBase, parser.$refs._root$Ref.dynamicIdScope, "#", 0, inventory, parser.$refs, options);
+  const rootId = parser.schema && typeof parser.schema === "object" && "$id" in parser.schema ? parser.schema.$id : void 0;
+  remap(inventory, options, rootId);
+  const bundleOptions = options.bundle || {};
+  if (bundleOptions.optimizeInternalRefs !== false) {
+    fixRefsThroughRefs(inventory, parser.schema);
+  }
+}
+function crawl2(parent, key, path, scopeBase, dynamicIdScope, pathFromRoot, indirections, inventory, $refs, options) {
+  const obj = key === null ? parent : parent[key];
+  const bundleOptions = options.bundle || {};
+  const isExcludedPath = bundleOptions.excludedPathMatcher || (() => false);
+  if (obj && typeof obj === "object" && !ArrayBuffer.isView(obj) && !isExcludedPath(pathFromRoot)) {
+    const currentScopeBase = scopeBase;
+    if (ref_default.isAllowed$Ref(obj)) {
+      inventory$Ref(parent, key, path, currentScopeBase, dynamicIdScope, pathFromRoot, indirections, inventory, $refs, options);
+    } else {
+      const keys = Object.keys(obj).sort((a, b) => {
+        if (a === "definitions" || a === "$defs") {
+          return -1;
+        } else if (b === "definitions" || b === "$defs") {
+          return 1;
+        } else {
+          return a.length - b.length;
+        }
+      });
+      for (const key2 of keys) {
+        const keyPath = pointer_default.join(path, key2);
+        const keyPathFromRoot = pointer_default.join(pathFromRoot, key2);
+        const value = obj[key2];
+        const childScopeBase = dynamicIdScope && value && typeof value === "object" && !ArrayBuffer.isView(value) ? getSchemaBasePath(currentScopeBase, value) : currentScopeBase;
+        if (ref_default.isAllowed$Ref(value)) {
+          inventory$Ref(obj, key2, keyPath, childScopeBase, dynamicIdScope, keyPathFromRoot, indirections, inventory, $refs, options);
+        } else {
+          crawl2(obj, key2, keyPath, childScopeBase, dynamicIdScope, keyPathFromRoot, indirections, inventory, $refs, options);
+        }
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          if ("$ref" in value) {
+            bundleOptions?.onBundle?.(value["$ref"], obj[key2], obj, key2);
+          }
+        }
+      }
+    }
+  }
+}
+function inventory$Ref($refParent, $refKey, path, scopeBase, dynamicIdScope, pathFromRoot, indirections, inventory, $refs, options) {
+  const $ref = $refKey === null ? $refParent : $refParent[$refKey];
+  const $refPath = resolve(dynamicIdScope ? scopeBase : path, $ref.$ref);
+  const pointer = $refs._resolve($refPath, pathFromRoot, options);
+  if (pointer === null) {
+    return;
+  }
+  const parsed = pointer_default.parse(pathFromRoot);
+  const depth = parsed.length;
+  const file = stripHash(pointer.path);
+  const hash = getHash(pointer.path);
+  const external = file !== $refs._root$Ref.path && !$refs._aliases[file];
+  const extended = ref_default.isExtended$Ref($ref);
+  indirections += pointer.indirections;
+  const existingEntry = findInInventory(inventory, $refParent, $refKey);
+  if (existingEntry) {
+    if (depth < existingEntry.depth || indirections < existingEntry.indirections) {
+      removeFromInventory(inventory, existingEntry);
+    } else {
+      return;
+    }
+  }
+  inventory.push({
+    $ref,
+    // The JSON Reference (e.g. {$ref: string})
+    parent: $refParent,
+    // The object that contains this $ref pointer
+    key: $refKey,
+    // The key in `parent` that is the $ref pointer
+    pathFromRoot,
+    // The path to the $ref pointer, from the JSON Schema root
+    depth,
+    // How far from the JSON Schema root is this $ref pointer?
+    file,
+    // The file that the $ref pointer resolves to
+    hash,
+    // The hash within `file` that the $ref pointer resolves to
+    value: pointer.value,
+    // The resolved value of the $ref pointer
+    circular: pointer.circular,
+    // Is this $ref pointer DIRECTLY circular? (i.e. it references itself)
+    extended,
+    // Does this $ref extend its resolved value? (i.e. it has extra properties, in addition to "$ref")
+    external,
+    // Does this $ref pointer point to a file other than the main JSON Schema file?
+    indirections
+    // The number of indirect references that were traversed to resolve the value
+  });
+  if (!existingEntry || external) {
+    crawl2(pointer.value, null, pointer.path, pointer.$ref.path, pointer.$ref.dynamicIdScope, pathFromRoot, indirections + 1, inventory, $refs, options);
+  }
+}
+function remap(inventory, options, rootId) {
+  inventory.sort((a, b) => {
+    if (a.file !== b.file) {
+      return a.file < b.file ? -1 : 1;
+    } else if (a.hash !== b.hash) {
+      return a.hash < b.hash ? -1 : 1;
+    } else if (a.circular !== b.circular) {
+      return a.circular ? -1 : 1;
+    } else if (a.extended !== b.extended) {
+      return a.extended ? 1 : -1;
+    } else if (a.indirections !== b.indirections) {
+      return a.indirections - b.indirections;
+    } else if (a.depth !== b.depth) {
+      return a.depth - b.depth;
+    } else {
+      const aDefinitionsIndex = Math.max(a.pathFromRoot.lastIndexOf("/definitions"), a.pathFromRoot.lastIndexOf("/$defs"));
+      const bDefinitionsIndex = Math.max(b.pathFromRoot.lastIndexOf("/definitions"), b.pathFromRoot.lastIndexOf("/$defs"));
+      if (aDefinitionsIndex !== bDefinitionsIndex) {
+        return bDefinitionsIndex - aDefinitionsIndex;
+      } else {
+        return a.pathFromRoot.length - b.pathFromRoot.length;
+      }
+    }
+  });
+  let file, hash, pathFromRoot;
+  for (const entry of inventory) {
+    const bundleOpts = options.bundle || {};
+    if (!entry.external) {
+      if (bundleOpts.optimizeInternalRefs !== false) {
+        entry.$ref.$ref = entry.hash;
+      }
+    } else if (entry.file === file && entry.hash === hash) {
+      if (rootId && isInsideIdScope(inventory, entry)) {
+        entry.$ref.$ref = rootId + pathFromRoot;
+      } else {
+        entry.$ref.$ref = pathFromRoot;
+      }
+    } else if (entry.file === file && entry.hash.indexOf(hash + "/") === 0) {
+      const subPath = pointer_default.join(pathFromRoot, pointer_default.parse(entry.hash.replace(hash, "#")));
+      if (rootId && isInsideIdScope(inventory, entry)) {
+        entry.$ref.$ref = rootId + subPath;
+      } else {
+        entry.$ref.$ref = subPath;
+      }
+    } else {
+      file = entry.file;
+      hash = entry.hash;
+      pathFromRoot = entry.pathFromRoot;
+      entry.$ref = entry.parent[entry.key] = ref_default.dereference(entry.$ref, entry.value, options);
+      if (entry.circular) {
+        entry.$ref.$ref = entry.pathFromRoot;
+      }
+    }
+  }
+}
+function findInInventory(inventory, $refParent, $refKey) {
+  for (const existingEntry of inventory) {
+    if (existingEntry && existingEntry.parent === $refParent && existingEntry.key === $refKey) {
+      return existingEntry;
+    }
+  }
+  return void 0;
+}
+function removeFromInventory(inventory, entry) {
+  const index = inventory.indexOf(entry);
+  inventory.splice(index, 1);
+}
+function fixRefsThroughRefs(inventory, schema2) {
+  for (const entry of inventory) {
+    if (!entry.$ref || typeof entry.$ref !== "object" || !("$ref" in entry.$ref)) {
+      continue;
+    }
+    const refValue = entry.$ref.$ref;
+    if (typeof refValue !== "string" || !refValue.startsWith("#/")) {
+      continue;
+    }
+    const fixedPath = resolvePathThroughRefs(schema2, refValue);
+    if (fixedPath !== refValue) {
+      entry.$ref.$ref = fixedPath;
+    }
+  }
+}
+function resolvePathThroughRefs(schema2, refPath) {
+  if (!refPath.startsWith("#/")) {
+    return refPath;
+  }
+  const segments = refPath.slice(2).split("/");
+  let current = schema2;
+  const resolvedSegments = [];
+  for (const seg of segments) {
+    if (current === null || current === void 0 || typeof current !== "object") {
+      return refPath;
+    }
+    if ("$ref" in current && typeof current.$ref === "string" && current.$ref.startsWith("#/")) {
+      const targetSegments = current.$ref.slice(2).split("/");
+      resolvedSegments.length = 0;
+      resolvedSegments.push(...targetSegments);
+      current = walkPath(schema2, current.$ref);
+      if (current === null || current === void 0 || typeof current !== "object") {
+        return refPath;
+      }
+    }
+    const decoded = seg.replace(/~1/g, "/").replace(/~0/g, "~");
+    const idx = Array.isArray(current) ? parseInt(decoded) : decoded;
+    current = current[idx];
+    resolvedSegments.push(seg);
+  }
+  const result = "#/" + resolvedSegments.join("/");
+  return result;
+}
+function walkPath(schema2, path) {
+  if (!path.startsWith("#/")) {
+    return void 0;
+  }
+  const segments = path.slice(2).split("/");
+  let current = schema2;
+  for (const seg of segments) {
+    if (current === null || current === void 0 || typeof current !== "object") {
+      return void 0;
+    }
+    const decoded = seg.replace(/~1/g, "/").replace(/~0/g, "~");
+    const idx = Array.isArray(current) ? parseInt(decoded) : decoded;
+    current = current[idx];
+  }
+  return current;
+}
+function isInsideIdScope(inventory, entry) {
+  for (const other of inventory) {
+    if (other.pathFromRoot === "#" || other.pathFromRoot === "#/") {
+      continue;
+    }
+    if (entry.pathFromRoot.startsWith(other.pathFromRoot + "/")) {
+      if (other.value && typeof other.value === "object" && "$id" in other.value) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+var bundle_default;
+var init_bundle = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/bundle.js"() {
+    init_ref();
+    init_pointer();
+    init_url();
+    init_schema_resources();
+    bundle_default = bundle;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/dereference.js
+function dereference(parser, options) {
+  const start = Date.now();
+  const rootScopeBase = parser.$refs._root$Ref.dynamicIdScope ? getSchemaBasePath(parser.$refs._root$Ref.path, parser.schema) : parser.$refs._root$Ref.path;
+  const dereferenced = crawl3(parser.schema, parser.$refs._root$Ref.path, rootScopeBase, parser.$refs._root$Ref.dynamicIdScope, "#", /* @__PURE__ */ new Set(), /* @__PURE__ */ new Set(), /* @__PURE__ */ new Map(), parser.$refs, options, start, 0);
+  parser.$refs.circular = dereferenced.circular;
+  parser.schema = dereferenced.value;
+}
+function crawl3(obj, path, scopeBase, dynamicIdScope, pathFromRoot, parents, processedObjects, dereferencedCache, $refs, options, startTime, depth) {
+  let dereferenced;
+  const result = {
+    value: obj,
+    circular: false
+  };
+  checkDereferenceTimeout(startTime, options);
+  const derefOptions = options.dereference || {};
+  const maxDepth = derefOptions.maxDepth ?? 500;
+  if (depth > maxDepth) {
+    throw new RangeError(`Maximum dereference depth (${maxDepth}) exceeded at ${pathFromRoot}. This likely indicates an extremely deep or recursive schema. You can increase this limit with the dereference.maxDepth option.`);
+  }
+  const isExcludedPath = derefOptions.excludedPathMatcher || (() => false);
+  if (derefOptions?.circular === "ignore" || !processedObjects.has(obj)) {
+    if (obj && typeof obj === "object" && !ArrayBuffer.isView(obj) && !isExcludedPath(pathFromRoot)) {
+      parents.add(obj);
+      processedObjects.add(obj);
+      const currentScopeBase = scopeBase;
+      if (ref_default.isAllowed$Ref(obj, options)) {
+        dereferenced = dereference$Ref(obj, path, currentScopeBase, dynamicIdScope, pathFromRoot, parents, processedObjects, dereferencedCache, $refs, options, startTime, depth);
+        result.circular = dereferenced.circular;
+        result.value = dereferenced.value;
+      } else {
+        for (const key of Object.keys(obj)) {
+          checkDereferenceTimeout(startTime, options);
+          const keyPath = pointer_default.join(path, key);
+          const keyPathFromRoot = pointer_default.join(pathFromRoot, key);
+          if (isExcludedPath(keyPathFromRoot)) {
+            continue;
+          }
+          const value = obj[key];
+          const childScopeBase = dynamicIdScope && value && typeof value === "object" && !ArrayBuffer.isView(value) ? getSchemaBasePath(currentScopeBase, value) : currentScopeBase;
+          let circular;
+          if (ref_default.isAllowed$Ref(value, options)) {
+            dereferenced = dereference$Ref(value, keyPath, childScopeBase, dynamicIdScope, keyPathFromRoot, parents, processedObjects, dereferencedCache, $refs, options, startTime, depth);
+            circular = dereferenced.circular;
+            if (obj[key] !== dereferenced.value) {
+              const preserved = /* @__PURE__ */ new Map();
+              if (derefOptions?.preservedProperties) {
+                if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
+                  derefOptions?.preservedProperties.forEach((prop) => {
+                    if (prop in obj[key]) {
+                      preserved.set(prop, obj[key][prop]);
+                    }
+                  });
+                }
+              }
+              let assignedValue = dereferenced.value;
+              if (derefOptions?.cloneReferences && !circular && assignedValue && typeof assignedValue === "object") {
+                assignedValue = structuredClone(assignedValue);
+              }
+              obj[key] = assignedValue;
+              if (derefOptions?.preservedProperties) {
+                if (preserved.size && typeof obj[key] === "object" && !Array.isArray(obj[key])) {
+                  preserved.forEach((value2, prop) => {
+                    obj[key][prop] = value2;
+                  });
+                }
+              }
+              derefOptions?.onDereference?.(value.$ref, obj[key], obj, key);
+            }
+          } else {
+            if (!parents.has(value)) {
+              dereferenced = crawl3(value, keyPath, childScopeBase, dynamicIdScope, keyPathFromRoot, parents, processedObjects, dereferencedCache, $refs, options, startTime, depth + 1);
+              circular = dereferenced.circular;
+              if (obj[key] !== dereferenced.value) {
+                obj[key] = dereferenced.value;
+              }
+            } else {
+              circular = foundCircularReference(keyPath, $refs, options);
+            }
+          }
+          result.circular = result.circular || circular;
+        }
+      }
+      parents.delete(obj);
+    }
+  }
+  return result;
+}
+function dereference$Ref($ref, path, scopeBase, dynamicIdScope, pathFromRoot, parents, processedObjects, dereferencedCache, $refs, options, startTime, depth) {
+  const isExternalRef = ref_default.isExternal$Ref($ref);
+  const shouldResolveOnCwd = isExternalRef && options?.dereference?.externalReferenceResolution === "root";
+  const resolutionBase = shouldResolveOnCwd ? cwd() : dynamicIdScope ? scopeBase : path;
+  const $refPath = resolve(resolutionBase, $ref.$ref);
+  const cache = dereferencedCache.get($refPath);
+  if (cache) {
+    if (!cache.circular) {
+      const refKeys = Object.keys($ref);
+      if (refKeys.length > 1) {
+        const extraKeys = {};
+        for (const key of refKeys) {
+          if (key !== "$ref" && !(key in cache.value)) {
+            extraKeys[key] = $ref[key];
+          }
+        }
+        return {
+          circular: cache.circular,
+          value: Object.assign({}, cache.value, extraKeys)
+        };
+      }
+      return cache;
+    }
+    if (typeof cache.value === "object" && "$ref" in cache.value && "$ref" in $ref) {
+      if (cache.value.$ref === $ref.$ref) {
+        foundCircularReference(path, $refs, options);
+        return cache;
+      } else {
+      }
+    } else {
+      foundCircularReference(path, $refs, options);
+      return cache;
+    }
+  }
+  const pointer = $refs._resolve($refPath, path, options);
+  if (pointer === null) {
+    return {
+      circular: false,
+      value: null
+    };
+  }
+  const directCircular = pointer.circular;
+  let circular = directCircular || parents.has(pointer.value);
+  if (circular) {
+    foundCircularReference(path, $refs, options);
+  }
+  let dereferencedValue = ref_default.dereference($ref, pointer.value, options);
+  if (!circular) {
+    const dereferenced = crawl3(dereferencedValue, pointer.path, pointer.$ref.path, pointer.$ref.dynamicIdScope, pathFromRoot, parents, processedObjects, dereferencedCache, $refs, options, startTime, depth + 1);
+    circular = dereferenced.circular;
+    dereferencedValue = dereferenced.value;
+  }
+  if (circular && !directCircular && options.dereference?.circular === "ignore") {
+    dereferencedValue = $ref;
+  }
+  if (directCircular) {
+    dereferencedValue.$ref = pathFromRoot;
+  }
+  const dereferencedObject = {
+    circular,
+    value: dereferencedValue
+  };
+  if (Object.keys($ref).length === 1) {
+    dereferencedCache.set($refPath, dereferencedObject);
+  }
+  return dereferencedObject;
+}
+function checkDereferenceTimeout(startTime, options) {
+  if (options && options.timeoutMs) {
+    if (Date.now() - startTime > options.timeoutMs) {
+      throw new TimeoutError(options.timeoutMs);
+    }
+  }
+}
+function foundCircularReference(keyPath, $refs, options) {
+  $refs.circular = true;
+  options?.dereference?.onCircular?.(keyPath);
+  if (!options.dereference.circular) {
+    const error = new ReferenceError(`Circular $ref pointer found at ${keyPath}`);
+    throw error;
+  }
+  return true;
+}
+var dereference_default;
+var init_dereference = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/dereference.js"() {
+    init_ref();
+    init_pointer();
+    init_url();
+    init_schema_resources();
+    init_errors();
+    dereference_default = dereference;
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/next.js
+function makeNext() {
+  if (typeof process === "object" && typeof process.nextTick === "function") {
+    return process.nextTick;
+  } else if (typeof setImmediate === "function") {
+    return setImmediate;
+  } else {
+    return function next(f) {
+      setTimeout(f, 0);
+    };
+  }
+}
+var next_default;
+var init_next = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/next.js"() {
+    next_default = makeNext();
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/maybe.js
+function maybe(cb, promise) {
+  if (cb) {
+    promise.then(function(result) {
+      next_default(function() {
+        cb(null, result);
+      });
+    }, function(err) {
+      next_default(function() {
+        cb(err);
+      });
+    });
+    return void 0;
+  } else {
+    return promise;
+  }
+}
+var init_maybe = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/util/maybe.js"() {
+    init_next();
+  }
+});
+
+// node_modules/@apidevtools/json-schema-ref-parser/dist/lib/index.js
+var lib_exports = {};
+__export(lib_exports, {
+  $RefParser: () => $RefParser,
+  $Refs: () => $Refs,
+  FileResolver: () => file_default,
+  HTTPResolver: () => http_default,
+  InvalidPointerError: () => InvalidPointerError,
+  JSONParserError: () => JSONParserError,
+  JSONParserErrorGroup: () => JSONParserErrorGroup,
+  MissingPointerError: () => MissingPointerError,
+  ParserError: () => ParserError,
+  ResolverError: () => ResolverError,
+  UnmatchedParserError: () => UnmatchedParserError,
+  UnmatchedResolverError: () => UnmatchedResolverError,
+  bundle: () => bundle2,
+  default: () => lib_default,
+  dereference: () => dereference2,
+  dereferenceInternal: () => dereference_default,
+  getJsonSchemaRefParserDefaultOptions: () => getJsonSchemaRefParserDefaultOptions,
+  isHandledError: () => isHandledError,
+  isUnsafeUrl: () => isUnsafeUrl,
+  jsonSchemaParserNormalizeArgs: () => normalize_args_default,
+  parse: () => parse3,
+  resolve: () => resolve2
+});
+function finalize(parser) {
+  const errors = JSONParserErrorGroup.getParserErrors(parser);
+  if (errors.length > 0) {
+    throw new JSONParserErrorGroup(parser);
+  }
+}
+var $RefParser, lib_default, parse3, resolve2, bundle2, dereference2;
+var init_lib = __esm({
+  "node_modules/@apidevtools/json-schema-ref-parser/dist/lib/index.js"() {
+    init_refs();
+    init_parse();
+    init_normalize_args();
+    init_resolve_external();
+    init_bundle();
+    init_dereference();
+    init_url();
+    init_file();
+    init_http();
+    init_errors();
+    init_maybe();
+    init_schema_resources();
+    init_options();
+    init_url();
+    $RefParser = class _$RefParser {
+      /**
+       * The parsed (and possibly dereferenced) JSON schema object
+       *
+       * @type {object}
+       * @readonly
+       */
+      schema = null;
+      /**
+       * The resolved JSON references
+       *
+       * @type {$Refs}
+       * @readonly
+       */
+      $refs = new $Refs();
+      async parse() {
+        const args = normalize_args_default(arguments);
+        let promise;
+        if (!args.path && !args.schema) {
+          const err = new Error(`Expected a file path, URL, or object. Got ${args.path || args.schema}`);
+          return maybe(args.callback, Promise.reject(err));
+        }
+        this.schema = null;
+        this.$refs = new $Refs();
+        let pathType = "http";
+        if (isFileSystemPath(args.path)) {
+          args.path = fromFileSystemPath(args.path);
+          pathType = "file";
+        } else if (!args.path && args.schema && "$id" in args.schema && args.schema.$id) {
+          const params = parse(args.schema.$id);
+          const port = params.port ?? (params.protocol === "https:" ? 443 : 80);
+          args.path = `${params.protocol}//${params.hostname}:${port}`;
+        }
+        args.path = resolve(cwd(), args.path);
+        if (args.schema && typeof args.schema === "object") {
+          const $ref = this.$refs._add(args.path);
+          $ref.value = args.schema;
+          $ref.pathType = pathType;
+          $ref.dynamicIdScope = usesDynamicIdScope($ref.value);
+          registerSchemaResources(this.$refs, $ref.path, $ref.value, $ref.pathType, $ref.dynamicIdScope);
+          promise = Promise.resolve(args.schema);
+        } else {
+          promise = parse_default(args.path, this.$refs, args.options);
+        }
+        try {
+          const result = await promise;
+          if (result !== null && typeof result === "object" && !Buffer.isBuffer(result)) {
+            this.schema = result;
+            return maybe(args.callback, Promise.resolve(this.schema));
+          } else if (args.options.continueOnError) {
+            this.schema = null;
+            return maybe(args.callback, Promise.resolve(this.schema));
+          } else {
+            throw new SyntaxError(`"${this.$refs._root$Ref.path || result}" is not a valid JSON Schema`);
+          }
+        } catch (err) {
+          if (!args.options.continueOnError || !isHandledError(err)) {
+            return maybe(args.callback, Promise.reject(err));
+          }
+          if (this.$refs._$refs[stripHash(args.path)]) {
+            this.$refs._$refs[stripHash(args.path)].addError(err);
+          }
+          return maybe(args.callback, Promise.resolve(null));
+        }
+      }
+      static parse() {
+        const parser = new _$RefParser();
+        return parser.parse.apply(parser, arguments);
+      }
+      async resolve() {
+        const args = normalize_args_default(arguments);
+        try {
+          await this.parse(args.path, args.schema, args.options);
+          await resolve_external_default(this, args.options);
+          finalize(this);
+          return maybe(args.callback, Promise.resolve(this.$refs));
+        } catch (err) {
+          return maybe(args.callback, Promise.reject(err));
+        }
+      }
+      static resolve() {
+        const instance = new _$RefParser();
+        return instance.resolve.apply(instance, arguments);
+      }
+      static bundle() {
+        const instance = new _$RefParser();
+        return instance.bundle.apply(instance, arguments);
+      }
+      async bundle() {
+        const args = normalize_args_default(arguments);
+        try {
+          await this.resolve(args.path, args.schema, args.options);
+          bundle_default(this, args.options);
+          finalize(this);
+          return maybe(args.callback, Promise.resolve(this.schema));
+        } catch (err) {
+          return maybe(args.callback, Promise.reject(err));
+        }
+      }
+      static dereference() {
+        const instance = new _$RefParser();
+        return instance.dereference.apply(instance, arguments);
+      }
+      async dereference() {
+        const args = normalize_args_default(arguments);
+        try {
+          await this.resolve(args.path, args.schema, args.options);
+          dereference_default(this, args.options);
+          finalize(this);
+          return maybe(args.callback, Promise.resolve(this.schema));
+        } catch (err) {
+          return maybe(args.callback, Promise.reject(err));
+        }
+      }
+    };
+    lib_default = $RefParser;
+    parse3 = $RefParser.parse;
+    resolve2 = $RefParser.resolve;
+    bundle2 = $RefParser.bundle;
+    dereference2 = $RefParser.dereference;
+  }
+});
+
+// node_modules/@apidevtools/swagger-parser/lib/options.js
+var require_options = __commonJS({
+  "node_modules/@apidevtools/swagger-parser/lib/options.js"(exports, module) {
+    "use strict";
+    var { getJsonSchemaRefParserDefaultOptions: getJsonSchemaRefParserDefaultOptions2 } = (init_lib(), __toCommonJS(lib_exports));
+    var schemaValidator = require_schema5();
+    var specValidator = require_spec();
+    module.exports = ParserOptions;
+    function merge3(target, source) {
+      if (isMergeable2(source)) {
+        const keys = Object.keys(source).filter((key) => !["__proto__", "constructor", "prototype"].includes(key));
+        for (let i = 0; i < keys.length; i++) {
+          const key = keys[i];
+          const sourceSetting = source[key];
+          const targetSetting = target[key];
+          if (isMergeable2(sourceSetting)) {
+            target[key] = merge3(targetSetting || {}, sourceSetting);
+          } else if (sourceSetting !== void 0) {
+            target[key] = sourceSetting;
+          }
+        }
+      }
+      return target;
+    }
+    function isMergeable2(val) {
+      return val && typeof val === "object" && !Array.isArray(val) && !(val instanceof RegExp) && !(val instanceof Date);
+    }
+    function ParserOptions(_options) {
+      const defaultOptions = getJsonSchemaRefParserDefaultOptions2();
+      const options = merge3(defaultOptions, ParserOptions.defaults);
+      return merge3(options, _options);
+    }
+    ParserOptions.defaults = {
+      /**
+       * Determines how the API definition will be validated.
+       *
+       * You can add additional validators of your own, replace an existing one with
+       * your own implemenation, or disable any validator by setting it to false.
+       */
+      validate: {
+        schema: schemaValidator,
+        spec: specValidator
+      }
+    };
+  }
+});
+
+// node_modules/call-me-maybe/src/next.js
+var require_next2 = __commonJS({
+  "node_modules/call-me-maybe/src/next.js"(exports, module) {
+    "use strict";
+    function makeNext2() {
+      if (typeof process === "object" && typeof process.nextTick === "function") {
+        return process.nextTick;
+      } else if (typeof setImmediate === "function") {
+        return setImmediate;
+      } else {
+        return function next(f) {
+          setTimeout(f, 0);
+        };
+      }
+    }
+    module.exports = makeNext2();
+  }
+});
+
+// node_modules/call-me-maybe/src/maybe.js
+var require_maybe = __commonJS({
+  "node_modules/call-me-maybe/src/maybe.js"(exports, module) {
+    "use strict";
+    var next = require_next2();
+    module.exports = function maybe2(cb, promise) {
+      if (cb) {
+        promise.then(function(result) {
+          next(function() {
+            cb(null, result);
+          });
+        }, function(err) {
+          next(function() {
+            cb(err);
+          });
+        });
+        return void 0;
+      } else {
+        return promise;
+      }
+    };
+  }
+});
+
+// node_modules/@apidevtools/swagger-parser/lib/index.js
+var require_lib3 = __commonJS({
+  "node_modules/@apidevtools/swagger-parser/lib/index.js"(exports, module) {
+    "use strict";
+    var validateSchema = require_schema5();
+    var validateSpec = require_spec();
+    var {
+      jsonSchemaParserNormalizeArgs: normalizeArgs2,
+      dereferenceInternal: dereference3,
+      $RefParser: $RefParser2
+    } = (init_lib(), __toCommonJS(lib_exports));
+    var util = require_util();
+    var Options = require_options();
+    var maybe2 = require_maybe();
+    var supported31Versions = ["3.1.0", "3.1.1", "3.1.2"];
+    var supported30Versions = ["3.0.0", "3.0.1", "3.0.2", "3.0.3", "3.0.4"];
+    var supportedVersions = [...supported31Versions, ...supported30Versions];
+    var SwaggerParser2 = class extends $RefParser2 {
+      /**
+       * Parses the given Swagger API.
+       * This method does not resolve any JSON references.
+       * It just reads a single file in JSON or YAML format, and parse it as a JavaScript object.
+       *
+       * @param {string} [path] - The file path or URL of the JSON schema
+       * @param {object} [api] - The Swagger API object. This object will be used instead of reading from `path`.
+       * @param {ParserOptions} [options] - Options that determine how the API is parsed
+       * @param {Function} [callback] - An error-first callback. The second parameter is the parsed API object.
+       * @returns {Promise} - The returned promise resolves with the parsed API object.
+       */
+      async parse(path, api, options, callback) {
+        let args = normalizeArgs2(arguments);
+        args.options = new Options(args.options);
+        try {
+          let schema2 = await super.parse(args.path, args.schema, args.options);
+          if (schema2.swagger) {
+            if (typeof schema2.swagger === "number") {
+              throw new SyntaxError('Swagger version number must be a string (e.g. "2.0") not a number.');
+            } else if (schema2.info && typeof schema2.info.version === "number") {
+              throw new SyntaxError('API version number must be a string (e.g. "1.0.0") not a number.');
+            } else if (schema2.swagger !== "2.0") {
+              throw new SyntaxError(`Unrecognized Swagger version: ${schema2.swagger}. Expected 2.0`);
+            }
+          } else {
+            if (schema2.paths === void 0) {
+              if (supported31Versions.indexOf(schema2.openapi) !== -1) {
+                if (schema2.webhooks === void 0) {
+                  throw new SyntaxError(`${args.path || args.schema} is not a valid Openapi API definition`);
+                }
+              } else {
+                throw new SyntaxError(`${args.path || args.schema} is not a valid Openapi API definition`);
+              }
+            } else if (typeof schema2.openapi === "number") {
+              throw new SyntaxError('Openapi version number must be a string (e.g. "3.0.0") not a number.');
+            } else if (schema2.info && typeof schema2.info.version === "number") {
+              throw new SyntaxError('API version number must be a string (e.g. "1.0.0") not a number.');
+            } else if (supportedVersions.indexOf(schema2.openapi) === -1) {
+              throw new SyntaxError(
+                `Unsupported OpenAPI version: ${schema2.openapi}. Swagger Parser only supports versions ${supportedVersions.join(", ")}`
+              );
+            }
+            util.fixOasRelativeServers(schema2, args.path);
+          }
+          return maybe2(args.callback, Promise.resolve(schema2));
+        } catch (err) {
+          return maybe2(args.callback, Promise.reject(err));
+        }
+      }
+      /**
+       * Parses, dereferences, and validates the given Swagger API.
+       * Depending on the options, validation can include JSON Schema validation and/or Swagger Spec validation.
+       *
+       * @param {string} [path] - The file path or URL of the JSON schema
+       * @param {object} [api] - The Swagger API object. This object will be used instead of reading from `path`.
+       * @param {ParserOptions} [options] - Options that determine how the API is parsed, dereferenced, and validated
+       * @param {Function} [callback] - An error-first callback. The second parameter is the parsed API object.
+       * @returns {Promise} - The returned promise resolves with the parsed API object.
+       */
+      async validate(path, api, options, callback) {
+        let me = this;
+        let args = normalizeArgs2(arguments);
+        args.options = new Options(args.options);
+        let circular$RefOption = args.options.dereference.circular;
+        args.options.validate.schema && (args.options.dereference.circular = "ignore");
+        try {
+          await this.dereference(args.path, args.schema, args.options);
+          args.options.dereference.circular = circular$RefOption;
+          if (args.options.validate.schema) {
+            validateSchema(me.api);
+            if (me.$refs.circular) {
+              if (circular$RefOption === true) {
+                dereference3(me, args.options);
+              } else if (circular$RefOption === false) {
+                throw new ReferenceError("The API contains circular references");
+              }
+            }
+          }
+          if (args.options.validate.spec) {
+            validateSpec(me.api);
+          }
+          return maybe2(args.callback, Promise.resolve(me.schema));
+        } catch (err) {
+          return maybe2(args.callback, Promise.reject(err));
+        }
+      }
+    };
+    Object.defineProperty(SwaggerParser2.prototype, "api", {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return this.schema;
+      }
+    });
+    var defaultExport = SwaggerParser2;
+    defaultExport.validate = (...args) => {
+      const defaultInstance = new SwaggerParser2();
+      return defaultInstance.validate(...args);
+    };
+    defaultExport.dereference = (...args) => {
+      const defaultInstance = new SwaggerParser2();
+      return defaultInstance.dereference(...args);
+    };
+    defaultExport.bundle = (...args) => {
+      const defaultInstance = new SwaggerParser2();
+      return defaultInstance.bundle(...args);
+    };
+    defaultExport.parse = (...args) => {
+      const defaultInstance = new SwaggerParser2();
+      return defaultInstance.parse(...args);
+    };
+    defaultExport.resolve = (...args) => {
+      const defaultInstance = new SwaggerParser2();
+      return defaultInstance.resolve(...args);
+    };
+    defaultExport.default = defaultExport;
+    defaultExport.SwaggerParser = defaultExport;
+    module.exports = defaultExport;
+  }
+});
+
+// node_modules/yaml/dist/nodes/identity.js
+var require_identity = __commonJS({
+  "node_modules/yaml/dist/nodes/identity.js"(exports) {
+    "use strict";
+    var ALIAS = /* @__PURE__ */ Symbol.for("yaml.alias");
+    var DOC = /* @__PURE__ */ Symbol.for("yaml.document");
+    var MAP = /* @__PURE__ */ Symbol.for("yaml.map");
+    var PAIR = /* @__PURE__ */ Symbol.for("yaml.pair");
+    var SCALAR = /* @__PURE__ */ Symbol.for("yaml.scalar");
+    var SEQ = /* @__PURE__ */ Symbol.for("yaml.seq");
+    var NODE_TYPE = /* @__PURE__ */ Symbol.for("yaml.node.type");
+    var isAlias = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === ALIAS;
+    var isDocument = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === DOC;
+    var isMap = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === MAP;
+    var isPair = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === PAIR;
+    var isScalar = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SCALAR;
+    var isSeq = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SEQ;
+    function isCollection(node) {
+      if (node && typeof node === "object")
+        switch (node[NODE_TYPE]) {
+          case MAP:
+          case SEQ:
+            return true;
+        }
+      return false;
+    }
+    function isNode(node) {
+      if (node && typeof node === "object")
+        switch (node[NODE_TYPE]) {
+          case ALIAS:
+          case MAP:
+          case SCALAR:
+          case SEQ:
+            return true;
+        }
+      return false;
+    }
+    var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
+    exports.ALIAS = ALIAS;
+    exports.DOC = DOC;
+    exports.MAP = MAP;
+    exports.NODE_TYPE = NODE_TYPE;
+    exports.PAIR = PAIR;
+    exports.SCALAR = SCALAR;
+    exports.SEQ = SEQ;
+    exports.hasAnchor = hasAnchor;
+    exports.isAlias = isAlias;
+    exports.isCollection = isCollection;
+    exports.isDocument = isDocument;
+    exports.isMap = isMap;
+    exports.isNode = isNode;
+    exports.isPair = isPair;
+    exports.isScalar = isScalar;
+    exports.isSeq = isSeq;
+  }
+});
+
+// node_modules/yaml/dist/visit.js
+var require_visit = __commonJS({
+  "node_modules/yaml/dist/visit.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var BREAK = /* @__PURE__ */ Symbol("break visit");
+    var SKIP = /* @__PURE__ */ Symbol("skip children");
+    var REMOVE = /* @__PURE__ */ Symbol("remove node");
+    function visit(node, visitor) {
+      const visitor_ = initVisitor(visitor);
+      if (identity.isDocument(node)) {
+        const cd = visit_(null, node.contents, visitor_, Object.freeze([node]));
+        if (cd === REMOVE)
+          node.contents = null;
+      } else
+        visit_(null, node, visitor_, Object.freeze([]));
+    }
+    visit.BREAK = BREAK;
+    visit.SKIP = SKIP;
+    visit.REMOVE = REMOVE;
+    function visit_(key, node, visitor, path) {
+      const ctrl = callVisitor(key, node, visitor, path);
+      if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
+        replaceNode(key, path, ctrl);
+        return visit_(key, ctrl, visitor, path);
+      }
+      if (typeof ctrl !== "symbol") {
+        if (identity.isCollection(node)) {
+          path = Object.freeze(path.concat(node));
+          for (let i = 0; i < node.items.length; ++i) {
+            const ci = visit_(i, node.items[i], visitor, path);
+            if (typeof ci === "number")
+              i = ci - 1;
+            else if (ci === BREAK)
+              return BREAK;
+            else if (ci === REMOVE) {
+              node.items.splice(i, 1);
+              i -= 1;
+            }
+          }
+        } else if (identity.isPair(node)) {
+          path = Object.freeze(path.concat(node));
+          const ck = visit_("key", node.key, visitor, path);
+          if (ck === BREAK)
+            return BREAK;
+          else if (ck === REMOVE)
+            node.key = null;
+          const cv = visit_("value", node.value, visitor, path);
+          if (cv === BREAK)
+            return BREAK;
+          else if (cv === REMOVE)
+            node.value = null;
+        }
+      }
+      return ctrl;
+    }
+    async function visitAsync(node, visitor) {
+      const visitor_ = initVisitor(visitor);
+      if (identity.isDocument(node)) {
+        const cd = await visitAsync_(null, node.contents, visitor_, Object.freeze([node]));
+        if (cd === REMOVE)
+          node.contents = null;
+      } else
+        await visitAsync_(null, node, visitor_, Object.freeze([]));
+    }
+    visitAsync.BREAK = BREAK;
+    visitAsync.SKIP = SKIP;
+    visitAsync.REMOVE = REMOVE;
+    async function visitAsync_(key, node, visitor, path) {
+      const ctrl = await callVisitor(key, node, visitor, path);
+      if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
+        replaceNode(key, path, ctrl);
+        return visitAsync_(key, ctrl, visitor, path);
+      }
+      if (typeof ctrl !== "symbol") {
+        if (identity.isCollection(node)) {
+          path = Object.freeze(path.concat(node));
+          for (let i = 0; i < node.items.length; ++i) {
+            const ci = await visitAsync_(i, node.items[i], visitor, path);
+            if (typeof ci === "number")
+              i = ci - 1;
+            else if (ci === BREAK)
+              return BREAK;
+            else if (ci === REMOVE) {
+              node.items.splice(i, 1);
+              i -= 1;
+            }
+          }
+        } else if (identity.isPair(node)) {
+          path = Object.freeze(path.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path);
+          if (ck === BREAK)
+            return BREAK;
+          else if (ck === REMOVE)
+            node.key = null;
+          const cv = await visitAsync_("value", node.value, visitor, path);
+          if (cv === BREAK)
+            return BREAK;
+          else if (cv === REMOVE)
+            node.value = null;
+        }
+      }
+      return ctrl;
+    }
+    function initVisitor(visitor) {
+      if (typeof visitor === "object" && (visitor.Collection || visitor.Node || visitor.Value)) {
+        return Object.assign({
+          Alias: visitor.Node,
+          Map: visitor.Node,
+          Scalar: visitor.Node,
+          Seq: visitor.Node
+        }, visitor.Value && {
+          Map: visitor.Value,
+          Scalar: visitor.Value,
+          Seq: visitor.Value
+        }, visitor.Collection && {
+          Map: visitor.Collection,
+          Seq: visitor.Collection
+        }, visitor);
+      }
+      return visitor;
+    }
+    function callVisitor(key, node, visitor, path) {
+      if (typeof visitor === "function")
+        return visitor(key, node, path);
+      if (identity.isMap(node))
+        return visitor.Map?.(key, node, path);
+      if (identity.isSeq(node))
+        return visitor.Seq?.(key, node, path);
+      if (identity.isPair(node))
+        return visitor.Pair?.(key, node, path);
+      if (identity.isScalar(node))
+        return visitor.Scalar?.(key, node, path);
+      if (identity.isAlias(node))
+        return visitor.Alias?.(key, node, path);
+      return void 0;
+    }
+    function replaceNode(key, path, node) {
+      const parent = path[path.length - 1];
+      if (identity.isCollection(parent)) {
+        parent.items[key] = node;
+      } else if (identity.isPair(parent)) {
+        if (key === "key")
+          parent.key = node;
+        else
+          parent.value = node;
+      } else if (identity.isDocument(parent)) {
+        parent.contents = node;
+      } else {
+        const pt = identity.isAlias(parent) ? "alias" : "scalar";
+        throw new Error(`Cannot replace node with ${pt} parent`);
+      }
+    }
+    exports.visit = visit;
+    exports.visitAsync = visitAsync;
+  }
+});
+
+// node_modules/yaml/dist/doc/directives.js
+var require_directives = __commonJS({
+  "node_modules/yaml/dist/doc/directives.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var visit = require_visit();
+    var escapeChars = {
+      "!": "%21",
+      ",": "%2C",
+      "[": "%5B",
+      "]": "%5D",
+      "{": "%7B",
+      "}": "%7D"
+    };
+    var escapeTagName = (tn) => tn.replace(/[!,[\]{}]/g, (ch) => escapeChars[ch]);
+    var Directives = class _Directives {
+      constructor(yaml2, tags) {
+        this.docStart = null;
+        this.docEnd = false;
+        this.yaml = Object.assign({}, _Directives.defaultYaml, yaml2);
+        this.tags = Object.assign({}, _Directives.defaultTags, tags);
+      }
+      clone() {
+        const copy = new _Directives(this.yaml, this.tags);
+        copy.docStart = this.docStart;
+        return copy;
+      }
+      /**
+       * During parsing, get a Directives instance for the current document and
+       * update the stream state according to the current version's spec.
+       */
+      atDocument() {
+        const res = new _Directives(this.yaml, this.tags);
+        switch (this.yaml.version) {
+          case "1.1":
+            this.atNextDocument = true;
+            break;
+          case "1.2":
+            this.atNextDocument = false;
+            this.yaml = {
+              explicit: _Directives.defaultYaml.explicit,
+              version: "1.2"
+            };
+            this.tags = Object.assign({}, _Directives.defaultTags);
+            break;
+        }
+        return res;
+      }
+      /**
+       * @param onError - May be called even if the action was successful
+       * @returns `true` on success
+       */
+      add(line, onError) {
+        if (this.atNextDocument) {
+          this.yaml = { explicit: _Directives.defaultYaml.explicit, version: "1.1" };
+          this.tags = Object.assign({}, _Directives.defaultTags);
+          this.atNextDocument = false;
+        }
+        const parts = line.trim().split(/[ \t]+/);
+        const name = parts.shift();
+        switch (name) {
+          case "%TAG": {
+            if (parts.length !== 2) {
+              onError(0, "%TAG directive should contain exactly two parts");
+              if (parts.length < 2)
+                return false;
+            }
+            const [handle, prefix] = parts;
+            this.tags[handle] = prefix;
+            return true;
+          }
+          case "%YAML": {
+            this.yaml.explicit = true;
+            if (parts.length !== 1) {
+              onError(0, "%YAML directive should contain exactly one part");
+              return false;
+            }
+            const [version] = parts;
+            if (version === "1.1" || version === "1.2") {
+              this.yaml.version = version;
+              return true;
+            } else {
+              const isValid = /^\d+\.\d+$/.test(version);
+              onError(6, `Unsupported YAML version ${version}`, isValid);
+              return false;
+            }
+          }
+          default:
+            onError(0, `Unknown directive ${name}`, true);
+            return false;
+        }
+      }
+      /**
+       * Resolves a tag, matching handles to those defined in %TAG directives.
+       *
+       * @returns Resolved tag, which may also be the non-specific tag `'!'` or a
+       *   `'!local'` tag, or `null` if unresolvable.
+       */
+      tagName(source, onError) {
+        if (source === "!")
+          return "!";
+        if (source[0] !== "!") {
+          onError(`Not a valid tag: ${source}`);
+          return null;
+        }
+        if (source[1] === "<") {
+          const verbatim = source.slice(2, -1);
+          if (verbatim === "!" || verbatim === "!!") {
+            onError(`Verbatim tags aren't resolved, so ${source} is invalid.`);
+            return null;
+          }
+          if (source[source.length - 1] !== ">")
+            onError("Verbatim tags must end with a >");
+          return verbatim;
+        }
+        const [, handle, suffix] = source.match(/^(.*!)([^!]*)$/s);
+        if (!suffix)
+          onError(`The ${source} tag has no suffix`);
+        const prefix = this.tags[handle];
+        if (prefix) {
+          try {
+            return prefix + decodeURIComponent(suffix);
+          } catch (error) {
+            onError(String(error));
+            return null;
+          }
+        }
+        if (handle === "!")
+          return source;
+        onError(`Could not resolve tag: ${source}`);
+        return null;
+      }
+      /**
+       * Given a fully resolved tag, returns its printable string form,
+       * taking into account current tag prefixes and defaults.
+       */
+      tagString(tag) {
+        for (const [handle, prefix] of Object.entries(this.tags)) {
+          if (tag.startsWith(prefix))
+            return handle + escapeTagName(tag.substring(prefix.length));
+        }
+        return tag[0] === "!" ? tag : `!<${tag}>`;
+      }
+      toString(doc) {
+        const lines = this.yaml.explicit ? [`%YAML ${this.yaml.version || "1.2"}`] : [];
+        const tagEntries = Object.entries(this.tags);
+        let tagNames;
+        if (doc && tagEntries.length > 0 && identity.isNode(doc.contents)) {
+          const tags = {};
+          visit.visit(doc.contents, (_key, node) => {
+            if (identity.isNode(node) && node.tag)
+              tags[node.tag] = true;
+          });
+          tagNames = Object.keys(tags);
+        } else
+          tagNames = [];
+        for (const [handle, prefix] of tagEntries) {
+          if (handle === "!!" && prefix === "tag:yaml.org,2002:")
+            continue;
+          if (!doc || tagNames.some((tn) => tn.startsWith(prefix)))
+            lines.push(`%TAG ${handle} ${prefix}`);
+        }
+        return lines.join("\n");
+      }
+    };
+    Directives.defaultYaml = { explicit: false, version: "1.2" };
+    Directives.defaultTags = { "!!": "tag:yaml.org,2002:" };
+    exports.Directives = Directives;
+  }
+});
+
+// node_modules/yaml/dist/doc/anchors.js
+var require_anchors = __commonJS({
+  "node_modules/yaml/dist/doc/anchors.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var visit = require_visit();
+    function anchorIsValid(anchor) {
+      if (/[\x00-\x19\s,[\]{}]/.test(anchor)) {
+        const sa = JSON.stringify(anchor);
+        const msg = `Anchor must not contain whitespace or control characters: ${sa}`;
+        throw new Error(msg);
+      }
+      return true;
+    }
+    function anchorNames(root) {
+      const anchors = /* @__PURE__ */ new Set();
+      visit.visit(root, {
+        Value(_key, node) {
+          if (node.anchor)
+            anchors.add(node.anchor);
+        }
+      });
+      return anchors;
+    }
+    function findNewAnchor(prefix, exclude) {
+      for (let i = 1; true; ++i) {
+        const name = `${prefix}${i}`;
+        if (!exclude.has(name))
+          return name;
+      }
+    }
+    function createNodeAnchors(doc, prefix) {
+      const aliasObjects = [];
+      const sourceObjects = /* @__PURE__ */ new Map();
+      let prevAnchors = null;
+      return {
+        onAnchor: (source) => {
+          aliasObjects.push(source);
+          prevAnchors ?? (prevAnchors = anchorNames(doc));
+          const anchor = findNewAnchor(prefix, prevAnchors);
+          prevAnchors.add(anchor);
+          return anchor;
+        },
+        /**
+         * With circular references, the source node is only resolved after all
+         * of its child nodes are. This is why anchors are set only after all of
+         * the nodes have been created.
+         */
+        setAnchors: () => {
+          for (const source of aliasObjects) {
+            const ref = sourceObjects.get(source);
+            if (typeof ref === "object" && ref.anchor && (identity.isScalar(ref.node) || identity.isCollection(ref.node))) {
+              ref.node.anchor = ref.anchor;
+            } else {
+              const error = new Error("Failed to resolve repeated object (this should not happen)");
+              error.source = source;
+              throw error;
+            }
+          }
+        },
+        sourceObjects
+      };
+    }
+    exports.anchorIsValid = anchorIsValid;
+    exports.anchorNames = anchorNames;
+    exports.createNodeAnchors = createNodeAnchors;
+    exports.findNewAnchor = findNewAnchor;
+  }
+});
+
+// node_modules/yaml/dist/doc/applyReviver.js
+var require_applyReviver = __commonJS({
+  "node_modules/yaml/dist/doc/applyReviver.js"(exports) {
+    "use strict";
+    function applyReviver(reviver, obj, key, val) {
+      if (val && typeof val === "object") {
+        if (Array.isArray(val)) {
+          for (let i = 0, len = val.length; i < len; ++i) {
+            const v0 = val[i];
+            const v1 = applyReviver(reviver, val, String(i), v0);
+            if (v1 === void 0)
+              delete val[i];
+            else if (v1 !== v0)
+              val[i] = v1;
+          }
+        } else if (val instanceof Map) {
+          for (const k of Array.from(val.keys())) {
+            const v0 = val.get(k);
+            const v1 = applyReviver(reviver, val, k, v0);
+            if (v1 === void 0)
+              val.delete(k);
+            else if (v1 !== v0)
+              val.set(k, v1);
+          }
+        } else if (val instanceof Set) {
+          for (const v0 of Array.from(val)) {
+            const v1 = applyReviver(reviver, val, v0, v0);
+            if (v1 === void 0)
+              val.delete(v0);
+            else if (v1 !== v0) {
+              val.delete(v0);
+              val.add(v1);
+            }
+          }
+        } else {
+          for (const [k, v0] of Object.entries(val)) {
+            const v1 = applyReviver(reviver, val, k, v0);
+            if (v1 === void 0)
+              delete val[k];
+            else if (v1 !== v0)
+              val[k] = v1;
+          }
+        }
+      }
+      return reviver.call(obj, key, val);
+    }
+    exports.applyReviver = applyReviver;
+  }
+});
+
+// node_modules/yaml/dist/nodes/toJS.js
+var require_toJS = __commonJS({
+  "node_modules/yaml/dist/nodes/toJS.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    function toJS(value, arg, ctx) {
+      if (Array.isArray(value))
+        return value.map((v, i) => toJS(v, String(i), ctx));
+      if (value && typeof value.toJSON === "function") {
+        if (!ctx || !identity.hasAnchor(value))
+          return value.toJSON(arg, ctx);
+        const data = { aliasCount: 0, count: 1, res: void 0 };
+        ctx.anchors.set(value, data);
+        ctx.onCreate = (res2) => {
+          data.res = res2;
+          delete ctx.onCreate;
+        };
+        const res = value.toJSON(arg, ctx);
+        if (ctx.onCreate)
+          ctx.onCreate(res);
+        return res;
+      }
+      if (typeof value === "bigint" && !ctx?.keep)
+        return Number(value);
+      return value;
+    }
+    exports.toJS = toJS;
+  }
+});
+
+// node_modules/yaml/dist/nodes/Node.js
+var require_Node = __commonJS({
+  "node_modules/yaml/dist/nodes/Node.js"(exports) {
+    "use strict";
+    var applyReviver = require_applyReviver();
+    var identity = require_identity();
+    var toJS = require_toJS();
+    var NodeBase = class {
+      constructor(type2) {
+        Object.defineProperty(this, identity.NODE_TYPE, { value: type2 });
+      }
+      /** Create a copy of this node.  */
+      clone() {
+        const copy = Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+        if (this.range)
+          copy.range = this.range.slice();
+        return copy;
+      }
+      /** A plain JavaScript representation of this node. */
+      toJS(doc, { mapAsMap, maxAliasCount, onAnchor, reviver } = {}) {
+        if (!identity.isDocument(doc))
+          throw new TypeError("A document argument is required");
+        const ctx = {
+          anchors: /* @__PURE__ */ new Map(),
+          doc,
+          keep: true,
+          mapAsMap: mapAsMap === true,
+          mapKeyWarned: false,
+          maxAliasCount: typeof maxAliasCount === "number" ? maxAliasCount : 100
+        };
+        const res = toJS.toJS(this, "", ctx);
+        if (typeof onAnchor === "function")
+          for (const { count, res: res2 } of ctx.anchors.values())
+            onAnchor(res2, count);
+        return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
+      }
+    };
+    exports.NodeBase = NodeBase;
+  }
+});
+
+// node_modules/yaml/dist/nodes/Alias.js
+var require_Alias = __commonJS({
+  "node_modules/yaml/dist/nodes/Alias.js"(exports) {
+    "use strict";
+    var anchors = require_anchors();
+    var visit = require_visit();
+    var identity = require_identity();
+    var Node = require_Node();
+    var toJS = require_toJS();
+    var Alias = class extends Node.NodeBase {
+      constructor(source) {
+        super(identity.ALIAS);
+        this.source = source;
+        Object.defineProperty(this, "tag", {
+          set() {
+            throw new Error("Alias nodes cannot have tags");
+          }
+        });
+      }
+      /**
+       * Resolve the value of this alias within `doc`, finding the last
+       * instance of the `source` anchor before this node.
+       */
+      resolve(doc, ctx) {
+        if (ctx?.maxAliasCount === 0)
+          throw new ReferenceError("Alias resolution is disabled");
+        let nodes;
+        if (ctx?.aliasResolveCache) {
+          nodes = ctx.aliasResolveCache;
+        } else {
+          nodes = [];
+          visit.visit(doc, {
+            Node: (_key, node) => {
+              if (identity.isAlias(node) || identity.hasAnchor(node))
+                nodes.push(node);
+            }
+          });
+          if (ctx)
+            ctx.aliasResolveCache = nodes;
+        }
+        let found = void 0;
+        for (const node of nodes) {
+          if (node === this)
+            break;
+          if (node.anchor === this.source)
+            found = node;
+        }
+        if (found && ctx) {
+          const { anchors: anchors2, doc: doc2, maxAliasCount } = ctx;
+          let data = anchors2.get(found);
+          if (!data) {
+            toJS.toJS(found, null, ctx);
+            data = anchors2.get(found);
+          }
+          if (data?.res === void 0) {
+            const msg = "This should not happen: Alias anchor was not resolved?";
+            throw new ReferenceError(msg);
+          }
+          if (maxAliasCount >= 0) {
+            data.count += 1;
+            if (data.aliasCount === 0)
+              data.aliasCount = getAliasCount(doc2, found, anchors2);
+            if (data.count * data.aliasCount > maxAliasCount) {
+              const msg = "Excessive alias count indicates a resource exhaustion attack";
+              throw new ReferenceError(msg);
+            }
+          }
+        }
+        return found;
+      }
+      toJSON(_arg, ctx) {
+        if (!ctx)
+          return { source: this.source };
+        const source = this.resolve(ctx.doc, ctx);
+        if (!source) {
+          const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
+          throw new ReferenceError(msg);
+        }
+        return ctx.anchors.get(source).res;
+      }
+      toString(ctx, _onComment, _onChompKeep) {
+        const src = `*${this.source}`;
+        if (ctx) {
+          anchors.anchorIsValid(this.source);
+          if (ctx.options.verifyAliasOrder && !ctx.anchors.has(this.source)) {
+            const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
+            throw new Error(msg);
+          }
+          if (ctx.implicitKey)
+            return `${src} `;
+        }
+        return src;
+      }
+    };
+    function getAliasCount(doc, node, anchors2) {
+      if (identity.isAlias(node)) {
+        const source = node.resolve(doc);
+        const anchor = anchors2 && source && anchors2.get(source);
+        return anchor ? anchor.count * anchor.aliasCount : 0;
+      } else if (identity.isCollection(node)) {
+        let count = 0;
+        for (const item of node.items) {
+          const c = getAliasCount(doc, item, anchors2);
+          if (c > count)
+            count = c;
+        }
+        return count;
+      } else if (identity.isPair(node)) {
+        const kc = getAliasCount(doc, node.key, anchors2);
+        const vc = getAliasCount(doc, node.value, anchors2);
+        return Math.max(kc, vc);
+      }
+      return 1;
+    }
+    exports.Alias = Alias;
+  }
+});
+
+// node_modules/yaml/dist/nodes/Scalar.js
+var require_Scalar = __commonJS({
+  "node_modules/yaml/dist/nodes/Scalar.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Node = require_Node();
+    var toJS = require_toJS();
+    var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
+    var Scalar = class extends Node.NodeBase {
+      constructor(value) {
+        super(identity.SCALAR);
+        this.value = value;
+      }
+      toJSON(arg, ctx) {
+        return ctx?.keep ? this.value : toJS.toJS(this.value, arg, ctx);
+      }
+      toString() {
+        return String(this.value);
+      }
+    };
+    Scalar.BLOCK_FOLDED = "BLOCK_FOLDED";
+    Scalar.BLOCK_LITERAL = "BLOCK_LITERAL";
+    Scalar.PLAIN = "PLAIN";
+    Scalar.QUOTE_DOUBLE = "QUOTE_DOUBLE";
+    Scalar.QUOTE_SINGLE = "QUOTE_SINGLE";
+    exports.Scalar = Scalar;
+    exports.isScalarValue = isScalarValue;
+  }
+});
+
+// node_modules/yaml/dist/doc/createNode.js
+var require_createNode = __commonJS({
+  "node_modules/yaml/dist/doc/createNode.js"(exports) {
+    "use strict";
+    var Alias = require_Alias();
+    var identity = require_identity();
+    var Scalar = require_Scalar();
+    var defaultTagPrefix = "tag:yaml.org,2002:";
+    function findTagObject(value, tagName, tags) {
+      if (tagName) {
+        const match = tags.filter((t) => t.tag === tagName);
+        const tagObj = match.find((t) => !t.format) ?? match[0];
+        if (!tagObj)
+          throw new Error(`Tag ${tagName} not found`);
+        return tagObj;
+      }
+      return tags.find((t) => t.identify?.(value) && !t.format);
+    }
+    function createNode(value, tagName, ctx) {
+      if (identity.isDocument(value))
+        value = value.contents;
+      if (identity.isNode(value))
+        return value;
+      if (identity.isPair(value)) {
+        const map2 = ctx.schema[identity.MAP].createNode?.(ctx.schema, null, ctx);
+        map2.items.push(value);
+        return map2;
+      }
+      if (value instanceof String || value instanceof Number || value instanceof Boolean || typeof BigInt !== "undefined" && value instanceof BigInt) {
+        value = value.valueOf();
+      }
+      const { aliasDuplicateObjects, onAnchor, onTagObj, schema: schema2, sourceObjects } = ctx;
+      let ref = void 0;
+      if (aliasDuplicateObjects && value && typeof value === "object") {
+        ref = sourceObjects.get(value);
+        if (ref) {
+          ref.anchor ?? (ref.anchor = onAnchor(value));
+          return new Alias.Alias(ref.anchor);
+        } else {
+          ref = { anchor: null, node: null };
+          sourceObjects.set(value, ref);
+        }
+      }
+      if (tagName?.startsWith("!!"))
+        tagName = defaultTagPrefix + tagName.slice(2);
+      let tagObj = findTagObject(value, tagName, schema2.tags);
+      if (!tagObj) {
+        if (value && typeof value.toJSON === "function") {
+          value = value.toJSON();
+        }
+        if (!value || typeof value !== "object") {
+          const node2 = new Scalar.Scalar(value);
+          if (ref)
+            ref.node = node2;
+          return node2;
+        }
+        tagObj = value instanceof Map ? schema2[identity.MAP] : Symbol.iterator in Object(value) ? schema2[identity.SEQ] : schema2[identity.MAP];
+      }
+      if (onTagObj) {
+        onTagObj(tagObj);
+        delete ctx.onTagObj;
+      }
+      const node = tagObj?.createNode ? tagObj.createNode(ctx.schema, value, ctx) : typeof tagObj?.nodeClass?.from === "function" ? tagObj.nodeClass.from(ctx.schema, value, ctx) : new Scalar.Scalar(value);
+      if (tagName)
+        node.tag = tagName;
+      else if (!tagObj.default)
+        node.tag = tagObj.tag;
+      if (ref)
+        ref.node = node;
+      return node;
+    }
+    exports.createNode = createNode;
+  }
+});
+
+// node_modules/yaml/dist/nodes/Collection.js
+var require_Collection = __commonJS({
+  "node_modules/yaml/dist/nodes/Collection.js"(exports) {
+    "use strict";
+    var createNode = require_createNode();
+    var identity = require_identity();
+    var Node = require_Node();
+    function collectionFromPath(schema2, path, value) {
+      let v = value;
+      for (let i = path.length - 1; i >= 0; --i) {
+        const k = path[i];
+        if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
+          const a = [];
+          a[k] = v;
+          v = a;
+        } else {
+          v = /* @__PURE__ */ new Map([[k, v]]);
+        }
+      }
+      return createNode.createNode(v, void 0, {
+        aliasDuplicateObjects: false,
+        keepUndefined: false,
+        onAnchor: () => {
+          throw new Error("This should not happen, please report a bug.");
+        },
+        schema: schema2,
+        sourceObjects: /* @__PURE__ */ new Map()
+      });
+    }
+    var isEmptyPath = (path) => path == null || typeof path === "object" && !!path[Symbol.iterator]().next().done;
+    var Collection = class extends Node.NodeBase {
+      constructor(type2, schema2) {
+        super(type2);
+        Object.defineProperty(this, "schema", {
+          value: schema2,
+          configurable: true,
+          enumerable: false,
+          writable: true
+        });
+      }
+      /**
+       * Create a copy of this collection.
+       *
+       * @param schema - If defined, overwrites the original's schema
+       */
+      clone(schema2) {
+        const copy = Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+        if (schema2)
+          copy.schema = schema2;
+        copy.items = copy.items.map((it) => identity.isNode(it) || identity.isPair(it) ? it.clone(schema2) : it);
+        if (this.range)
+          copy.range = this.range.slice();
+        return copy;
+      }
+      /**
+       * Adds a value to the collection. For `!!map` and `!!omap` the value must
+       * be a Pair instance or a `{ key, value }` object, which may not have a key
+       * that already exists in the map.
+       */
+      addIn(path, value) {
+        if (isEmptyPath(path))
+          this.add(value);
+        else {
+          const [key, ...rest] = path;
+          const node = this.get(key, true);
+          if (identity.isCollection(node))
+            node.addIn(rest, value);
+          else if (node === void 0 && this.schema)
+            this.set(key, collectionFromPath(this.schema, rest, value));
+          else
+            throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
+        }
+      }
+      /**
+       * Removes a value from the collection.
+       * @returns `true` if the item was found and removed.
+       */
+      deleteIn(path) {
+        const [key, ...rest] = path;
+        if (rest.length === 0)
+          return this.delete(key);
+        const node = this.get(key, true);
+        if (identity.isCollection(node))
+          return node.deleteIn(rest);
+        else
+          throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
+      }
+      /**
+       * Returns item at `key`, or `undefined` if not found. By default unwraps
+       * scalar values from their surrounding node; to disable set `keepScalar` to
+       * `true` (collections are always returned intact).
+       */
+      getIn(path, keepScalar) {
+        const [key, ...rest] = path;
+        const node = this.get(key, true);
+        if (rest.length === 0)
+          return !keepScalar && identity.isScalar(node) ? node.value : node;
+        else
+          return identity.isCollection(node) ? node.getIn(rest, keepScalar) : void 0;
+      }
+      hasAllNullValues(allowScalar) {
+        return this.items.every((node) => {
+          if (!identity.isPair(node))
+            return false;
+          const n = node.value;
+          return n == null || allowScalar && identity.isScalar(n) && n.value == null && !n.commentBefore && !n.comment && !n.tag;
+        });
+      }
+      /**
+       * Checks if the collection includes a value with the key `key`.
+       */
+      hasIn(path) {
+        const [key, ...rest] = path;
+        if (rest.length === 0)
+          return this.has(key);
+        const node = this.get(key, true);
+        return identity.isCollection(node) ? node.hasIn(rest) : false;
+      }
+      /**
+       * Sets a value in this collection. For `!!set`, `value` needs to be a
+       * boolean to add/remove the item from the set.
+       */
+      setIn(path, value) {
+        const [key, ...rest] = path;
+        if (rest.length === 0) {
+          this.set(key, value);
+        } else {
+          const node = this.get(key, true);
+          if (identity.isCollection(node))
+            node.setIn(rest, value);
+          else if (node === void 0 && this.schema)
+            this.set(key, collectionFromPath(this.schema, rest, value));
+          else
+            throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
+        }
+      }
+    };
+    exports.Collection = Collection;
+    exports.collectionFromPath = collectionFromPath;
+    exports.isEmptyPath = isEmptyPath;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringifyComment.js
+var require_stringifyComment = __commonJS({
+  "node_modules/yaml/dist/stringify/stringifyComment.js"(exports) {
+    "use strict";
+    var stringifyComment = (str2) => str2.replace(/^(?!$)(?: $)?/gm, "#");
+    function indentComment(comment, indent) {
+      if (/^\n+$/.test(comment))
+        return comment.substring(1);
+      return indent ? comment.replace(/^(?! *$)/gm, indent) : comment;
+    }
+    var lineComment = (str2, indent, comment) => str2.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str2.endsWith(" ") ? "" : " ") + comment;
+    exports.indentComment = indentComment;
+    exports.lineComment = lineComment;
+    exports.stringifyComment = stringifyComment;
+  }
+});
+
+// node_modules/yaml/dist/stringify/foldFlowLines.js
+var require_foldFlowLines = __commonJS({
+  "node_modules/yaml/dist/stringify/foldFlowLines.js"(exports) {
+    "use strict";
+    var FOLD_FLOW = "flow";
+    var FOLD_BLOCK = "block";
+    var FOLD_QUOTED = "quoted";
+    function foldFlowLines(text, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+      if (!lineWidth || lineWidth < 0)
+        return text;
+      if (lineWidth < minContentWidth)
+        minContentWidth = 0;
+      const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
+      if (text.length <= endStep)
+        return text;
+      const folds = [];
+      const escapedFolds = {};
+      let end = lineWidth - indent.length;
+      if (typeof indentAtStart === "number") {
+        if (indentAtStart > lineWidth - Math.max(2, minContentWidth))
+          folds.push(0);
+        else
+          end = lineWidth - indentAtStart;
+      }
+      let split = void 0;
+      let prev = void 0;
+      let overflow = false;
+      let i = -1;
+      let escStart = -1;
+      let escEnd = -1;
+      if (mode === FOLD_BLOCK) {
+        i = consumeMoreIndentedLines(text, i, indent.length);
+        if (i !== -1)
+          end = i + endStep;
+      }
+      for (let ch; ch = text[i += 1]; ) {
+        if (mode === FOLD_QUOTED && ch === "\\") {
+          escStart = i;
+          switch (text[i + 1]) {
+            case "x":
+              i += 3;
+              break;
+            case "u":
+              i += 5;
+              break;
+            case "U":
+              i += 9;
+              break;
+            default:
+              i += 1;
+          }
+          escEnd = i;
+        }
+        if (ch === "\n") {
+          if (mode === FOLD_BLOCK)
+            i = consumeMoreIndentedLines(text, i, indent.length);
+          end = i + indent.length + endStep;
+          split = void 0;
+        } else {
+          if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
+            const next = text[i + 1];
+            if (next && next !== " " && next !== "\n" && next !== "	")
+              split = i;
+          }
+          if (i >= end) {
+            if (split) {
+              folds.push(split);
+              end = split + endStep;
+              split = void 0;
+            } else if (mode === FOLD_QUOTED) {
+              while (prev === " " || prev === "	") {
+                prev = ch;
+                ch = text[i += 1];
+                overflow = true;
+              }
+              const j = i > escEnd + 1 ? i - 2 : escStart - 1;
+              if (escapedFolds[j])
+                return text;
+              folds.push(j);
+              escapedFolds[j] = true;
+              end = j + endStep;
+              split = void 0;
+            } else {
+              overflow = true;
+            }
+          }
+        }
+        prev = ch;
+      }
+      if (overflow && onOverflow)
+        onOverflow();
+      if (folds.length === 0)
+        return text;
+      if (onFold)
+        onFold();
+      let res = text.slice(0, folds[0]);
+      for (let i2 = 0; i2 < folds.length; ++i2) {
+        const fold = folds[i2];
+        const end2 = folds[i2 + 1] || text.length;
+        if (fold === 0)
+          res = `
+${indent}${text.slice(0, end2)}`;
+        else {
+          if (mode === FOLD_QUOTED && escapedFolds[fold])
+            res += `${text[fold]}\\`;
+          res += `
+${indent}${text.slice(fold + 1, end2)}`;
+        }
+      }
+      return res;
+    }
+    function consumeMoreIndentedLines(text, i, indent) {
+      let end = i;
+      let start = i + 1;
+      let ch = text[start];
+      while (ch === " " || ch === "	") {
+        if (i < start + indent) {
+          ch = text[++i];
+        } else {
+          do {
+            ch = text[++i];
+          } while (ch && ch !== "\n");
+          end = i;
+          start = i + 1;
+          ch = text[start];
+        }
+      }
+      return end;
+    }
+    exports.FOLD_BLOCK = FOLD_BLOCK;
+    exports.FOLD_FLOW = FOLD_FLOW;
+    exports.FOLD_QUOTED = FOLD_QUOTED;
+    exports.foldFlowLines = foldFlowLines;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringifyString.js
+var require_stringifyString = __commonJS({
+  "node_modules/yaml/dist/stringify/stringifyString.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var foldFlowLines = require_foldFlowLines();
+    var getFoldOptions = (ctx, isBlock) => ({
+      indentAtStart: isBlock ? ctx.indent.length : ctx.indentAtStart,
+      lineWidth: ctx.options.lineWidth,
+      minContentWidth: ctx.options.minContentWidth
+    });
+    var containsDocumentMarker = (str2) => /^(%|---|\.\.\.)/m.test(str2);
+    function lineLengthOverLimit(str2, lineWidth, indentLength) {
+      if (!lineWidth || lineWidth < 0)
+        return false;
+      const limit = lineWidth - indentLength;
+      const strLen = str2.length;
+      if (strLen <= limit)
+        return false;
+      for (let i = 0, start = 0; i < strLen; ++i) {
+        if (str2[i] === "\n") {
+          if (i - start > limit)
+            return true;
+          start = i + 1;
+          if (strLen - start <= limit)
+            return false;
+        }
+      }
+      return true;
+    }
+    function doubleQuotedString(value, ctx) {
+      const json2 = JSON.stringify(value);
+      if (ctx.options.doubleQuotedAsJSON)
+        return json2;
+      const { implicitKey } = ctx;
+      const minMultiLineLength = ctx.options.doubleQuotedMinMultiLineLength;
+      const indent = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
+      let str2 = "";
+      let start = 0;
+      for (let i = 0, ch = json2[i]; ch; ch = json2[++i]) {
+        if (ch === " " && json2[i + 1] === "\\" && json2[i + 2] === "n") {
+          str2 += json2.slice(start, i) + "\\ ";
+          i += 1;
+          start = i;
+          ch = "\\";
+        }
+        if (ch === "\\")
+          switch (json2[i + 1]) {
+            case "u":
+              {
+                str2 += json2.slice(start, i);
+                const code = json2.substr(i + 2, 4);
+                switch (code) {
+                  case "0000":
+                    str2 += "\\0";
+                    break;
+                  case "0007":
+                    str2 += "\\a";
+                    break;
+                  case "000b":
+                    str2 += "\\v";
+                    break;
+                  case "001b":
+                    str2 += "\\e";
+                    break;
+                  case "0085":
+                    str2 += "\\N";
+                    break;
+                  case "00a0":
+                    str2 += "\\_";
+                    break;
+                  case "2028":
+                    str2 += "\\L";
+                    break;
+                  case "2029":
+                    str2 += "\\P";
+                    break;
+                  default:
+                    if (code.substr(0, 2) === "00")
+                      str2 += "\\x" + code.substr(2);
+                    else
+                      str2 += json2.substr(i, 6);
+                }
+                i += 5;
+                start = i + 1;
+              }
+              break;
+            case "n":
+              if (implicitKey || json2[i + 2] === '"' || json2.length < minMultiLineLength) {
+                i += 1;
+              } else {
+                str2 += json2.slice(start, i) + "\n\n";
+                while (json2[i + 2] === "\\" && json2[i + 3] === "n" && json2[i + 4] !== '"') {
+                  str2 += "\n";
+                  i += 2;
+                }
+                str2 += indent;
+                if (json2[i + 2] === " ")
+                  str2 += "\\";
+                i += 1;
+                start = i + 1;
+              }
+              break;
+            default:
+              i += 1;
+          }
+      }
+      str2 = start ? str2 + json2.slice(start) : json2;
+      return implicitKey ? str2 : foldFlowLines.foldFlowLines(str2, indent, foldFlowLines.FOLD_QUOTED, getFoldOptions(ctx, false));
+    }
+    function singleQuotedString(value, ctx) {
+      if (ctx.options.singleQuote === false || ctx.implicitKey && value.includes("\n") || /[ \t]\n|\n[ \t]/.test(value))
+        return doubleQuotedString(value, ctx);
+      const indent = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
+      const res = "'" + value.replace(/'/g, "''").replace(/\n+/g, `$&
+${indent}`) + "'";
+      return ctx.implicitKey ? res : foldFlowLines.foldFlowLines(res, indent, foldFlowLines.FOLD_FLOW, getFoldOptions(ctx, false));
+    }
+    function quotedString(value, ctx) {
+      const { singleQuote } = ctx.options;
+      let qs;
+      if (singleQuote === false)
+        qs = doubleQuotedString;
+      else {
+        const hasDouble = value.includes('"');
+        const hasSingle = value.includes("'");
+        if (hasDouble && !hasSingle)
+          qs = singleQuotedString;
+        else if (hasSingle && !hasDouble)
+          qs = doubleQuotedString;
+        else
+          qs = singleQuote ? singleQuotedString : doubleQuotedString;
+      }
+      return qs(value, ctx);
+    }
+    var blockEndNewlines;
+    try {
+      blockEndNewlines = new RegExp("(^|(?<!\n))\n+(?!\n|$)", "g");
+    } catch {
+      blockEndNewlines = /\n+(?!\n|$)/g;
+    }
+    function blockString({ comment, type: type2, value }, ctx, onComment, onChompKeep) {
+      const { blockQuote, commentString, lineWidth } = ctx.options;
+      if (!blockQuote || /\n[\t ]+$/.test(value)) {
+        return quotedString(value, ctx);
+      }
+      const indent = ctx.indent || (ctx.forceBlockIndent || containsDocumentMarker(value) ? "  " : "");
+      const literal = blockQuote === "literal" ? true : blockQuote === "folded" || type2 === Scalar.Scalar.BLOCK_FOLDED ? false : type2 === Scalar.Scalar.BLOCK_LITERAL ? true : !lineLengthOverLimit(value, lineWidth, indent.length);
+      if (!value)
+        return literal ? "|\n" : ">\n";
+      let chomp;
+      let endStart;
+      for (endStart = value.length; endStart > 0; --endStart) {
+        const ch = value[endStart - 1];
+        if (ch !== "\n" && ch !== "	" && ch !== " ")
+          break;
+      }
+      let end = value.substring(endStart);
+      const endNlPos = end.indexOf("\n");
+      if (endNlPos === -1) {
+        chomp = "-";
+      } else if (value === end || endNlPos !== end.length - 1) {
+        chomp = "+";
+        if (onChompKeep)
+          onChompKeep();
+      } else {
+        chomp = "";
+      }
+      if (end) {
+        value = value.slice(0, -end.length);
+        if (end[end.length - 1] === "\n")
+          end = end.slice(0, -1);
+        end = end.replace(blockEndNewlines, `$&${indent}`);
+      }
+      let startWithSpace = false;
+      let startEnd;
+      let startNlPos = -1;
+      for (startEnd = 0; startEnd < value.length; ++startEnd) {
+        const ch = value[startEnd];
+        if (ch === " ")
+          startWithSpace = true;
+        else if (ch === "\n")
+          startNlPos = startEnd;
+        else
+          break;
+      }
+      let start = value.substring(0, startNlPos < startEnd ? startNlPos + 1 : startEnd);
+      if (start) {
+        value = value.substring(start.length);
+        start = start.replace(/\n+/g, `$&${indent}`);
+      }
+      const indentSize = indent ? "2" : "1";
+      let header = (startWithSpace ? indentSize : "") + chomp;
+      if (comment) {
+        header += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
+        if (onComment)
+          onComment();
+      }
+      if (!literal) {
+        const foldedValue = value.replace(/\n+/g, "\n$&").replace(/(?:^|\n)([\t ].*)(?:([\n\t ]*)\n(?![\n\t ]))?/g, "$1$2").replace(/\n+/g, `$&${indent}`);
+        let literalFallback = false;
+        const foldOptions = getFoldOptions(ctx, true);
+        if (blockQuote !== "folded" && type2 !== Scalar.Scalar.BLOCK_FOLDED) {
+          foldOptions.onOverflow = () => {
+            literalFallback = true;
+          };
+        }
+        const body = foldFlowLines.foldFlowLines(`${start}${foldedValue}${end}`, indent, foldFlowLines.FOLD_BLOCK, foldOptions);
+        if (!literalFallback)
+          return `>${header}
+${indent}${body}`;
+      }
+      value = value.replace(/\n+/g, `$&${indent}`);
+      return `|${header}
+${indent}${start}${value}${end}`;
+    }
+    function plainString(item, ctx, onComment, onChompKeep) {
+      const { type: type2, value } = item;
+      const { actualString, implicitKey, indent, indentStep, inFlow } = ctx;
+      if (implicitKey && value.includes("\n") || inFlow && /[[\]{},]/.test(value)) {
+        return quotedString(value, ctx);
+      }
+      if (/^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
+        return implicitKey || inFlow || !value.includes("\n") ? quotedString(value, ctx) : blockString(item, ctx, onComment, onChompKeep);
+      }
+      if (!implicitKey && !inFlow && type2 !== Scalar.Scalar.PLAIN && value.includes("\n")) {
+        return blockString(item, ctx, onComment, onChompKeep);
+      }
+      if (containsDocumentMarker(value)) {
+        if (indent === "") {
+          ctx.forceBlockIndent = true;
+          return blockString(item, ctx, onComment, onChompKeep);
+        } else if (implicitKey && indent === indentStep) {
+          return quotedString(value, ctx);
+        }
+      }
+      const str2 = value.replace(/\n+/g, `$&
+${indent}`);
+      if (actualString) {
+        const test = (tag) => tag.default && tag.tag !== "tag:yaml.org,2002:str" && tag.test?.test(str2);
+        const { compat, tags } = ctx.doc.schema;
+        if (tags.some(test) || compat?.some(test))
+          return quotedString(value, ctx);
+      }
+      return implicitKey ? str2 : foldFlowLines.foldFlowLines(str2, indent, foldFlowLines.FOLD_FLOW, getFoldOptions(ctx, false));
+    }
+    function stringifyString(item, ctx, onComment, onChompKeep) {
+      const { implicitKey, inFlow } = ctx;
+      const ss = typeof item.value === "string" ? item : Object.assign({}, item, { value: String(item.value) });
+      let { type: type2 } = item;
+      if (type2 !== Scalar.Scalar.QUOTE_DOUBLE) {
+        if (/[\x00-\x08\x0b-\x1f\x7f-\x9f\u{D800}-\u{DFFF}]/u.test(ss.value))
+          type2 = Scalar.Scalar.QUOTE_DOUBLE;
+      }
+      const _stringify = (_type) => {
+        switch (_type) {
+          case Scalar.Scalar.BLOCK_FOLDED:
+          case Scalar.Scalar.BLOCK_LITERAL:
+            return implicitKey || inFlow ? quotedString(ss.value, ctx) : blockString(ss, ctx, onComment, onChompKeep);
+          case Scalar.Scalar.QUOTE_DOUBLE:
+            return doubleQuotedString(ss.value, ctx);
+          case Scalar.Scalar.QUOTE_SINGLE:
+            return singleQuotedString(ss.value, ctx);
+          case Scalar.Scalar.PLAIN:
+            return plainString(ss, ctx, onComment, onChompKeep);
+          default:
+            return null;
+        }
+      };
+      let res = _stringify(type2);
+      if (res === null) {
+        const { defaultKeyType, defaultStringType } = ctx.options;
+        const t = implicitKey && defaultKeyType || defaultStringType;
+        res = _stringify(t);
+        if (res === null)
+          throw new Error(`Unsupported default string type ${t}`);
+      }
+      return res;
+    }
+    exports.stringifyString = stringifyString;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringify.js
+var require_stringify = __commonJS({
+  "node_modules/yaml/dist/stringify/stringify.js"(exports) {
+    "use strict";
+    var anchors = require_anchors();
+    var identity = require_identity();
+    var stringifyComment = require_stringifyComment();
+    var stringifyString = require_stringifyString();
+    function createStringifyContext(doc, options) {
+      const opt = Object.assign({
+        blockQuote: true,
+        commentString: stringifyComment.stringifyComment,
+        defaultKeyType: null,
+        defaultStringType: "PLAIN",
+        directives: null,
+        doubleQuotedAsJSON: false,
+        doubleQuotedMinMultiLineLength: 40,
+        falseStr: "false",
+        flowCollectionPadding: true,
+        indentSeq: true,
+        lineWidth: 80,
+        minContentWidth: 20,
+        nullStr: "null",
+        simpleKeys: false,
+        singleQuote: null,
+        trailingComma: false,
+        trueStr: "true",
+        verifyAliasOrder: true
+      }, doc.schema.toStringOptions, options);
+      let inFlow;
+      switch (opt.collectionStyle) {
+        case "block":
+          inFlow = false;
+          break;
+        case "flow":
+          inFlow = true;
+          break;
+        default:
+          inFlow = null;
+      }
+      return {
+        anchors: /* @__PURE__ */ new Set(),
+        doc,
+        flowCollectionPadding: opt.flowCollectionPadding ? " " : "",
+        indent: "",
+        indentStep: typeof opt.indent === "number" ? " ".repeat(opt.indent) : "  ",
+        inFlow,
+        options: opt
+      };
+    }
+    function getTagObject(tags, item) {
+      if (item.tag) {
+        const match = tags.filter((t) => t.tag === item.tag);
+        if (match.length > 0)
+          return match.find((t) => t.format === item.format) ?? match[0];
+      }
+      let tagObj = void 0;
+      let obj;
+      if (identity.isScalar(item)) {
+        obj = item.value;
+        let match = tags.filter((t) => t.identify?.(obj));
+        if (match.length > 1) {
+          const testMatch = match.filter((t) => t.test);
+          if (testMatch.length > 0)
+            match = testMatch;
+        }
+        tagObj = match.find((t) => t.format === item.format) ?? match.find((t) => !t.format);
+      } else {
+        obj = item;
+        tagObj = tags.find((t) => t.nodeClass && obj instanceof t.nodeClass);
+      }
+      if (!tagObj) {
+        const name = obj?.constructor?.name ?? (obj === null ? "null" : typeof obj);
+        throw new Error(`Tag not resolved for ${name} value`);
+      }
+      return tagObj;
+    }
+    function stringifyProps(node, tagObj, { anchors: anchors$1, doc }) {
+      if (!doc.directives)
+        return "";
+      const props = [];
+      const anchor = (identity.isScalar(node) || identity.isCollection(node)) && node.anchor;
+      if (anchor && anchors.anchorIsValid(anchor)) {
+        anchors$1.add(anchor);
+        props.push(`&${anchor}`);
+      }
+      const tag = node.tag ?? (tagObj.default ? null : tagObj.tag);
+      if (tag)
+        props.push(doc.directives.tagString(tag));
+      return props.join(" ");
+    }
+    function stringify(item, ctx, onComment, onChompKeep) {
+      if (identity.isPair(item))
+        return item.toString(ctx, onComment, onChompKeep);
+      if (identity.isAlias(item)) {
+        if (ctx.doc.directives)
+          return item.toString(ctx);
+        if (ctx.resolvedAliases?.has(item)) {
+          throw new TypeError(`Cannot stringify circular structure without alias nodes`);
+        } else {
+          if (ctx.resolvedAliases)
+            ctx.resolvedAliases.add(item);
+          else
+            ctx.resolvedAliases = /* @__PURE__ */ new Set([item]);
+          item = item.resolve(ctx.doc);
+        }
+      }
+      let tagObj = void 0;
+      const node = identity.isNode(item) ? item : ctx.doc.createNode(item, { onTagObj: (o) => tagObj = o });
+      tagObj ?? (tagObj = getTagObject(ctx.doc.schema.tags, node));
+      const props = stringifyProps(node, tagObj, ctx);
+      if (props.length > 0)
+        ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
+      const str2 = typeof tagObj.stringify === "function" ? tagObj.stringify(node, ctx, onComment, onChompKeep) : identity.isScalar(node) ? stringifyString.stringifyString(node, ctx, onComment, onChompKeep) : node.toString(ctx, onComment, onChompKeep);
+      if (!props)
+        return str2;
+      return identity.isScalar(node) || str2[0] === "{" || str2[0] === "[" ? `${props} ${str2}` : `${props}
+${ctx.indent}${str2}`;
+    }
+    exports.createStringifyContext = createStringifyContext;
+    exports.stringify = stringify;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringifyPair.js
+var require_stringifyPair = __commonJS({
+  "node_modules/yaml/dist/stringify/stringifyPair.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Scalar = require_Scalar();
+    var stringify = require_stringify();
+    var stringifyComment = require_stringifyComment();
+    function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
+      const { allNullValues, doc, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
+      let keyComment = identity.isNode(key) && key.comment || null;
+      if (simpleKeys) {
+        if (keyComment) {
+          throw new Error("With simple keys, key nodes cannot have comments");
+        }
+        if (identity.isCollection(key) || !identity.isNode(key) && typeof key === "object") {
+          const msg = "With simple keys, collection cannot be used as a key value";
+          throw new Error(msg);
+        }
+      }
+      let explicitKey = !simpleKeys && (!key || keyComment && value == null && !ctx.inFlow || identity.isCollection(key) || (identity.isScalar(key) ? key.type === Scalar.Scalar.BLOCK_FOLDED || key.type === Scalar.Scalar.BLOCK_LITERAL : typeof key === "object"));
+      ctx = Object.assign({}, ctx, {
+        allNullValues: false,
+        implicitKey: !explicitKey && (simpleKeys || !allNullValues),
+        indent: indent + indentStep
+      });
+      let keyCommentDone = false;
+      let chompKeep = false;
+      let str2 = stringify.stringify(key, ctx, () => keyCommentDone = true, () => chompKeep = true);
+      if (!explicitKey && !ctx.inFlow && str2.length > 1024) {
+        if (simpleKeys)
+          throw new Error("With simple keys, single line scalar must not span more than 1024 characters");
+        explicitKey = true;
+      }
+      if (ctx.inFlow) {
+        if (allNullValues || value == null) {
+          if (keyCommentDone && onComment)
+            onComment();
+          return str2 === "" ? "?" : explicitKey ? `? ${str2}` : str2;
+        }
+      } else if (allNullValues && !simpleKeys || value == null && explicitKey) {
+        str2 = `? ${str2}`;
+        if (keyComment && !keyCommentDone) {
+          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+        } else if (chompKeep && onChompKeep)
+          onChompKeep();
+        return str2;
+      }
+      if (keyCommentDone)
+        keyComment = null;
+      if (explicitKey) {
+        if (keyComment)
+          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+        str2 = `? ${str2}
+${indent}:`;
+      } else {
+        str2 = `${str2}:`;
+        if (keyComment)
+          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+      }
+      let vsb, vcb, valueComment;
+      if (identity.isNode(value)) {
+        vsb = !!value.spaceBefore;
+        vcb = value.commentBefore;
+        valueComment = value.comment;
+      } else {
+        vsb = false;
+        vcb = null;
+        valueComment = null;
+        if (value && typeof value === "object")
+          value = doc.createNode(value);
+      }
+      ctx.implicitKey = false;
+      if (!explicitKey && !keyComment && identity.isScalar(value))
+        ctx.indentAtStart = str2.length + 1;
+      chompKeep = false;
+      if (!indentSeq && indentStep.length >= 2 && !ctx.inFlow && !explicitKey && identity.isSeq(value) && !value.flow && !value.tag && !value.anchor) {
+        ctx.indent = ctx.indent.substring(2);
+      }
+      let valueCommentDone = false;
+      const valueStr = stringify.stringify(value, ctx, () => valueCommentDone = true, () => chompKeep = true);
+      let ws = " ";
+      if (keyComment || vsb || vcb) {
+        ws = vsb ? "\n" : "";
+        if (vcb) {
+          const cs = commentString(vcb);
+          ws += `
+${stringifyComment.indentComment(cs, ctx.indent)}`;
+        }
+        if (valueStr === "" && !ctx.inFlow) {
+          if (ws === "\n" && valueComment)
+            ws = "\n\n";
+        } else {
+          ws += `
+${ctx.indent}`;
+        }
+      } else if (!explicitKey && identity.isCollection(value)) {
+        const vs0 = valueStr[0];
+        const nl0 = valueStr.indexOf("\n");
+        const hasNewline = nl0 !== -1;
+        const flow = ctx.inFlow ?? value.flow ?? value.items.length === 0;
+        if (hasNewline || !flow) {
+          let hasPropsLine = false;
+          if (hasNewline && (vs0 === "&" || vs0 === "!")) {
+            let sp0 = valueStr.indexOf(" ");
+            if (vs0 === "&" && sp0 !== -1 && sp0 < nl0 && valueStr[sp0 + 1] === "!") {
+              sp0 = valueStr.indexOf(" ", sp0 + 1);
+            }
+            if (sp0 === -1 || nl0 < sp0)
+              hasPropsLine = true;
+          }
+          if (!hasPropsLine)
+            ws = `
+${ctx.indent}`;
+        }
+      } else if (valueStr === "" || valueStr[0] === "\n") {
+        ws = "";
+      }
+      str2 += ws + valueStr;
+      if (ctx.inFlow) {
+        if (valueCommentDone && onComment)
+          onComment();
+      } else if (valueComment && !valueCommentDone) {
+        str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(valueComment));
+      } else if (chompKeep && onChompKeep) {
+        onChompKeep();
+      }
+      return str2;
+    }
+    exports.stringifyPair = stringifyPair;
+  }
+});
+
+// node_modules/yaml/dist/log.js
+var require_log = __commonJS({
+  "node_modules/yaml/dist/log.js"(exports) {
+    "use strict";
+    var node_process = __require("process");
+    function debug(logLevel, ...messages) {
+      if (logLevel === "debug")
+        console.log(...messages);
+    }
+    function warn(logLevel, warning) {
+      if (logLevel === "debug" || logLevel === "warn") {
+        if (typeof node_process.emitWarning === "function")
+          node_process.emitWarning(warning);
+        else
+          console.warn(warning);
+      }
+    }
+    exports.debug = debug;
+    exports.warn = warn;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/merge.js
+var require_merge = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/merge.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Scalar = require_Scalar();
+    var MERGE_KEY = "<<";
+    var merge3 = {
+      identify: (value) => value === MERGE_KEY || typeof value === "symbol" && value.description === MERGE_KEY,
+      default: "key",
+      tag: "tag:yaml.org,2002:merge",
+      test: /^<<$/,
+      resolve: () => Object.assign(new Scalar.Scalar(Symbol(MERGE_KEY)), {
+        addToJSMap: addMergeToJSMap
+      }),
+      stringify: () => MERGE_KEY
+    };
+    var isMergeKey = (ctx, key) => (merge3.identify(key) || identity.isScalar(key) && (!key.type || key.type === Scalar.Scalar.PLAIN) && merge3.identify(key.value)) && ctx?.doc.schema.tags.some((tag) => tag.tag === merge3.tag && tag.default);
+    function addMergeToJSMap(ctx, map2, value) {
+      const source = resolveAliasValue(ctx, value);
+      if (identity.isSeq(source))
+        for (const it of source.items)
+          mergeValue(ctx, map2, it);
+      else if (Array.isArray(source))
+        for (const it of source)
+          mergeValue(ctx, map2, it);
+      else
+        mergeValue(ctx, map2, source);
+    }
+    function mergeValue(ctx, map2, value) {
+      const source = resolveAliasValue(ctx, value);
+      if (!identity.isMap(source))
+        throw new Error("Merge sources must be maps or map aliases");
+      const srcMap = source.toJSON(null, ctx, Map);
+      for (const [key, value2] of srcMap) {
+        if (map2 instanceof Map) {
+          if (!map2.has(key))
+            map2.set(key, value2);
+        } else if (map2 instanceof Set) {
+          map2.add(key);
+        } else if (!Object.prototype.hasOwnProperty.call(map2, key)) {
+          Object.defineProperty(map2, key, {
+            value: value2,
+            writable: true,
+            enumerable: true,
+            configurable: true
+          });
+        }
+      }
+      return map2;
+    }
+    function resolveAliasValue(ctx, value) {
+      return ctx && identity.isAlias(value) ? value.resolve(ctx.doc, ctx) : value;
+    }
+    exports.addMergeToJSMap = addMergeToJSMap;
+    exports.isMergeKey = isMergeKey;
+    exports.merge = merge3;
+  }
+});
+
+// node_modules/yaml/dist/nodes/addPairToJSMap.js
+var require_addPairToJSMap = __commonJS({
+  "node_modules/yaml/dist/nodes/addPairToJSMap.js"(exports) {
+    "use strict";
+    var log = require_log();
+    var merge3 = require_merge();
+    var stringify = require_stringify();
+    var identity = require_identity();
+    var toJS = require_toJS();
+    function addPairToJSMap(ctx, map2, { key, value }) {
+      if (identity.isNode(key) && key.addToJSMap)
+        key.addToJSMap(ctx, map2, value);
+      else if (merge3.isMergeKey(ctx, key))
+        merge3.addMergeToJSMap(ctx, map2, value);
+      else {
+        const jsKey = toJS.toJS(key, "", ctx);
+        if (map2 instanceof Map) {
+          map2.set(jsKey, toJS.toJS(value, jsKey, ctx));
+        } else if (map2 instanceof Set) {
+          map2.add(jsKey);
+        } else {
+          const stringKey = stringifyKey(key, jsKey, ctx);
+          const jsValue = toJS.toJS(value, stringKey, ctx);
+          if (stringKey in map2)
+            Object.defineProperty(map2, stringKey, {
+              value: jsValue,
+              writable: true,
+              enumerable: true,
+              configurable: true
+            });
+          else
+            map2[stringKey] = jsValue;
+        }
+      }
+      return map2;
+    }
+    function stringifyKey(key, jsKey, ctx) {
+      if (jsKey === null)
+        return "";
+      if (typeof jsKey !== "object")
+        return String(jsKey);
+      if (identity.isNode(key) && ctx?.doc) {
+        const strCtx = stringify.createStringifyContext(ctx.doc, {});
+        strCtx.anchors = /* @__PURE__ */ new Set();
+        for (const node of ctx.anchors.keys())
+          strCtx.anchors.add(node.anchor);
+        strCtx.inFlow = true;
+        strCtx.inStringifyKey = true;
+        const strKey = key.toString(strCtx);
+        if (!ctx.mapKeyWarned) {
+          let jsonStr = JSON.stringify(strKey);
+          if (jsonStr.length > 40)
+            jsonStr = jsonStr.substring(0, 36) + '..."';
+          log.warn(ctx.doc.options.logLevel, `Keys with collection values will be stringified due to JS Object restrictions: ${jsonStr}. Set mapAsMap: true to use object keys.`);
+          ctx.mapKeyWarned = true;
+        }
+        return strKey;
+      }
+      return JSON.stringify(jsKey);
+    }
+    exports.addPairToJSMap = addPairToJSMap;
+  }
+});
+
+// node_modules/yaml/dist/nodes/Pair.js
+var require_Pair = __commonJS({
+  "node_modules/yaml/dist/nodes/Pair.js"(exports) {
+    "use strict";
+    var createNode = require_createNode();
+    var stringifyPair = require_stringifyPair();
+    var addPairToJSMap = require_addPairToJSMap();
+    var identity = require_identity();
+    function createPair(key, value, ctx) {
+      const k = createNode.createNode(key, void 0, ctx);
+      const v = createNode.createNode(value, void 0, ctx);
+      return new Pair(k, v);
+    }
+    var Pair = class _Pair {
+      constructor(key, value = null) {
+        Object.defineProperty(this, identity.NODE_TYPE, { value: identity.PAIR });
+        this.key = key;
+        this.value = value;
+      }
+      clone(schema2) {
+        let { key, value } = this;
+        if (identity.isNode(key))
+          key = key.clone(schema2);
+        if (identity.isNode(value))
+          value = value.clone(schema2);
+        return new _Pair(key, value);
+      }
+      toJSON(_, ctx) {
+        const pair = ctx?.mapAsMap ? /* @__PURE__ */ new Map() : {};
+        return addPairToJSMap.addPairToJSMap(ctx, pair, this);
+      }
+      toString(ctx, onComment, onChompKeep) {
+        return ctx?.doc ? stringifyPair.stringifyPair(this, ctx, onComment, onChompKeep) : JSON.stringify(this);
+      }
+    };
+    exports.Pair = Pair;
+    exports.createPair = createPair;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringifyCollection.js
+var require_stringifyCollection = __commonJS({
+  "node_modules/yaml/dist/stringify/stringifyCollection.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var stringify = require_stringify();
+    var stringifyComment = require_stringifyComment();
+    function stringifyCollection(collection, ctx, options) {
+      const flow = ctx.inFlow ?? collection.flow;
+      const stringify2 = flow ? stringifyFlowCollection : stringifyBlockCollection;
+      return stringify2(collection, ctx, options);
+    }
+    function stringifyBlockCollection({ comment, items }, ctx, { blockItemPrefix, flowChars, itemIndent, onChompKeep, onComment }) {
+      const { indent, options: { commentString } } = ctx;
+      const itemCtx = Object.assign({}, ctx, { indent: itemIndent, type: null });
+      let chompKeep = false;
+      const lines = [];
+      for (let i = 0; i < items.length; ++i) {
+        const item = items[i];
+        let comment2 = null;
+        if (identity.isNode(item)) {
+          if (!chompKeep && item.spaceBefore)
+            lines.push("");
+          addCommentBefore(ctx, lines, item.commentBefore, chompKeep);
+          if (item.comment)
+            comment2 = item.comment;
+        } else if (identity.isPair(item)) {
+          const ik = identity.isNode(item.key) ? item.key : null;
+          if (ik) {
+            if (!chompKeep && ik.spaceBefore)
+              lines.push("");
+            addCommentBefore(ctx, lines, ik.commentBefore, chompKeep);
+          }
+        }
+        chompKeep = false;
+        let str3 = stringify.stringify(item, itemCtx, () => comment2 = null, () => chompKeep = true);
+        if (comment2)
+          str3 += stringifyComment.lineComment(str3, itemIndent, commentString(comment2));
+        if (chompKeep && comment2)
+          chompKeep = false;
+        lines.push(blockItemPrefix + str3);
+      }
+      let str2;
+      if (lines.length === 0) {
+        str2 = flowChars.start + flowChars.end;
+      } else {
+        str2 = lines[0];
+        for (let i = 1; i < lines.length; ++i) {
+          const line = lines[i];
+          str2 += line ? `
+${indent}${line}` : "\n";
+        }
+      }
+      if (comment) {
+        str2 += "\n" + stringifyComment.indentComment(commentString(comment), indent);
+        if (onComment)
+          onComment();
+      } else if (chompKeep && onChompKeep)
+        onChompKeep();
+      return str2;
+    }
+    function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
+      const { indent, indentStep, flowCollectionPadding: fcPadding, options: { commentString } } = ctx;
+      itemIndent += indentStep;
+      const itemCtx = Object.assign({}, ctx, {
+        indent: itemIndent,
+        inFlow: true,
+        type: null
+      });
+      let reqNewline = false;
+      let linesAtValue = 0;
+      const lines = [];
+      for (let i = 0; i < items.length; ++i) {
+        const item = items[i];
+        let comment = null;
+        if (identity.isNode(item)) {
+          if (item.spaceBefore)
+            lines.push("");
+          addCommentBefore(ctx, lines, item.commentBefore, false);
+          if (item.comment)
+            comment = item.comment;
+        } else if (identity.isPair(item)) {
+          const ik = identity.isNode(item.key) ? item.key : null;
+          if (ik) {
+            if (ik.spaceBefore)
+              lines.push("");
+            addCommentBefore(ctx, lines, ik.commentBefore, false);
+            if (ik.comment)
+              reqNewline = true;
+          }
+          const iv = identity.isNode(item.value) ? item.value : null;
+          if (iv) {
+            if (iv.comment)
+              comment = iv.comment;
+            if (iv.commentBefore)
+              reqNewline = true;
+          } else if (item.value == null && ik?.comment) {
+            comment = ik.comment;
+          }
+        }
+        if (comment)
+          reqNewline = true;
+        let str2 = stringify.stringify(item, itemCtx, () => comment = null);
+        reqNewline || (reqNewline = lines.length > linesAtValue || str2.includes("\n"));
+        if (i < items.length - 1) {
+          str2 += ",";
+        } else if (ctx.options.trailingComma) {
+          if (ctx.options.lineWidth > 0) {
+            reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str2.length + 2) > ctx.options.lineWidth);
+          }
+          if (reqNewline) {
+            str2 += ",";
+          }
+        }
+        if (comment)
+          str2 += stringifyComment.lineComment(str2, itemIndent, commentString(comment));
+        lines.push(str2);
+        linesAtValue = lines.length;
+      }
+      const { start, end } = flowChars;
+      if (lines.length === 0) {
+        return start + end;
+      } else {
+        if (!reqNewline) {
+          const len = lines.reduce((sum, line) => sum + line.length + 2, 2);
+          reqNewline = ctx.options.lineWidth > 0 && len > ctx.options.lineWidth;
+        }
+        if (reqNewline) {
+          let str2 = start;
+          for (const line of lines)
+            str2 += line ? `
+${indentStep}${indent}${line}` : "\n";
+          return `${str2}
+${indent}${end}`;
+        } else {
+          return `${start}${fcPadding}${lines.join(" ")}${fcPadding}${end}`;
+        }
+      }
+    }
+    function addCommentBefore({ indent, options: { commentString } }, lines, comment, chompKeep) {
+      if (comment && chompKeep)
+        comment = comment.replace(/^\n+/, "");
+      if (comment) {
+        const ic = stringifyComment.indentComment(commentString(comment), indent);
+        lines.push(ic.trimStart());
+      }
+    }
+    exports.stringifyCollection = stringifyCollection;
+  }
+});
+
+// node_modules/yaml/dist/nodes/YAMLMap.js
+var require_YAMLMap = __commonJS({
+  "node_modules/yaml/dist/nodes/YAMLMap.js"(exports) {
+    "use strict";
+    var stringifyCollection = require_stringifyCollection();
+    var addPairToJSMap = require_addPairToJSMap();
+    var Collection = require_Collection();
+    var identity = require_identity();
+    var Pair = require_Pair();
+    var Scalar = require_Scalar();
+    function findPair(items, key) {
+      const k = identity.isScalar(key) ? key.value : key;
+      for (const it of items) {
+        if (identity.isPair(it)) {
+          if (it.key === key || it.key === k)
+            return it;
+          if (identity.isScalar(it.key) && it.key.value === k)
+            return it;
+        }
+      }
+      return void 0;
+    }
+    var YAMLMap = class extends Collection.Collection {
+      static get tagName() {
+        return "tag:yaml.org,2002:map";
+      }
+      constructor(schema2) {
+        super(identity.MAP, schema2);
+        this.items = [];
+      }
+      /**
+       * A generic collection parsing method that can be extended
+       * to other node classes that inherit from YAMLMap
+       */
+      static from(schema2, obj, ctx) {
+        const { keepUndefined, replacer } = ctx;
+        const map2 = new this(schema2);
+        const add = (key, value) => {
+          if (typeof replacer === "function")
+            value = replacer.call(obj, key, value);
+          else if (Array.isArray(replacer) && !replacer.includes(key))
+            return;
+          if (value !== void 0 || keepUndefined)
+            map2.items.push(Pair.createPair(key, value, ctx));
+        };
+        if (obj instanceof Map) {
+          for (const [key, value] of obj)
+            add(key, value);
+        } else if (obj && typeof obj === "object") {
+          for (const key of Object.keys(obj))
+            add(key, obj[key]);
+        }
+        if (typeof schema2.sortMapEntries === "function") {
+          map2.items.sort(schema2.sortMapEntries);
+        }
+        return map2;
+      }
+      /**
+       * Adds a value to the collection.
+       *
+       * @param overwrite - If not set `true`, using a key that is already in the
+       *   collection will throw. Otherwise, overwrites the previous value.
+       */
+      add(pair, overwrite) {
+        let _pair;
+        if (identity.isPair(pair))
+          _pair = pair;
+        else if (!pair || typeof pair !== "object" || !("key" in pair)) {
+          _pair = new Pair.Pair(pair, pair?.value);
+        } else
+          _pair = new Pair.Pair(pair.key, pair.value);
+        const prev = findPair(this.items, _pair.key);
+        const sortEntries = this.schema?.sortMapEntries;
+        if (prev) {
+          if (!overwrite)
+            throw new Error(`Key ${_pair.key} already set`);
+          if (identity.isScalar(prev.value) && Scalar.isScalarValue(_pair.value))
+            prev.value.value = _pair.value;
+          else
+            prev.value = _pair.value;
+        } else if (sortEntries) {
+          const i = this.items.findIndex((item) => sortEntries(_pair, item) < 0);
+          if (i === -1)
+            this.items.push(_pair);
+          else
+            this.items.splice(i, 0, _pair);
+        } else {
+          this.items.push(_pair);
+        }
+      }
+      delete(key) {
+        const it = findPair(this.items, key);
+        if (!it)
+          return false;
+        const del = this.items.splice(this.items.indexOf(it), 1);
+        return del.length > 0;
+      }
+      get(key, keepScalar) {
+        const it = findPair(this.items, key);
+        const node = it?.value;
+        return (!keepScalar && identity.isScalar(node) ? node.value : node) ?? void 0;
+      }
+      has(key) {
+        return !!findPair(this.items, key);
+      }
+      set(key, value) {
+        this.add(new Pair.Pair(key, value), true);
+      }
+      /**
+       * @param ctx - Conversion context, originally set in Document#toJS()
+       * @param {Class} Type - If set, forces the returned collection type
+       * @returns Instance of Type, Map, or Object
+       */
+      toJSON(_, ctx, Type2) {
+        const map2 = Type2 ? new Type2() : ctx?.mapAsMap ? /* @__PURE__ */ new Map() : {};
+        if (ctx?.onCreate)
+          ctx.onCreate(map2);
+        for (const item of this.items)
+          addPairToJSMap.addPairToJSMap(ctx, map2, item);
+        return map2;
+      }
+      toString(ctx, onComment, onChompKeep) {
+        if (!ctx)
+          return JSON.stringify(this);
+        for (const item of this.items) {
+          if (!identity.isPair(item))
+            throw new Error(`Map items must all be pairs; found ${JSON.stringify(item)} instead`);
+        }
+        if (!ctx.allNullValues && this.hasAllNullValues(false))
+          ctx = Object.assign({}, ctx, { allNullValues: true });
+        return stringifyCollection.stringifyCollection(this, ctx, {
+          blockItemPrefix: "",
+          flowChars: { start: "{", end: "}" },
+          itemIndent: ctx.indent || "",
+          onChompKeep,
+          onComment
+        });
+      }
+    };
+    exports.YAMLMap = YAMLMap;
+    exports.findPair = findPair;
+  }
+});
+
+// node_modules/yaml/dist/schema/common/map.js
+var require_map = __commonJS({
+  "node_modules/yaml/dist/schema/common/map.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var YAMLMap = require_YAMLMap();
+    var map2 = {
+      collection: "map",
+      default: true,
+      nodeClass: YAMLMap.YAMLMap,
+      tag: "tag:yaml.org,2002:map",
+      resolve(map3, onError) {
+        if (!identity.isMap(map3))
+          onError("Expected a mapping for this tag");
+        return map3;
+      },
+      createNode: (schema2, obj, ctx) => YAMLMap.YAMLMap.from(schema2, obj, ctx)
+    };
+    exports.map = map2;
+  }
+});
+
+// node_modules/yaml/dist/nodes/YAMLSeq.js
+var require_YAMLSeq = __commonJS({
+  "node_modules/yaml/dist/nodes/YAMLSeq.js"(exports) {
+    "use strict";
+    var createNode = require_createNode();
+    var stringifyCollection = require_stringifyCollection();
+    var Collection = require_Collection();
+    var identity = require_identity();
+    var Scalar = require_Scalar();
+    var toJS = require_toJS();
+    var YAMLSeq = class extends Collection.Collection {
+      static get tagName() {
+        return "tag:yaml.org,2002:seq";
+      }
+      constructor(schema2) {
+        super(identity.SEQ, schema2);
+        this.items = [];
+      }
+      add(value) {
+        this.items.push(value);
+      }
+      /**
+       * Removes a value from the collection.
+       *
+       * `key` must contain a representation of an integer for this to succeed.
+       * It may be wrapped in a `Scalar`.
+       *
+       * @returns `true` if the item was found and removed.
+       */
+      delete(key) {
+        const idx = asItemIndex(key);
+        if (typeof idx !== "number")
+          return false;
+        const del = this.items.splice(idx, 1);
+        return del.length > 0;
+      }
+      get(key, keepScalar) {
+        const idx = asItemIndex(key);
+        if (typeof idx !== "number")
+          return void 0;
+        const it = this.items[idx];
+        return !keepScalar && identity.isScalar(it) ? it.value : it;
+      }
+      /**
+       * Checks if the collection includes a value with the key `key`.
+       *
+       * `key` must contain a representation of an integer for this to succeed.
+       * It may be wrapped in a `Scalar`.
+       */
+      has(key) {
+        const idx = asItemIndex(key);
+        return typeof idx === "number" && idx < this.items.length;
+      }
+      /**
+       * Sets a value in this collection. For `!!set`, `value` needs to be a
+       * boolean to add/remove the item from the set.
+       *
+       * If `key` does not contain a representation of an integer, this will throw.
+       * It may be wrapped in a `Scalar`.
+       */
+      set(key, value) {
+        const idx = asItemIndex(key);
+        if (typeof idx !== "number")
+          throw new Error(`Expected a valid index, not ${key}.`);
+        const prev = this.items[idx];
+        if (identity.isScalar(prev) && Scalar.isScalarValue(value))
+          prev.value = value;
+        else
+          this.items[idx] = value;
+      }
+      toJSON(_, ctx) {
+        const seq2 = [];
+        if (ctx?.onCreate)
+          ctx.onCreate(seq2);
+        let i = 0;
+        for (const item of this.items)
+          seq2.push(toJS.toJS(item, String(i++), ctx));
+        return seq2;
+      }
+      toString(ctx, onComment, onChompKeep) {
+        if (!ctx)
+          return JSON.stringify(this);
+        return stringifyCollection.stringifyCollection(this, ctx, {
+          blockItemPrefix: "- ",
+          flowChars: { start: "[", end: "]" },
+          itemIndent: (ctx.indent || "") + "  ",
+          onChompKeep,
+          onComment
+        });
+      }
+      static from(schema2, obj, ctx) {
+        const { replacer } = ctx;
+        const seq2 = new this(schema2);
+        if (obj && Symbol.iterator in Object(obj)) {
+          let i = 0;
+          for (let it of obj) {
+            if (typeof replacer === "function") {
+              const key = obj instanceof Set ? it : String(i++);
+              it = replacer.call(obj, key, it);
+            }
+            seq2.items.push(createNode.createNode(it, void 0, ctx));
+          }
+        }
+        return seq2;
+      }
+    };
+    function asItemIndex(key) {
+      let idx = identity.isScalar(key) ? key.value : key;
+      if (idx && typeof idx === "string")
+        idx = Number(idx);
+      return typeof idx === "number" && Number.isInteger(idx) && idx >= 0 ? idx : null;
+    }
+    exports.YAMLSeq = YAMLSeq;
+  }
+});
+
+// node_modules/yaml/dist/schema/common/seq.js
+var require_seq = __commonJS({
+  "node_modules/yaml/dist/schema/common/seq.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var YAMLSeq = require_YAMLSeq();
+    var seq2 = {
+      collection: "seq",
+      default: true,
+      nodeClass: YAMLSeq.YAMLSeq,
+      tag: "tag:yaml.org,2002:seq",
+      resolve(seq3, onError) {
+        if (!identity.isSeq(seq3))
+          onError("Expected a sequence for this tag");
+        return seq3;
+      },
+      createNode: (schema2, obj, ctx) => YAMLSeq.YAMLSeq.from(schema2, obj, ctx)
+    };
+    exports.seq = seq2;
+  }
+});
+
+// node_modules/yaml/dist/schema/common/string.js
+var require_string = __commonJS({
+  "node_modules/yaml/dist/schema/common/string.js"(exports) {
+    "use strict";
+    var stringifyString = require_stringifyString();
+    var string = {
+      identify: (value) => typeof value === "string",
+      default: true,
+      tag: "tag:yaml.org,2002:str",
+      resolve: (str2) => str2,
+      stringify(item, ctx, onComment, onChompKeep) {
+        ctx = Object.assign({ actualString: true }, ctx);
+        return stringifyString.stringifyString(item, ctx, onComment, onChompKeep);
+      }
+    };
+    exports.string = string;
+  }
+});
+
+// node_modules/yaml/dist/schema/common/null.js
+var require_null2 = __commonJS({
+  "node_modules/yaml/dist/schema/common/null.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var nullTag = {
+      identify: (value) => value == null,
+      createNode: () => new Scalar.Scalar(null),
+      default: true,
+      tag: "tag:yaml.org,2002:null",
+      test: /^(?:~|[Nn]ull|NULL)?$/,
+      resolve: () => new Scalar.Scalar(null),
+      stringify: ({ source }, ctx) => typeof source === "string" && nullTag.test.test(source) ? source : ctx.options.nullStr
+    };
+    exports.nullTag = nullTag;
+  }
+});
+
+// node_modules/yaml/dist/schema/core/bool.js
+var require_bool = __commonJS({
+  "node_modules/yaml/dist/schema/core/bool.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var boolTag = {
+      identify: (value) => typeof value === "boolean",
+      default: true,
+      tag: "tag:yaml.org,2002:bool",
+      test: /^(?:[Tt]rue|TRUE|[Ff]alse|FALSE)$/,
+      resolve: (str2) => new Scalar.Scalar(str2[0] === "t" || str2[0] === "T"),
+      stringify({ source, value }, ctx) {
+        if (source && boolTag.test.test(source)) {
+          const sv = source[0] === "t" || source[0] === "T";
+          if (value === sv)
+            return source;
+        }
+        return value ? ctx.options.trueStr : ctx.options.falseStr;
+      }
+    };
+    exports.boolTag = boolTag;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringifyNumber.js
+var require_stringifyNumber = __commonJS({
+  "node_modules/yaml/dist/stringify/stringifyNumber.js"(exports) {
+    "use strict";
+    function stringifyNumber({ format, minFractionDigits, tag, value }) {
+      if (typeof value === "bigint")
+        return String(value);
+      const num = typeof value === "number" ? value : Number(value);
+      if (!isFinite(num))
+        return isNaN(num) ? ".nan" : num < 0 ? "-.inf" : ".inf";
+      let n = Object.is(value, -0) ? "-0" : JSON.stringify(value);
+      if (!format && minFractionDigits && (!tag || tag === "tag:yaml.org,2002:float") && /^-?\d/.test(n) && !n.includes("e")) {
+        let i = n.indexOf(".");
+        if (i < 0) {
+          i = n.length;
+          n += ".";
+        }
+        let d = minFractionDigits - (n.length - i - 1);
+        while (d-- > 0)
+          n += "0";
+      }
+      return n;
+    }
+    exports.stringifyNumber = stringifyNumber;
+  }
+});
+
+// node_modules/yaml/dist/schema/core/float.js
+var require_float = __commonJS({
+  "node_modules/yaml/dist/schema/core/float.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var stringifyNumber = require_stringifyNumber();
+    var floatNaN = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      test: /^(?:[-+]?\.(?:inf|Inf|INF)|\.nan|\.NaN|\.NAN)$/,
+      resolve: (str2) => str2.slice(-3).toLowerCase() === "nan" ? NaN : str2[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
+      stringify: stringifyNumber.stringifyNumber
+    };
+    var floatExp = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      format: "EXP",
+      test: /^[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)[eE][-+]?[0-9]+$/,
+      resolve: (str2) => parseFloat(str2),
+      stringify(node) {
+        const num = Number(node.value);
+        return isFinite(num) ? num.toExponential() : stringifyNumber.stringifyNumber(node);
+      }
+    };
+    var float2 = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      test: /^[-+]?(?:\.[0-9]+|[0-9]+\.[0-9]*)$/,
+      resolve(str2) {
+        const node = new Scalar.Scalar(parseFloat(str2));
+        const dot = str2.indexOf(".");
+        if (dot !== -1 && str2[str2.length - 1] === "0")
+          node.minFractionDigits = str2.length - dot - 1;
+        return node;
+      },
+      stringify: stringifyNumber.stringifyNumber
+    };
+    exports.float = float2;
+    exports.floatExp = floatExp;
+    exports.floatNaN = floatNaN;
+  }
+});
+
+// node_modules/yaml/dist/schema/core/int.js
+var require_int = __commonJS({
+  "node_modules/yaml/dist/schema/core/int.js"(exports) {
+    "use strict";
+    var stringifyNumber = require_stringifyNumber();
+    var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
+    var intResolve = (str2, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str2) : parseInt(str2.substring(offset), radix);
+    function intStringify(node, radix, prefix) {
+      const { value } = node;
+      if (intIdentify(value) && value >= 0)
+        return prefix + value.toString(radix);
+      return stringifyNumber.stringifyNumber(node);
+    }
+    var intOct = {
+      identify: (value) => intIdentify(value) && value >= 0,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      format: "OCT",
+      test: /^0o[0-7]+$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 2, 8, opt),
+      stringify: (node) => intStringify(node, 8, "0o")
+    };
+    var int2 = {
+      identify: intIdentify,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      test: /^[-+]?[0-9]+$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 0, 10, opt),
+      stringify: stringifyNumber.stringifyNumber
+    };
+    var intHex = {
+      identify: (value) => intIdentify(value) && value >= 0,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      format: "HEX",
+      test: /^0x[0-9a-fA-F]+$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 2, 16, opt),
+      stringify: (node) => intStringify(node, 16, "0x")
+    };
+    exports.int = int2;
+    exports.intHex = intHex;
+    exports.intOct = intOct;
+  }
+});
+
+// node_modules/yaml/dist/schema/core/schema.js
+var require_schema6 = __commonJS({
+  "node_modules/yaml/dist/schema/core/schema.js"(exports) {
+    "use strict";
+    var map2 = require_map();
+    var _null2 = require_null2();
+    var seq2 = require_seq();
+    var string = require_string();
+    var bool2 = require_bool();
+    var float2 = require_float();
+    var int2 = require_int();
+    var schema2 = [
+      map2.map,
+      seq2.seq,
+      string.string,
+      _null2.nullTag,
+      bool2.boolTag,
+      int2.intOct,
+      int2.int,
+      int2.intHex,
+      float2.floatNaN,
+      float2.floatExp,
+      float2.float
+    ];
+    exports.schema = schema2;
+  }
+});
+
+// node_modules/yaml/dist/schema/json/schema.js
+var require_schema7 = __commonJS({
+  "node_modules/yaml/dist/schema/json/schema.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var map2 = require_map();
+    var seq2 = require_seq();
+    function intIdentify(value) {
+      return typeof value === "bigint" || Number.isInteger(value);
+    }
+    var stringifyJSON = ({ value }) => JSON.stringify(value);
+    var jsonScalars = [
+      {
+        identify: (value) => typeof value === "string",
+        default: true,
+        tag: "tag:yaml.org,2002:str",
+        resolve: (str2) => str2,
+        stringify: stringifyJSON
+      },
+      {
+        identify: (value) => value == null,
+        createNode: () => new Scalar.Scalar(null),
+        default: true,
+        tag: "tag:yaml.org,2002:null",
+        test: /^null$/,
+        resolve: () => null,
+        stringify: stringifyJSON
+      },
+      {
+        identify: (value) => typeof value === "boolean",
+        default: true,
+        tag: "tag:yaml.org,2002:bool",
+        test: /^true$|^false$/,
+        resolve: (str2) => str2 === "true",
+        stringify: stringifyJSON
+      },
+      {
+        identify: intIdentify,
+        default: true,
+        tag: "tag:yaml.org,2002:int",
+        test: /^-?(?:0|[1-9][0-9]*)$/,
+        resolve: (str2, _onError, { intAsBigInt }) => intAsBigInt ? BigInt(str2) : parseInt(str2, 10),
+        stringify: ({ value }) => intIdentify(value) ? value.toString() : JSON.stringify(value)
+      },
+      {
+        identify: (value) => typeof value === "number",
+        default: true,
+        tag: "tag:yaml.org,2002:float",
+        test: /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]*)?(?:[eE][-+]?[0-9]+)?$/,
+        resolve: (str2) => parseFloat(str2),
+        stringify: stringifyJSON
+      }
+    ];
+    var jsonError = {
+      default: true,
+      tag: "",
+      test: /^/,
+      resolve(str2, onError) {
+        onError(`Unresolved plain scalar ${JSON.stringify(str2)}`);
+        return str2;
+      }
+    };
+    var schema2 = [map2.map, seq2.seq].concat(jsonScalars, jsonError);
+    exports.schema = schema2;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/binary.js
+var require_binary = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/binary.js"(exports) {
+    "use strict";
+    var node_buffer = __require("buffer");
+    var Scalar = require_Scalar();
+    var stringifyString = require_stringifyString();
+    var binary2 = {
+      identify: (value) => value instanceof Uint8Array,
+      // Buffer inherits from Uint8Array
+      default: false,
+      tag: "tag:yaml.org,2002:binary",
+      /**
+       * Returns a Buffer in node and an Uint8Array in browsers
+       *
+       * To use the resulting buffer as an image, you'll want to do something like:
+       *
+       *   const blob = new Blob([buffer], { type: 'image/jpeg' })
+       *   document.querySelector('#photo').src = URL.createObjectURL(blob)
+       */
+      resolve(src, onError) {
+        if (typeof node_buffer.Buffer === "function") {
+          return node_buffer.Buffer.from(src, "base64");
+        } else if (typeof atob === "function") {
+          const str2 = atob(src.replace(/[\n\r]/g, ""));
+          const buffer = new Uint8Array(str2.length);
+          for (let i = 0; i < str2.length; ++i)
+            buffer[i] = str2.charCodeAt(i);
+          return buffer;
+        } else {
+          onError("This environment does not support reading binary tags; either Buffer or atob is required");
+          return src;
+        }
+      },
+      stringify({ comment, type: type2, value }, ctx, onComment, onChompKeep) {
+        if (!value)
+          return "";
+        const buf = value;
+        let str2;
+        if (typeof node_buffer.Buffer === "function") {
+          str2 = buf instanceof node_buffer.Buffer ? buf.toString("base64") : node_buffer.Buffer.from(buf.buffer).toString("base64");
+        } else if (typeof btoa === "function") {
+          let s = "";
+          for (let i = 0; i < buf.length; ++i)
+            s += String.fromCharCode(buf[i]);
+          str2 = btoa(s);
+        } else {
+          throw new Error("This environment does not support writing binary tags; either Buffer or btoa is required");
+        }
+        type2 ?? (type2 = Scalar.Scalar.BLOCK_LITERAL);
+        if (type2 !== Scalar.Scalar.QUOTE_DOUBLE) {
+          const lineWidth = Math.max(ctx.options.lineWidth - ctx.indent.length, ctx.options.minContentWidth);
+          const n = Math.ceil(str2.length / lineWidth);
+          const lines = new Array(n);
+          for (let i = 0, o = 0; i < n; ++i, o += lineWidth) {
+            lines[i] = str2.substr(o, lineWidth);
+          }
+          str2 = lines.join(type2 === Scalar.Scalar.BLOCK_LITERAL ? "\n" : " ");
+        }
+        return stringifyString.stringifyString({ comment, type: type2, value: str2 }, ctx, onComment, onChompKeep);
+      }
+    };
+    exports.binary = binary2;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+var require_pairs = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/pairs.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Pair = require_Pair();
+    var Scalar = require_Scalar();
+    var YAMLSeq = require_YAMLSeq();
+    function resolvePairs(seq2, onError) {
+      if (identity.isSeq(seq2)) {
+        for (let i = 0; i < seq2.items.length; ++i) {
+          let item = seq2.items[i];
+          if (identity.isPair(item))
+            continue;
+          else if (identity.isMap(item)) {
+            if (item.items.length > 1)
+              onError("Each pair must have its own sequence indicator");
+            const pair = item.items[0] || new Pair.Pair(new Scalar.Scalar(null));
+            if (item.commentBefore)
+              pair.key.commentBefore = pair.key.commentBefore ? `${item.commentBefore}
+${pair.key.commentBefore}` : item.commentBefore;
+            if (item.comment) {
+              const cn = pair.value ?? pair.key;
+              cn.comment = cn.comment ? `${item.comment}
+${cn.comment}` : item.comment;
+            }
+            item = pair;
+          }
+          seq2.items[i] = identity.isPair(item) ? item : new Pair.Pair(item);
+        }
+      } else
+        onError("Expected a sequence for this tag");
+      return seq2;
+    }
+    function createPairs(schema2, iterable, ctx) {
+      const { replacer } = ctx;
+      const pairs3 = new YAMLSeq.YAMLSeq(schema2);
+      pairs3.tag = "tag:yaml.org,2002:pairs";
+      let i = 0;
+      if (iterable && Symbol.iterator in Object(iterable))
+        for (let it of iterable) {
+          if (typeof replacer === "function")
+            it = replacer.call(iterable, String(i++), it);
+          let key, value;
+          if (Array.isArray(it)) {
+            if (it.length === 2) {
+              key = it[0];
+              value = it[1];
+            } else
+              throw new TypeError(`Expected [key, value] tuple: ${it}`);
+          } else if (it && it instanceof Object) {
+            const keys = Object.keys(it);
+            if (keys.length === 1) {
+              key = keys[0];
+              value = it[key];
+            } else {
+              throw new TypeError(`Expected tuple with one key, not ${keys.length} keys`);
+            }
+          } else {
+            key = it;
+          }
+          pairs3.items.push(Pair.createPair(key, value, ctx));
+        }
+      return pairs3;
+    }
+    var pairs2 = {
+      collection: "seq",
+      default: false,
+      tag: "tag:yaml.org,2002:pairs",
+      resolve: resolvePairs,
+      createNode: createPairs
+    };
+    exports.createPairs = createPairs;
+    exports.pairs = pairs2;
+    exports.resolvePairs = resolvePairs;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/omap.js
+var require_omap = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/omap.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var toJS = require_toJS();
+    var YAMLMap = require_YAMLMap();
+    var YAMLSeq = require_YAMLSeq();
+    var pairs2 = require_pairs();
+    var YAMLOMap = class _YAMLOMap extends YAMLSeq.YAMLSeq {
+      constructor() {
+        super();
+        this.add = YAMLMap.YAMLMap.prototype.add.bind(this);
+        this.delete = YAMLMap.YAMLMap.prototype.delete.bind(this);
+        this.get = YAMLMap.YAMLMap.prototype.get.bind(this);
+        this.has = YAMLMap.YAMLMap.prototype.has.bind(this);
+        this.set = YAMLMap.YAMLMap.prototype.set.bind(this);
+        this.tag = _YAMLOMap.tag;
+      }
+      /**
+       * If `ctx` is given, the return type is actually `Map<unknown, unknown>`,
+       * but TypeScript won't allow widening the signature of a child method.
+       */
+      toJSON(_, ctx) {
+        if (!ctx)
+          return super.toJSON(_);
+        const map2 = /* @__PURE__ */ new Map();
+        if (ctx?.onCreate)
+          ctx.onCreate(map2);
+        for (const pair of this.items) {
+          let key, value;
+          if (identity.isPair(pair)) {
+            key = toJS.toJS(pair.key, "", ctx);
+            value = toJS.toJS(pair.value, key, ctx);
+          } else {
+            key = toJS.toJS(pair, "", ctx);
+          }
+          if (map2.has(key))
+            throw new Error("Ordered maps must not include duplicate keys");
+          map2.set(key, value);
+        }
+        return map2;
+      }
+      static from(schema2, iterable, ctx) {
+        const pairs$1 = pairs2.createPairs(schema2, iterable, ctx);
+        const omap3 = new this();
+        omap3.items = pairs$1.items;
+        return omap3;
+      }
+    };
+    YAMLOMap.tag = "tag:yaml.org,2002:omap";
+    var omap2 = {
+      collection: "seq",
+      identify: (value) => value instanceof Map,
+      nodeClass: YAMLOMap,
+      default: false,
+      tag: "tag:yaml.org,2002:omap",
+      resolve(seq2, onError) {
+        const pairs$1 = pairs2.resolvePairs(seq2, onError);
+        const seenKeys = [];
+        for (const { key } of pairs$1.items) {
+          if (identity.isScalar(key)) {
+            if (seenKeys.includes(key.value)) {
+              onError(`Ordered maps must not include duplicate keys: ${key.value}`);
+            } else {
+              seenKeys.push(key.value);
+            }
+          }
+        }
+        return Object.assign(new YAMLOMap(), pairs$1);
+      },
+      createNode: (schema2, iterable, ctx) => YAMLOMap.from(schema2, iterable, ctx)
+    };
+    exports.YAMLOMap = YAMLOMap;
+    exports.omap = omap2;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/bool.js
+var require_bool2 = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/bool.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    function boolStringify({ value, source }, ctx) {
+      const boolObj = value ? trueTag : falseTag;
+      if (source && boolObj.test.test(source))
+        return source;
+      return value ? ctx.options.trueStr : ctx.options.falseStr;
+    }
+    var trueTag = {
+      identify: (value) => value === true,
+      default: true,
+      tag: "tag:yaml.org,2002:bool",
+      test: /^(?:Y|y|[Yy]es|YES|[Tt]rue|TRUE|[Oo]n|ON)$/,
+      resolve: () => new Scalar.Scalar(true),
+      stringify: boolStringify
+    };
+    var falseTag = {
+      identify: (value) => value === false,
+      default: true,
+      tag: "tag:yaml.org,2002:bool",
+      test: /^(?:N|n|[Nn]o|NO|[Ff]alse|FALSE|[Oo]ff|OFF)$/,
+      resolve: () => new Scalar.Scalar(false),
+      stringify: boolStringify
+    };
+    exports.falseTag = falseTag;
+    exports.trueTag = trueTag;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/float.js
+var require_float2 = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/float.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var stringifyNumber = require_stringifyNumber();
+    var floatNaN = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      test: /^(?:[-+]?\.(?:inf|Inf|INF)|\.nan|\.NaN|\.NAN)$/,
+      resolve: (str2) => str2.slice(-3).toLowerCase() === "nan" ? NaN : str2[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
+      stringify: stringifyNumber.stringifyNumber
+    };
+    var floatExp = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      format: "EXP",
+      test: /^[-+]?(?:[0-9][0-9_]*)?(?:\.[0-9_]*)?[eE][-+]?[0-9]+$/,
+      resolve: (str2) => parseFloat(str2.replace(/_/g, "")),
+      stringify(node) {
+        const num = Number(node.value);
+        return isFinite(num) ? num.toExponential() : stringifyNumber.stringifyNumber(node);
+      }
+    };
+    var float2 = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      test: /^[-+]?(?:[0-9][0-9_]*)?\.[0-9_]*$/,
+      resolve(str2) {
+        const node = new Scalar.Scalar(parseFloat(str2.replace(/_/g, "")));
+        const dot = str2.indexOf(".");
+        if (dot !== -1) {
+          const f = str2.substring(dot + 1).replace(/_/g, "");
+          if (f[f.length - 1] === "0")
+            node.minFractionDigits = f.length;
+        }
+        return node;
+      },
+      stringify: stringifyNumber.stringifyNumber
+    };
+    exports.float = float2;
+    exports.floatExp = floatExp;
+    exports.floatNaN = floatNaN;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/int.js
+var require_int2 = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/int.js"(exports) {
+    "use strict";
+    var stringifyNumber = require_stringifyNumber();
+    var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
+    function intResolve(str2, offset, radix, { intAsBigInt }) {
+      const sign = str2[0];
+      if (sign === "-" || sign === "+")
+        offset += 1;
+      str2 = str2.substring(offset).replace(/_/g, "");
+      if (intAsBigInt) {
+        switch (radix) {
+          case 2:
+            str2 = `0b${str2}`;
+            break;
+          case 8:
+            str2 = `0o${str2}`;
+            break;
+          case 16:
+            str2 = `0x${str2}`;
+            break;
+        }
+        const n2 = BigInt(str2);
+        return sign === "-" ? BigInt(-1) * n2 : n2;
+      }
+      const n = parseInt(str2, radix);
+      return sign === "-" ? -1 * n : n;
+    }
+    function intStringify(node, radix, prefix) {
+      const { value } = node;
+      if (intIdentify(value)) {
+        const str2 = value.toString(radix);
+        return value < 0 ? "-" + prefix + str2.substr(1) : prefix + str2;
+      }
+      return stringifyNumber.stringifyNumber(node);
+    }
+    var intBin = {
+      identify: intIdentify,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      format: "BIN",
+      test: /^[-+]?0b[0-1_]+$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 2, 2, opt),
+      stringify: (node) => intStringify(node, 2, "0b")
+    };
+    var intOct = {
+      identify: intIdentify,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      format: "OCT",
+      test: /^[-+]?0[0-7_]+$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 1, 8, opt),
+      stringify: (node) => intStringify(node, 8, "0")
+    };
+    var int2 = {
+      identify: intIdentify,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      test: /^[-+]?[0-9][0-9_]*$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 0, 10, opt),
+      stringify: stringifyNumber.stringifyNumber
+    };
+    var intHex = {
+      identify: intIdentify,
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      format: "HEX",
+      test: /^[-+]?0x[0-9a-fA-F_]+$/,
+      resolve: (str2, _onError, opt) => intResolve(str2, 2, 16, opt),
+      stringify: (node) => intStringify(node, 16, "0x")
+    };
+    exports.int = int2;
+    exports.intBin = intBin;
+    exports.intHex = intHex;
+    exports.intOct = intOct;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/set.js
+var require_set = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/set.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Pair = require_Pair();
+    var YAMLMap = require_YAMLMap();
+    var YAMLSet = class _YAMLSet extends YAMLMap.YAMLMap {
+      constructor(schema2) {
+        super(schema2);
+        this.tag = _YAMLSet.tag;
+      }
+      add(key) {
+        let pair;
+        if (identity.isPair(key))
+          pair = key;
+        else if (key && typeof key === "object" && "key" in key && "value" in key && key.value === null)
+          pair = new Pair.Pair(key.key, null);
+        else
+          pair = new Pair.Pair(key, null);
+        const prev = YAMLMap.findPair(this.items, pair.key);
+        if (!prev)
+          this.items.push(pair);
+      }
+      /**
+       * If `keepPair` is `true`, returns the Pair matching `key`.
+       * Otherwise, returns the value of that Pair's key.
+       */
+      get(key, keepPair) {
+        const pair = YAMLMap.findPair(this.items, key);
+        return !keepPair && identity.isPair(pair) ? identity.isScalar(pair.key) ? pair.key.value : pair.key : pair;
+      }
+      set(key, value) {
+        if (typeof value !== "boolean")
+          throw new Error(`Expected boolean value for set(key, value) in a YAML set, not ${typeof value}`);
+        const prev = YAMLMap.findPair(this.items, key);
+        if (prev && !value) {
+          this.items.splice(this.items.indexOf(prev), 1);
+        } else if (!prev && value) {
+          this.items.push(new Pair.Pair(key));
+        }
+      }
+      toJSON(_, ctx) {
+        return super.toJSON(_, ctx, Set);
+      }
+      toString(ctx, onComment, onChompKeep) {
+        if (!ctx)
+          return JSON.stringify(this);
+        if (this.hasAllNullValues(true))
+          return super.toString(Object.assign({}, ctx, { allNullValues: true }), onComment, onChompKeep);
+        else
+          throw new Error("Set items must all have null values");
+      }
+      static from(schema2, iterable, ctx) {
+        const { replacer } = ctx;
+        const set3 = new this(schema2);
+        if (iterable && Symbol.iterator in Object(iterable))
+          for (let value of iterable) {
+            if (typeof replacer === "function")
+              value = replacer.call(iterable, value, value);
+            set3.items.push(Pair.createPair(value, null, ctx));
+          }
+        return set3;
+      }
+    };
+    YAMLSet.tag = "tag:yaml.org,2002:set";
+    var set2 = {
+      collection: "map",
+      identify: (value) => value instanceof Set,
+      nodeClass: YAMLSet,
+      default: false,
+      tag: "tag:yaml.org,2002:set",
+      createNode: (schema2, iterable, ctx) => YAMLSet.from(schema2, iterable, ctx),
+      resolve(map2, onError) {
+        if (identity.isMap(map2)) {
+          if (map2.hasAllNullValues(true))
+            return Object.assign(new YAMLSet(), map2);
+          else
+            onError("Set items must all have null values");
+        } else
+          onError("Expected a mapping for this tag");
+        return map2;
+      }
+    };
+    exports.YAMLSet = YAMLSet;
+    exports.set = set2;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+var require_timestamp = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports) {
+    "use strict";
+    var stringifyNumber = require_stringifyNumber();
+    function parseSexagesimal(str2, asBigInt) {
+      const sign = str2[0];
+      const parts = sign === "-" || sign === "+" ? str2.substring(1) : str2;
+      const num = (n) => asBigInt ? BigInt(n) : Number(n);
+      const res = parts.replace(/_/g, "").split(":").reduce((res2, p) => res2 * num(60) + num(p), num(0));
+      return sign === "-" ? num(-1) * res : res;
+    }
+    function stringifySexagesimal(node) {
+      let { value } = node;
+      let num = (n) => n;
+      if (typeof value === "bigint")
+        num = (n) => BigInt(n);
+      else if (isNaN(value) || !isFinite(value))
+        return stringifyNumber.stringifyNumber(node);
+      let sign = "";
+      if (value < 0) {
+        sign = "-";
+        value *= num(-1);
+      }
+      const _60 = num(60);
+      const parts = [value % _60];
+      if (value < 60) {
+        parts.unshift(0);
+      } else {
+        value = (value - parts[0]) / _60;
+        parts.unshift(value % _60);
+        if (value >= 60) {
+          value = (value - parts[0]) / _60;
+          parts.unshift(value);
+        }
+      }
+      return sign + parts.map((n) => String(n).padStart(2, "0")).join(":").replace(/000000\d*$/, "");
+    }
+    var intTime = {
+      identify: (value) => typeof value === "bigint" || Number.isInteger(value),
+      default: true,
+      tag: "tag:yaml.org,2002:int",
+      format: "TIME",
+      test: /^[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+$/,
+      resolve: (str2, _onError, { intAsBigInt }) => parseSexagesimal(str2, intAsBigInt),
+      stringify: stringifySexagesimal
+    };
+    var floatTime = {
+      identify: (value) => typeof value === "number",
+      default: true,
+      tag: "tag:yaml.org,2002:float",
+      format: "TIME",
+      test: /^[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\.[0-9_]*$/,
+      resolve: (str2) => parseSexagesimal(str2, false),
+      stringify: stringifySexagesimal
+    };
+    var timestamp2 = {
+      identify: (value) => value instanceof Date,
+      default: true,
+      tag: "tag:yaml.org,2002:timestamp",
+      // If the time zone is omitted, the timestamp is assumed to be specified in UTC. The time part
+      // may be omitted altogether, resulting in a date format. In such a case, the time part is
+      // assumed to be 00:00:00Z (start of day, UTC).
+      test: RegExp("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})(?:(?:t|T|[ \\t]+)([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2}(\\.[0-9]+)?)(?:[ \\t]*(Z|[-+][012]?[0-9](?::[0-9]{2})?))?)?$"),
+      resolve(str2) {
+        const match = str2.match(timestamp2.test);
+        if (!match)
+          throw new Error("!!timestamp expects a date, starting with yyyy-mm-dd");
+        const [, year, month, day, hour, minute, second] = match.map(Number);
+        const millisec = match[7] ? Number((match[7] + "00").substr(1, 3)) : 0;
+        let date = Date.UTC(year, month - 1, day, hour || 0, minute || 0, second || 0, millisec);
+        const tz = match[8];
+        if (tz && tz !== "Z") {
+          let d = parseSexagesimal(tz, false);
+          if (Math.abs(d) < 30)
+            d *= 60;
+          date -= 6e4 * d;
+        }
+        return new Date(date);
+      },
+      stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
+    };
+    exports.floatTime = floatTime;
+    exports.intTime = intTime;
+    exports.timestamp = timestamp2;
+  }
+});
+
+// node_modules/yaml/dist/schema/yaml-1.1/schema.js
+var require_schema8 = __commonJS({
+  "node_modules/yaml/dist/schema/yaml-1.1/schema.js"(exports) {
+    "use strict";
+    var map2 = require_map();
+    var _null2 = require_null2();
+    var seq2 = require_seq();
+    var string = require_string();
+    var binary2 = require_binary();
+    var bool2 = require_bool2();
+    var float2 = require_float2();
+    var int2 = require_int2();
+    var merge3 = require_merge();
+    var omap2 = require_omap();
+    var pairs2 = require_pairs();
+    var set2 = require_set();
+    var timestamp2 = require_timestamp();
+    var schema2 = [
+      map2.map,
+      seq2.seq,
+      string.string,
+      _null2.nullTag,
+      bool2.trueTag,
+      bool2.falseTag,
+      int2.intBin,
+      int2.intOct,
+      int2.int,
+      int2.intHex,
+      float2.floatNaN,
+      float2.floatExp,
+      float2.float,
+      binary2.binary,
+      merge3.merge,
+      omap2.omap,
+      pairs2.pairs,
+      set2.set,
+      timestamp2.intTime,
+      timestamp2.floatTime,
+      timestamp2.timestamp
+    ];
+    exports.schema = schema2;
+  }
+});
+
+// node_modules/yaml/dist/schema/tags.js
+var require_tags = __commonJS({
+  "node_modules/yaml/dist/schema/tags.js"(exports) {
+    "use strict";
+    var map2 = require_map();
+    var _null2 = require_null2();
+    var seq2 = require_seq();
+    var string = require_string();
+    var bool2 = require_bool();
+    var float2 = require_float();
+    var int2 = require_int();
+    var schema2 = require_schema6();
+    var schema$1 = require_schema7();
+    var binary2 = require_binary();
+    var merge3 = require_merge();
+    var omap2 = require_omap();
+    var pairs2 = require_pairs();
+    var schema$2 = require_schema8();
+    var set2 = require_set();
+    var timestamp2 = require_timestamp();
+    var schemas = /* @__PURE__ */ new Map([
+      ["core", schema2.schema],
+      ["failsafe", [map2.map, seq2.seq, string.string]],
+      ["json", schema$1.schema],
+      ["yaml11", schema$2.schema],
+      ["yaml-1.1", schema$2.schema]
+    ]);
+    var tagsByName = {
+      binary: binary2.binary,
+      bool: bool2.boolTag,
+      float: float2.float,
+      floatExp: float2.floatExp,
+      floatNaN: float2.floatNaN,
+      floatTime: timestamp2.floatTime,
+      int: int2.int,
+      intHex: int2.intHex,
+      intOct: int2.intOct,
+      intTime: timestamp2.intTime,
+      map: map2.map,
+      merge: merge3.merge,
+      null: _null2.nullTag,
+      omap: omap2.omap,
+      pairs: pairs2.pairs,
+      seq: seq2.seq,
+      set: set2.set,
+      timestamp: timestamp2.timestamp
+    };
+    var coreKnownTags = {
+      "tag:yaml.org,2002:binary": binary2.binary,
+      "tag:yaml.org,2002:merge": merge3.merge,
+      "tag:yaml.org,2002:omap": omap2.omap,
+      "tag:yaml.org,2002:pairs": pairs2.pairs,
+      "tag:yaml.org,2002:set": set2.set,
+      "tag:yaml.org,2002:timestamp": timestamp2.timestamp
+    };
+    function getTags(customTags, schemaName, addMergeTag) {
+      const schemaTags = schemas.get(schemaName);
+      if (schemaTags && !customTags) {
+        return addMergeTag && !schemaTags.includes(merge3.merge) ? schemaTags.concat(merge3.merge) : schemaTags.slice();
+      }
+      let tags = schemaTags;
+      if (!tags) {
+        if (Array.isArray(customTags))
+          tags = [];
+        else {
+          const keys = Array.from(schemas.keys()).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
+          throw new Error(`Unknown schema "${schemaName}"; use one of ${keys} or define customTags array`);
+        }
+      }
+      if (Array.isArray(customTags)) {
+        for (const tag of customTags)
+          tags = tags.concat(tag);
+      } else if (typeof customTags === "function") {
+        tags = customTags(tags.slice());
+      }
+      if (addMergeTag)
+        tags = tags.concat(merge3.merge);
+      return tags.reduce((tags2, tag) => {
+        const tagObj = typeof tag === "string" ? tagsByName[tag] : tag;
+        if (!tagObj) {
+          const tagName = JSON.stringify(tag);
+          const keys = Object.keys(tagsByName).map((key) => JSON.stringify(key)).join(", ");
+          throw new Error(`Unknown custom tag ${tagName}; use one of ${keys}`);
+        }
+        if (!tags2.includes(tagObj))
+          tags2.push(tagObj);
+        return tags2;
+      }, []);
+    }
+    exports.coreKnownTags = coreKnownTags;
+    exports.getTags = getTags;
+  }
+});
+
+// node_modules/yaml/dist/schema/Schema.js
+var require_Schema = __commonJS({
+  "node_modules/yaml/dist/schema/Schema.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var map2 = require_map();
+    var seq2 = require_seq();
+    var string = require_string();
+    var tags = require_tags();
+    var sortMapEntriesByKey = (a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+    var Schema2 = class _Schema {
+      constructor({ compat, customTags, merge: merge3, resolveKnownTags, schema: schema2, sortMapEntries, toStringDefaults }) {
+        this.compat = Array.isArray(compat) ? tags.getTags(compat, "compat") : compat ? tags.getTags(null, compat) : null;
+        this.name = typeof schema2 === "string" && schema2 || "core";
+        this.knownTags = resolveKnownTags ? tags.coreKnownTags : {};
+        this.tags = tags.getTags(customTags, this.name, merge3);
+        this.toStringOptions = toStringDefaults ?? null;
+        Object.defineProperty(this, identity.MAP, { value: map2.map });
+        Object.defineProperty(this, identity.SCALAR, { value: string.string });
+        Object.defineProperty(this, identity.SEQ, { value: seq2.seq });
+        this.sortMapEntries = typeof sortMapEntries === "function" ? sortMapEntries : sortMapEntries === true ? sortMapEntriesByKey : null;
+      }
+      clone() {
+        const copy = Object.create(_Schema.prototype, Object.getOwnPropertyDescriptors(this));
+        copy.tags = this.tags.slice();
+        return copy;
+      }
+    };
+    exports.Schema = Schema2;
+  }
+});
+
+// node_modules/yaml/dist/stringify/stringifyDocument.js
+var require_stringifyDocument = __commonJS({
+  "node_modules/yaml/dist/stringify/stringifyDocument.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var stringify = require_stringify();
+    var stringifyComment = require_stringifyComment();
+    function stringifyDocument(doc, options) {
+      const lines = [];
+      let hasDirectives = options.directives === true;
+      if (options.directives !== false && doc.directives) {
+        const dir = doc.directives.toString(doc);
+        if (dir) {
+          lines.push(dir);
+          hasDirectives = true;
+        } else if (doc.directives.docStart)
+          hasDirectives = true;
+      }
+      if (hasDirectives)
+        lines.push("---");
+      const ctx = stringify.createStringifyContext(doc, options);
+      const { commentString } = ctx.options;
+      if (doc.commentBefore) {
+        if (lines.length !== 1)
+          lines.unshift("");
+        const cs = commentString(doc.commentBefore);
+        lines.unshift(stringifyComment.indentComment(cs, ""));
+      }
+      let chompKeep = false;
+      let contentComment = null;
+      if (doc.contents) {
+        if (identity.isNode(doc.contents)) {
+          if (doc.contents.spaceBefore && hasDirectives)
+            lines.push("");
+          if (doc.contents.commentBefore) {
+            const cs = commentString(doc.contents.commentBefore);
+            lines.push(stringifyComment.indentComment(cs, ""));
+          }
+          ctx.forceBlockIndent = !!doc.comment;
+          contentComment = doc.contents.comment;
+        }
+        const onChompKeep = contentComment ? void 0 : () => chompKeep = true;
+        let body = stringify.stringify(doc.contents, ctx, () => contentComment = null, onChompKeep);
+        if (contentComment)
+          body += stringifyComment.lineComment(body, "", commentString(contentComment));
+        if ((body[0] === "|" || body[0] === ">") && lines[lines.length - 1] === "---") {
+          lines[lines.length - 1] = `--- ${body}`;
+        } else
+          lines.push(body);
+      } else {
+        lines.push(stringify.stringify(doc.contents, ctx));
+      }
+      if (doc.directives?.docEnd) {
+        if (doc.comment) {
+          const cs = commentString(doc.comment);
+          if (cs.includes("\n")) {
+            lines.push("...");
+            lines.push(stringifyComment.indentComment(cs, ""));
+          } else {
+            lines.push(`... ${cs}`);
+          }
+        } else {
+          lines.push("...");
+        }
+      } else {
+        let dc = doc.comment;
+        if (dc && chompKeep)
+          dc = dc.replace(/^\n+/, "");
+        if (dc) {
+          if ((!chompKeep || contentComment) && lines[lines.length - 1] !== "")
+            lines.push("");
+          lines.push(stringifyComment.indentComment(commentString(dc), ""));
+        }
+      }
+      return lines.join("\n") + "\n";
+    }
+    exports.stringifyDocument = stringifyDocument;
+  }
+});
+
+// node_modules/yaml/dist/doc/Document.js
+var require_Document = __commonJS({
+  "node_modules/yaml/dist/doc/Document.js"(exports) {
+    "use strict";
+    var Alias = require_Alias();
+    var Collection = require_Collection();
+    var identity = require_identity();
+    var Pair = require_Pair();
+    var toJS = require_toJS();
+    var Schema2 = require_Schema();
+    var stringifyDocument = require_stringifyDocument();
+    var anchors = require_anchors();
+    var applyReviver = require_applyReviver();
+    var createNode = require_createNode();
+    var directives = require_directives();
+    var Document = class _Document {
+      constructor(value, replacer, options) {
+        this.commentBefore = null;
+        this.comment = null;
+        this.errors = [];
+        this.warnings = [];
+        Object.defineProperty(this, identity.NODE_TYPE, { value: identity.DOC });
+        let _replacer = null;
+        if (typeof replacer === "function" || Array.isArray(replacer)) {
+          _replacer = replacer;
+        } else if (options === void 0 && replacer) {
+          options = replacer;
+          replacer = void 0;
+        }
+        const opt = Object.assign({
+          intAsBigInt: false,
+          keepSourceTokens: false,
+          logLevel: "warn",
+          prettyErrors: true,
+          strict: true,
+          stringKeys: false,
+          uniqueKeys: true,
+          version: "1.2"
+        }, options);
+        this.options = opt;
+        let { version } = opt;
+        if (options?._directives) {
+          this.directives = options._directives.atDocument();
+          if (this.directives.yaml.explicit)
+            version = this.directives.yaml.version;
+        } else
+          this.directives = new directives.Directives({ version });
+        this.setSchema(version, options);
+        this.contents = value === void 0 ? null : this.createNode(value, _replacer, options);
+      }
+      /**
+       * Create a deep copy of this Document and its contents.
+       *
+       * Custom Node values that inherit from `Object` still refer to their original instances.
+       */
+      clone() {
+        const copy = Object.create(_Document.prototype, {
+          [identity.NODE_TYPE]: { value: identity.DOC }
+        });
+        copy.commentBefore = this.commentBefore;
+        copy.comment = this.comment;
+        copy.errors = this.errors.slice();
+        copy.warnings = this.warnings.slice();
+        copy.options = Object.assign({}, this.options);
+        if (this.directives)
+          copy.directives = this.directives.clone();
+        copy.schema = this.schema.clone();
+        copy.contents = identity.isNode(this.contents) ? this.contents.clone(copy.schema) : this.contents;
+        if (this.range)
+          copy.range = this.range.slice();
+        return copy;
+      }
+      /** Adds a value to the document. */
+      add(value) {
+        if (assertCollection(this.contents))
+          this.contents.add(value);
+      }
+      /** Adds a value to the document. */
+      addIn(path, value) {
+        if (assertCollection(this.contents))
+          this.contents.addIn(path, value);
+      }
+      /**
+       * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
+       *
+       * If `node` already has an anchor, `name` is ignored.
+       * Otherwise, the `node.anchor` value will be set to `name`,
+       * or if an anchor with that name is already present in the document,
+       * `name` will be used as a prefix for a new unique anchor.
+       * If `name` is undefined, the generated anchor will use 'a' as a prefix.
+       */
+      createAlias(node, name) {
+        if (!node.anchor) {
+          const prev = anchors.anchorNames(this);
+          node.anchor = // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          !name || prev.has(name) ? anchors.findNewAnchor(name || "a", prev) : name;
+        }
+        return new Alias.Alias(node.anchor);
+      }
+      createNode(value, replacer, options) {
+        let _replacer = void 0;
+        if (typeof replacer === "function") {
+          value = replacer.call({ "": value }, "", value);
+          _replacer = replacer;
+        } else if (Array.isArray(replacer)) {
+          const keyToStr = (v) => typeof v === "number" || v instanceof String || v instanceof Number;
+          const asStr = replacer.filter(keyToStr).map(String);
+          if (asStr.length > 0)
+            replacer = replacer.concat(asStr);
+          _replacer = replacer;
+        } else if (options === void 0 && replacer) {
+          options = replacer;
+          replacer = void 0;
+        }
+        const { aliasDuplicateObjects, anchorPrefix, flow, keepUndefined, onTagObj, tag } = options ?? {};
+        const { onAnchor, setAnchors, sourceObjects } = anchors.createNodeAnchors(
+          this,
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          anchorPrefix || "a"
+        );
+        const ctx = {
+          aliasDuplicateObjects: aliasDuplicateObjects ?? true,
+          keepUndefined: keepUndefined ?? false,
+          onAnchor,
+          onTagObj,
+          replacer: _replacer,
+          schema: this.schema,
+          sourceObjects
+        };
+        const node = createNode.createNode(value, tag, ctx);
+        if (flow && identity.isCollection(node))
+          node.flow = true;
+        setAnchors();
+        return node;
+      }
+      /**
+       * Convert a key and a value into a `Pair` using the current schema,
+       * recursively wrapping all values as `Scalar` or `Collection` nodes.
+       */
+      createPair(key, value, options = {}) {
+        const k = this.createNode(key, null, options);
+        const v = this.createNode(value, null, options);
+        return new Pair.Pair(k, v);
+      }
+      /**
+       * Removes a value from the document.
+       * @returns `true` if the item was found and removed.
+       */
+      delete(key) {
+        return assertCollection(this.contents) ? this.contents.delete(key) : false;
+      }
+      /**
+       * Removes a value from the document.
+       * @returns `true` if the item was found and removed.
+       */
+      deleteIn(path) {
+        if (Collection.isEmptyPath(path)) {
+          if (this.contents == null)
+            return false;
+          this.contents = null;
+          return true;
+        }
+        return assertCollection(this.contents) ? this.contents.deleteIn(path) : false;
+      }
+      /**
+       * Returns item at `key`, or `undefined` if not found. By default unwraps
+       * scalar values from their surrounding node; to disable set `keepScalar` to
+       * `true` (collections are always returned intact).
+       */
+      get(key, keepScalar) {
+        return identity.isCollection(this.contents) ? this.contents.get(key, keepScalar) : void 0;
+      }
+      /**
+       * Returns item at `path`, or `undefined` if not found. By default unwraps
+       * scalar values from their surrounding node; to disable set `keepScalar` to
+       * `true` (collections are always returned intact).
+       */
+      getIn(path, keepScalar) {
+        if (Collection.isEmptyPath(path))
+          return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path, keepScalar) : void 0;
+      }
+      /**
+       * Checks if the document includes a value with the key `key`.
+       */
+      has(key) {
+        return identity.isCollection(this.contents) ? this.contents.has(key) : false;
+      }
+      /**
+       * Checks if the document includes a value at `path`.
+       */
+      hasIn(path) {
+        if (Collection.isEmptyPath(path))
+          return this.contents !== void 0;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path) : false;
+      }
+      /**
+       * Sets a value in this document. For `!!set`, `value` needs to be a
+       * boolean to add/remove the item from the set.
+       */
+      set(key, value) {
+        if (this.contents == null) {
+          this.contents = Collection.collectionFromPath(this.schema, [key], value);
+        } else if (assertCollection(this.contents)) {
+          this.contents.set(key, value);
+        }
+      }
+      /**
+       * Sets a value in this document. For `!!set`, `value` needs to be a
+       * boolean to add/remove the item from the set.
+       */
+      setIn(path, value) {
+        if (Collection.isEmptyPath(path)) {
+          this.contents = value;
+        } else if (this.contents == null) {
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path), value);
+        } else if (assertCollection(this.contents)) {
+          this.contents.setIn(path, value);
+        }
+      }
+      /**
+       * Change the YAML version and schema used by the document.
+       * A `null` version disables support for directives, explicit tags, anchors, and aliases.
+       * It also requires the `schema` option to be given as a `Schema` instance value.
+       *
+       * Overrides all previously set schema options.
+       */
+      setSchema(version, options = {}) {
+        if (typeof version === "number")
+          version = String(version);
+        let opt;
+        switch (version) {
+          case "1.1":
+            if (this.directives)
+              this.directives.yaml.version = "1.1";
+            else
+              this.directives = new directives.Directives({ version: "1.1" });
+            opt = { resolveKnownTags: false, schema: "yaml-1.1" };
+            break;
+          case "1.2":
+          case "next":
+            if (this.directives)
+              this.directives.yaml.version = version;
+            else
+              this.directives = new directives.Directives({ version });
+            opt = { resolveKnownTags: true, schema: "core" };
+            break;
+          case null:
+            if (this.directives)
+              delete this.directives;
+            opt = null;
+            break;
+          default: {
+            const sv = JSON.stringify(version);
+            throw new Error(`Expected '1.1', '1.2' or null as first argument, but found: ${sv}`);
+          }
+        }
+        if (options.schema instanceof Object)
+          this.schema = options.schema;
+        else if (opt)
+          this.schema = new Schema2.Schema(Object.assign(opt, options));
+        else
+          throw new Error(`With a null YAML version, the { schema: Schema } option is required`);
+      }
+      // json & jsonArg are only used from toJSON()
+      toJS({ json: json2, jsonArg, mapAsMap, maxAliasCount, onAnchor, reviver } = {}) {
+        const ctx = {
+          anchors: /* @__PURE__ */ new Map(),
+          doc: this,
+          keep: !json2,
+          mapAsMap: mapAsMap === true,
+          mapKeyWarned: false,
+          maxAliasCount: typeof maxAliasCount === "number" ? maxAliasCount : 100
+        };
+        const res = toJS.toJS(this.contents, jsonArg ?? "", ctx);
+        if (typeof onAnchor === "function")
+          for (const { count, res: res2 } of ctx.anchors.values())
+            onAnchor(res2, count);
+        return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
+      }
+      /**
+       * A JSON representation of the document `contents`.
+       *
+       * @param jsonArg Used by `JSON.stringify` to indicate the array index or
+       *   property name.
+       */
+      toJSON(jsonArg, onAnchor) {
+        return this.toJS({ json: true, jsonArg, mapAsMap: false, onAnchor });
+      }
+      /** A YAML representation of the document. */
+      toString(options = {}) {
+        if (this.errors.length > 0)
+          throw new Error("Document with errors cannot be stringified");
+        if ("indent" in options && (!Number.isInteger(options.indent) || Number(options.indent) <= 0)) {
+          const s = JSON.stringify(options.indent);
+          throw new Error(`"indent" option must be a positive integer, not ${s}`);
+        }
+        return stringifyDocument.stringifyDocument(this, options);
+      }
+    };
+    function assertCollection(contents) {
+      if (identity.isCollection(contents))
+        return true;
+      throw new Error("Expected a YAML collection as document contents");
+    }
+    exports.Document = Document;
+  }
+});
+
+// node_modules/yaml/dist/errors.js
+var require_errors2 = __commonJS({
+  "node_modules/yaml/dist/errors.js"(exports) {
+    "use strict";
+    var YAMLError = class extends Error {
+      constructor(name, pos, code, message) {
+        super();
+        this.name = name;
+        this.code = code;
+        this.message = message;
+        this.pos = pos;
+      }
+    };
+    var YAMLParseError = class extends YAMLError {
+      constructor(pos, code, message) {
+        super("YAMLParseError", pos, code, message);
+      }
+    };
+    var YAMLWarning = class extends YAMLError {
+      constructor(pos, code, message) {
+        super("YAMLWarning", pos, code, message);
+      }
+    };
+    var prettifyError = (src, lc) => (error) => {
+      if (error.pos[0] === -1)
+        return;
+      error.linePos = error.pos.map((pos) => lc.linePos(pos));
+      const { line, col } = error.linePos[0];
+      error.message += ` at line ${line}, column ${col}`;
+      let ci = col - 1;
+      let lineStr = src.substring(lc.lineStarts[line - 1], lc.lineStarts[line]).replace(/[\n\r]+$/, "");
+      if (ci >= 60 && lineStr.length > 80) {
+        const trimStart = Math.min(ci - 39, lineStr.length - 79);
+        lineStr = "\u2026" + lineStr.substring(trimStart);
+        ci -= trimStart - 1;
+      }
+      if (lineStr.length > 80)
+        lineStr = lineStr.substring(0, 79) + "\u2026";
+      if (line > 1 && /^ *$/.test(lineStr.substring(0, ci))) {
+        let prev = src.substring(lc.lineStarts[line - 2], lc.lineStarts[line - 1]);
+        if (prev.length > 80)
+          prev = prev.substring(0, 79) + "\u2026\n";
+        lineStr = prev + lineStr;
+      }
+      if (/[^ ]/.test(lineStr)) {
+        let count = 1;
+        const end = error.linePos[1];
+        if (end?.line === line && end.col > col) {
+          count = Math.max(1, Math.min(end.col - col, 80 - ci));
+        }
+        const pointer = " ".repeat(ci) + "^".repeat(count);
+        error.message += `:
+
+${lineStr}
+${pointer}
+`;
+      }
+    };
+    exports.YAMLError = YAMLError;
+    exports.YAMLParseError = YAMLParseError;
+    exports.YAMLWarning = YAMLWarning;
+    exports.prettifyError = prettifyError;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-props.js
+var require_resolve_props = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-props.js"(exports) {
+    "use strict";
+    function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
+      let spaceBefore = false;
+      let atNewline = startOnNewline;
+      let hasSpace = startOnNewline;
+      let comment = "";
+      let commentSep = "";
+      let hasNewline = false;
+      let reqSpace = false;
+      let tab = null;
+      let anchor = null;
+      let tag = null;
+      let newlineAfterProp = null;
+      let comma = null;
+      let found = null;
+      let start = null;
+      for (const token of tokens) {
+        if (reqSpace) {
+          if (token.type !== "space" && token.type !== "newline" && token.type !== "comma")
+            onError(token.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
+          reqSpace = false;
+        }
+        if (tab) {
+          if (atNewline && token.type !== "comment" && token.type !== "newline") {
+            onError(tab, "TAB_AS_INDENT", "Tabs are not allowed as indentation");
+          }
+          tab = null;
+        }
+        switch (token.type) {
+          case "space":
+            if (!flow && (indicator !== "doc-start" || next?.type !== "flow-collection") && token.source.includes("	")) {
+              tab = token;
+            }
+            hasSpace = true;
+            break;
+          case "comment": {
+            if (!hasSpace)
+              onError(token, "MISSING_CHAR", "Comments must be separated from other tokens by white space characters");
+            const cb = token.source.substring(1) || " ";
+            if (!comment)
+              comment = cb;
+            else
+              comment += commentSep + cb;
+            commentSep = "";
+            atNewline = false;
+            break;
+          }
+          case "newline":
+            if (atNewline) {
+              if (comment)
+                comment += token.source;
+              else if (!found || indicator !== "seq-item-ind")
+                spaceBefore = true;
+            } else
+              commentSep += token.source;
+            atNewline = true;
+            hasNewline = true;
+            if (anchor || tag)
+              newlineAfterProp = token;
+            hasSpace = true;
+            break;
+          case "anchor":
+            if (anchor)
+              onError(token, "MULTIPLE_ANCHORS", "A node can have at most one anchor");
+            if (token.source.endsWith(":"))
+              onError(token.offset + token.source.length - 1, "BAD_ALIAS", "Anchor ending in : is ambiguous", true);
+            anchor = token;
+            start ?? (start = token.offset);
+            atNewline = false;
+            hasSpace = false;
+            reqSpace = true;
+            break;
+          case "tag": {
+            if (tag)
+              onError(token, "MULTIPLE_TAGS", "A node can have at most one tag");
+            tag = token;
+            start ?? (start = token.offset);
+            atNewline = false;
+            hasSpace = false;
+            reqSpace = true;
+            break;
+          }
+          case indicator:
+            if (anchor || tag)
+              onError(token, "BAD_PROP_ORDER", `Anchors and tags must be after the ${token.source} indicator`);
+            if (found)
+              onError(token, "UNEXPECTED_TOKEN", `Unexpected ${token.source} in ${flow ?? "collection"}`);
+            found = token;
+            atNewline = indicator === "seq-item-ind" || indicator === "explicit-key-ind";
+            hasSpace = false;
+            break;
+          case "comma":
+            if (flow) {
+              if (comma)
+                onError(token, "UNEXPECTED_TOKEN", `Unexpected , in ${flow}`);
+              comma = token;
+              atNewline = false;
+              hasSpace = false;
+              break;
+            }
+          // else fallthrough
+          default:
+            onError(token, "UNEXPECTED_TOKEN", `Unexpected ${token.type} token`);
+            atNewline = false;
+            hasSpace = false;
+        }
+      }
+      const last = tokens[tokens.length - 1];
+      const end = last ? last.offset + last.source.length : offset;
+      if (reqSpace && next && next.type !== "space" && next.type !== "newline" && next.type !== "comma" && (next.type !== "scalar" || next.source !== "")) {
+        onError(next.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
+      }
+      if (tab && (atNewline && tab.indent <= parentIndent || next?.type === "block-map" || next?.type === "block-seq"))
+        onError(tab, "TAB_AS_INDENT", "Tabs are not allowed as indentation");
+      return {
+        comma,
+        found,
+        spaceBefore,
+        comment,
+        hasNewline,
+        anchor,
+        tag,
+        newlineAfterProp,
+        end,
+        start: start ?? end
+      };
+    }
+    exports.resolveProps = resolveProps;
+  }
+});
+
+// node_modules/yaml/dist/compose/util-contains-newline.js
+var require_util_contains_newline = __commonJS({
+  "node_modules/yaml/dist/compose/util-contains-newline.js"(exports) {
+    "use strict";
+    function containsNewline(key) {
+      if (!key)
+        return null;
+      switch (key.type) {
+        case "alias":
+        case "scalar":
+        case "double-quoted-scalar":
+        case "single-quoted-scalar":
+          if (key.source.includes("\n"))
+            return true;
+          if (key.end) {
+            for (const st of key.end)
+              if (st.type === "newline")
+                return true;
+          }
+          return false;
+        case "flow-collection":
+          for (const it of key.items) {
+            for (const st of it.start)
+              if (st.type === "newline")
+                return true;
+            if (it.sep) {
+              for (const st of it.sep)
+                if (st.type === "newline")
+                  return true;
+            }
+            if (containsNewline(it.key) || containsNewline(it.value))
+              return true;
+          }
+          return false;
+        default:
+          return true;
+      }
+    }
+    exports.containsNewline = containsNewline;
+  }
+});
+
+// node_modules/yaml/dist/compose/util-flow-indent-check.js
+var require_util_flow_indent_check = __commonJS({
+  "node_modules/yaml/dist/compose/util-flow-indent-check.js"(exports) {
+    "use strict";
+    var utilContainsNewline = require_util_contains_newline();
+    function flowIndentCheck(indent, fc, onError) {
+      if (fc?.type === "flow-collection") {
+        const end = fc.end[0];
+        if (end.indent === indent && (end.source === "]" || end.source === "}") && utilContainsNewline.containsNewline(fc)) {
+          const msg = "Flow end indicator should be more indented than parent";
+          onError(end, "BAD_INDENT", msg, true);
+        }
+      }
+    }
+    exports.flowIndentCheck = flowIndentCheck;
+  }
+});
+
+// node_modules/yaml/dist/compose/util-map-includes.js
+var require_util_map_includes = __commonJS({
+  "node_modules/yaml/dist/compose/util-map-includes.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    function mapIncludes(ctx, items, search) {
+      const { uniqueKeys } = ctx.options;
+      if (uniqueKeys === false)
+        return false;
+      const isEqual = typeof uniqueKeys === "function" ? uniqueKeys : (a, b) => a === b || identity.isScalar(a) && identity.isScalar(b) && a.value === b.value;
+      return items.some((pair) => isEqual(pair.key, search));
+    }
+    exports.mapIncludes = mapIncludes;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-block-map.js
+var require_resolve_block_map = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-block-map.js"(exports) {
+    "use strict";
+    var Pair = require_Pair();
+    var YAMLMap = require_YAMLMap();
+    var resolveProps = require_resolve_props();
+    var utilContainsNewline = require_util_contains_newline();
+    var utilFlowIndentCheck = require_util_flow_indent_check();
+    var utilMapIncludes = require_util_map_includes();
+    var startColMsg = "All mapping items must start at the same column";
+    function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError, tag) {
+      const NodeClass = tag?.nodeClass ?? YAMLMap.YAMLMap;
+      const map2 = new NodeClass(ctx.schema);
+      if (ctx.atRoot)
+        ctx.atRoot = false;
+      let offset = bm.offset;
+      let commentEnd = null;
+      for (const collItem of bm.items) {
+        const { start, key, sep, value } = collItem;
+        const keyProps = resolveProps.resolveProps(start, {
+          indicator: "explicit-key-ind",
+          next: key ?? sep?.[0],
+          offset,
+          onError,
+          parentIndent: bm.indent,
+          startOnNewline: true
+        });
+        const implicitKey = !keyProps.found;
+        if (implicitKey) {
+          if (key) {
+            if (key.type === "block-seq")
+              onError(offset, "BLOCK_AS_IMPLICIT_KEY", "A block sequence may not be used as an implicit map key");
+            else if ("indent" in key && key.indent !== bm.indent)
+              onError(offset, "BAD_INDENT", startColMsg);
+          }
+          if (!keyProps.anchor && !keyProps.tag && !sep) {
+            commentEnd = keyProps.end;
+            if (keyProps.comment) {
+              if (map2.comment)
+                map2.comment += "\n" + keyProps.comment;
+              else
+                map2.comment = keyProps.comment;
+            }
+            continue;
+          }
+          if (keyProps.newlineAfterProp || utilContainsNewline.containsNewline(key)) {
+            onError(key ?? start[start.length - 1], "MULTILINE_IMPLICIT_KEY", "Implicit keys need to be on a single line");
+          }
+        } else if (keyProps.found?.indent !== bm.indent) {
+          onError(offset, "BAD_INDENT", startColMsg);
+        }
+        ctx.atKey = true;
+        const keyStart = keyProps.end;
+        const keyNode = key ? composeNode(ctx, key, keyProps, onError) : composeEmptyNode(ctx, keyStart, start, null, keyProps, onError);
+        if (ctx.schema.compat)
+          utilFlowIndentCheck.flowIndentCheck(bm.indent, key, onError);
+        ctx.atKey = false;
+        if (utilMapIncludes.mapIncludes(ctx, map2.items, keyNode))
+          onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
+        const valueProps = resolveProps.resolveProps(sep ?? [], {
+          indicator: "map-value-ind",
+          next: value,
+          offset: keyNode.range[2],
+          onError,
+          parentIndent: bm.indent,
+          startOnNewline: !key || key.type === "block-scalar"
+        });
+        offset = valueProps.end;
+        if (valueProps.found) {
+          if (implicitKey) {
+            if (value?.type === "block-map" && !valueProps.hasNewline)
+              onError(offset, "BLOCK_AS_IMPLICIT_KEY", "Nested mappings are not allowed in compact mappings");
+            if (ctx.options.strict && keyProps.start < valueProps.found.offset - 1024)
+              onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
+          }
+          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : composeEmptyNode(ctx, offset, sep, null, valueProps, onError);
+          if (ctx.schema.compat)
+            utilFlowIndentCheck.flowIndentCheck(bm.indent, value, onError);
+          offset = valueNode.range[2];
+          const pair = new Pair.Pair(keyNode, valueNode);
+          if (ctx.options.keepSourceTokens)
+            pair.srcToken = collItem;
+          map2.items.push(pair);
+        } else {
+          if (implicitKey)
+            onError(keyNode.range, "MISSING_CHAR", "Implicit map keys need to be followed by map values");
+          if (valueProps.comment) {
+            if (keyNode.comment)
+              keyNode.comment += "\n" + valueProps.comment;
+            else
+              keyNode.comment = valueProps.comment;
+          }
+          const pair = new Pair.Pair(keyNode);
+          if (ctx.options.keepSourceTokens)
+            pair.srcToken = collItem;
+          map2.items.push(pair);
+        }
+      }
+      if (commentEnd && commentEnd < offset)
+        onError(commentEnd, "IMPOSSIBLE", "Map comment with trailing content");
+      map2.range = [bm.offset, offset, commentEnd ?? offset];
+      return map2;
+    }
+    exports.resolveBlockMap = resolveBlockMap;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-block-seq.js
+var require_resolve_block_seq = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-block-seq.js"(exports) {
+    "use strict";
+    var YAMLSeq = require_YAMLSeq();
+    var resolveProps = require_resolve_props();
+    var utilFlowIndentCheck = require_util_flow_indent_check();
+    function resolveBlockSeq({ composeNode, composeEmptyNode }, ctx, bs, onError, tag) {
+      const NodeClass = tag?.nodeClass ?? YAMLSeq.YAMLSeq;
+      const seq2 = new NodeClass(ctx.schema);
+      if (ctx.atRoot)
+        ctx.atRoot = false;
+      if (ctx.atKey)
+        ctx.atKey = false;
+      let offset = bs.offset;
+      let commentEnd = null;
+      for (const { start, value } of bs.items) {
+        const props = resolveProps.resolveProps(start, {
+          indicator: "seq-item-ind",
+          next: value,
+          offset,
+          onError,
+          parentIndent: bs.indent,
+          startOnNewline: true
+        });
+        if (!props.found) {
+          if (props.anchor || props.tag || value) {
+            if (value?.type === "block-seq")
+              onError(props.end, "BAD_INDENT", "All sequence items must start at the same column");
+            else
+              onError(offset, "MISSING_CHAR", "Sequence item without - indicator");
+          } else {
+            commentEnd = props.end;
+            if (props.comment)
+              seq2.comment = props.comment;
+            continue;
+          }
+        }
+        const node = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, start, null, props, onError);
+        if (ctx.schema.compat)
+          utilFlowIndentCheck.flowIndentCheck(bs.indent, value, onError);
+        offset = node.range[2];
+        seq2.items.push(node);
+      }
+      seq2.range = [bs.offset, offset, commentEnd ?? offset];
+      return seq2;
+    }
+    exports.resolveBlockSeq = resolveBlockSeq;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-end.js
+var require_resolve_end = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-end.js"(exports) {
+    "use strict";
+    function resolveEnd(end, offset, reqSpace, onError) {
+      let comment = "";
+      if (end) {
+        let hasSpace = false;
+        let sep = "";
+        for (const token of end) {
+          const { source, type: type2 } = token;
+          switch (type2) {
+            case "space":
+              hasSpace = true;
+              break;
+            case "comment": {
+              if (reqSpace && !hasSpace)
+                onError(token, "MISSING_CHAR", "Comments must be separated from other tokens by white space characters");
+              const cb = source.substring(1) || " ";
+              if (!comment)
+                comment = cb;
+              else
+                comment += sep + cb;
+              sep = "";
+              break;
+            }
+            case "newline":
+              if (comment)
+                sep += source;
+              hasSpace = true;
+              break;
+            default:
+              onError(token, "UNEXPECTED_TOKEN", `Unexpected ${type2} at node end`);
+          }
+          offset += source.length;
+        }
+      }
+      return { comment, offset };
+    }
+    exports.resolveEnd = resolveEnd;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-flow-collection.js
+var require_resolve_flow_collection = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-flow-collection.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Pair = require_Pair();
+    var YAMLMap = require_YAMLMap();
+    var YAMLSeq = require_YAMLSeq();
+    var resolveEnd = require_resolve_end();
+    var resolveProps = require_resolve_props();
+    var utilContainsNewline = require_util_contains_newline();
+    var utilMapIncludes = require_util_map_includes();
+    var blockMsg = "Block collections are not allowed within flow collections";
+    var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
+    function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onError, tag) {
+      const isMap = fc.start.source === "{";
+      const fcName = isMap ? "flow map" : "flow sequence";
+      const NodeClass = tag?.nodeClass ?? (isMap ? YAMLMap.YAMLMap : YAMLSeq.YAMLSeq);
+      const coll = new NodeClass(ctx.schema);
+      coll.flow = true;
+      const atRoot = ctx.atRoot;
+      if (atRoot)
+        ctx.atRoot = false;
+      if (ctx.atKey)
+        ctx.atKey = false;
+      let offset = fc.offset + fc.start.source.length;
+      for (let i = 0; i < fc.items.length; ++i) {
+        const collItem = fc.items[i];
+        const { start, key, sep, value } = collItem;
+        const props = resolveProps.resolveProps(start, {
+          flow: fcName,
+          indicator: "explicit-key-ind",
+          next: key ?? sep?.[0],
+          offset,
+          onError,
+          parentIndent: fc.indent,
+          startOnNewline: false
+        });
+        if (!props.found) {
+          if (!props.anchor && !props.tag && !sep && !value) {
+            if (i === 0 && props.comma)
+              onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
+            else if (i < fc.items.length - 1)
+              onError(props.start, "UNEXPECTED_TOKEN", `Unexpected empty item in ${fcName}`);
+            if (props.comment) {
+              if (coll.comment)
+                coll.comment += "\n" + props.comment;
+              else
+                coll.comment = props.comment;
+            }
+            offset = props.end;
+            continue;
+          }
+          if (!isMap && ctx.options.strict && utilContainsNewline.containsNewline(key))
+            onError(
+              key,
+              // checked by containsNewline()
+              "MULTILINE_IMPLICIT_KEY",
+              "Implicit keys of flow sequence pairs need to be on a single line"
+            );
+        }
+        if (i === 0) {
+          if (props.comma)
+            onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
+        } else {
+          if (!props.comma)
+            onError(props.start, "MISSING_CHAR", `Missing , between ${fcName} items`);
+          if (props.comment) {
+            let prevItemComment = "";
+            loop: for (const st of start) {
+              switch (st.type) {
+                case "comma":
+                case "space":
+                  break;
+                case "comment":
+                  prevItemComment = st.source.substring(1);
+                  break loop;
+                default:
+                  break loop;
+              }
+            }
+            if (prevItemComment) {
+              let prev = coll.items[coll.items.length - 1];
+              if (identity.isPair(prev))
+                prev = prev.value ?? prev.key;
+              if (prev.comment)
+                prev.comment += "\n" + prevItemComment;
+              else
+                prev.comment = prevItemComment;
+              props.comment = props.comment.substring(prevItemComment.length + 1);
+            }
+          }
+        }
+        if (!isMap && !sep && !props.found) {
+          const valueNode = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, sep, null, props, onError);
+          coll.items.push(valueNode);
+          offset = valueNode.range[2];
+          if (isBlock(value))
+            onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
+        } else {
+          ctx.atKey = true;
+          const keyStart = props.end;
+          const keyNode = key ? composeNode(ctx, key, props, onError) : composeEmptyNode(ctx, keyStart, start, null, props, onError);
+          if (isBlock(key))
+            onError(keyNode.range, "BLOCK_IN_FLOW", blockMsg);
+          ctx.atKey = false;
+          const valueProps = resolveProps.resolveProps(sep ?? [], {
+            flow: fcName,
+            indicator: "map-value-ind",
+            next: value,
+            offset: keyNode.range[2],
+            onError,
+            parentIndent: fc.indent,
+            startOnNewline: false
+          });
+          if (valueProps.found) {
+            if (!isMap && !props.found && ctx.options.strict) {
+              if (sep)
+                for (const st of sep) {
+                  if (st === valueProps.found)
+                    break;
+                  if (st.type === "newline") {
+                    onError(st, "MULTILINE_IMPLICIT_KEY", "Implicit keys of flow sequence pairs need to be on a single line");
+                    break;
+                  }
+                }
+              if (props.start < valueProps.found.offset - 1024)
+                onError(valueProps.found, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit flow sequence key");
+            }
+          } else if (value) {
+            if ("source" in value && value.source?.[0] === ":")
+              onError(value, "MISSING_CHAR", `Missing space after : in ${fcName}`);
+            else
+              onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
+          }
+          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep, null, valueProps, onError) : null;
+          if (valueNode) {
+            if (isBlock(value))
+              onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
+          } else if (valueProps.comment) {
+            if (keyNode.comment)
+              keyNode.comment += "\n" + valueProps.comment;
+            else
+              keyNode.comment = valueProps.comment;
+          }
+          const pair = new Pair.Pair(keyNode, valueNode);
+          if (ctx.options.keepSourceTokens)
+            pair.srcToken = collItem;
+          if (isMap) {
+            const map2 = coll;
+            if (utilMapIncludes.mapIncludes(ctx, map2.items, keyNode))
+              onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
+            map2.items.push(pair);
+          } else {
+            const map2 = new YAMLMap.YAMLMap(ctx.schema);
+            map2.flow = true;
+            map2.items.push(pair);
+            const endRange = (valueNode ?? keyNode).range;
+            map2.range = [keyNode.range[0], endRange[1], endRange[2]];
+            coll.items.push(map2);
+          }
+          offset = valueNode ? valueNode.range[2] : valueProps.end;
+        }
+      }
+      const expectedEnd = isMap ? "}" : "]";
+      const [ce, ...ee] = fc.end;
+      let cePos = offset;
+      if (ce?.source === expectedEnd)
+        cePos = ce.offset + ce.source.length;
+      else {
+        const name = fcName[0].toUpperCase() + fcName.substring(1);
+        const msg = atRoot ? `${name} must end with a ${expectedEnd}` : `${name} in block collection must be sufficiently indented and end with a ${expectedEnd}`;
+        onError(offset, atRoot ? "MISSING_CHAR" : "BAD_INDENT", msg);
+        if (ce && ce.source.length !== 1)
+          ee.unshift(ce);
+      }
+      if (ee.length > 0) {
+        const end = resolveEnd.resolveEnd(ee, cePos, ctx.options.strict, onError);
+        if (end.comment) {
+          if (coll.comment)
+            coll.comment += "\n" + end.comment;
+          else
+            coll.comment = end.comment;
+        }
+        coll.range = [fc.offset, cePos, end.offset];
+      } else {
+        coll.range = [fc.offset, cePos, cePos];
+      }
+      return coll;
+    }
+    exports.resolveFlowCollection = resolveFlowCollection;
+  }
+});
+
+// node_modules/yaml/dist/compose/compose-collection.js
+var require_compose_collection = __commonJS({
+  "node_modules/yaml/dist/compose/compose-collection.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Scalar = require_Scalar();
+    var YAMLMap = require_YAMLMap();
+    var YAMLSeq = require_YAMLSeq();
+    var resolveBlockMap = require_resolve_block_map();
+    var resolveBlockSeq = require_resolve_block_seq();
+    var resolveFlowCollection = require_resolve_flow_collection();
+    function resolveCollection(CN, ctx, token, onError, tagName, tag) {
+      const coll = token.type === "block-map" ? resolveBlockMap.resolveBlockMap(CN, ctx, token, onError, tag) : token.type === "block-seq" ? resolveBlockSeq.resolveBlockSeq(CN, ctx, token, onError, tag) : resolveFlowCollection.resolveFlowCollection(CN, ctx, token, onError, tag);
+      const Coll = coll.constructor;
+      if (tagName === "!" || tagName === Coll.tagName) {
+        coll.tag = Coll.tagName;
+        return coll;
+      }
+      if (tagName)
+        coll.tag = tagName;
+      return coll;
+    }
+    function composeCollection(CN, ctx, token, props, onError) {
+      const tagToken = props.tag;
+      const tagName = !tagToken ? null : ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg));
+      if (token.type === "block-seq") {
+        const { anchor, newlineAfterProp: nl } = props;
+        const lastProp = anchor && tagToken ? anchor.offset > tagToken.offset ? anchor : tagToken : anchor ?? tagToken;
+        if (lastProp && (!nl || nl.offset < lastProp.offset)) {
+          const message = "Missing newline after block sequence props";
+          onError(lastProp, "MISSING_CHAR", message);
+        }
+      }
+      const expType = token.type === "block-map" ? "map" : token.type === "block-seq" ? "seq" : token.start.source === "{" ? "map" : "seq";
+      if (!tagToken || !tagName || tagName === "!" || tagName === YAMLMap.YAMLMap.tagName && expType === "map" || tagName === YAMLSeq.YAMLSeq.tagName && expType === "seq") {
+        return resolveCollection(CN, ctx, token, onError, tagName);
+      }
+      let tag = ctx.schema.tags.find((t) => t.tag === tagName && t.collection === expType);
+      if (!tag) {
+        const kt = ctx.schema.knownTags[tagName];
+        if (kt?.collection === expType) {
+          ctx.schema.tags.push(Object.assign({}, kt, { default: false }));
+          tag = kt;
+        } else {
+          if (kt) {
+            onError(tagToken, "BAD_COLLECTION_TYPE", `${kt.tag} used for ${expType} collection, but expects ${kt.collection ?? "scalar"}`, true);
+          } else {
+            onError(tagToken, "TAG_RESOLVE_FAILED", `Unresolved tag: ${tagName}`, true);
+          }
+          return resolveCollection(CN, ctx, token, onError, tagName);
+        }
+      }
+      const coll = resolveCollection(CN, ctx, token, onError, tagName, tag);
+      const res = tag.resolve?.(coll, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg), ctx.options) ?? coll;
+      const node = identity.isNode(res) ? res : new Scalar.Scalar(res);
+      node.range = coll.range;
+      node.tag = tagName;
+      if (tag?.format)
+        node.format = tag.format;
+      return node;
+    }
+    exports.composeCollection = composeCollection;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-block-scalar.js
+var require_resolve_block_scalar = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-block-scalar.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    function resolveBlockScalar(ctx, scalar, onError) {
+      const start = scalar.offset;
+      const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
+      if (!header)
+        return { value: "", type: null, comment: "", range: [start, start, start] };
+      const type2 = header.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
+      const lines = scalar.source ? splitLines(scalar.source) : [];
+      let chompStart = lines.length;
+      for (let i = lines.length - 1; i >= 0; --i) {
+        const content = lines[i][1];
+        if (content === "" || content === "\r")
+          chompStart = i;
+        else
+          break;
+      }
+      if (chompStart === 0) {
+        const value2 = header.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
+        let end2 = start + header.length;
+        if (scalar.source)
+          end2 += scalar.source.length;
+        return { value: value2, type: type2, comment: header.comment, range: [start, end2, end2] };
+      }
+      let trimIndent = scalar.indent + header.indent;
+      let offset = scalar.offset + header.length;
+      let contentStart = 0;
+      for (let i = 0; i < chompStart; ++i) {
+        const [indent, content] = lines[i];
+        if (content === "" || content === "\r") {
+          if (header.indent === 0 && indent.length > trimIndent)
+            trimIndent = indent.length;
+        } else {
+          if (indent.length < trimIndent) {
+            const message = "Block scalars with more-indented leading empty lines must use an explicit indentation indicator";
+            onError(offset + indent.length, "MISSING_CHAR", message);
+          }
+          if (header.indent === 0)
+            trimIndent = indent.length;
+          contentStart = i;
+          if (trimIndent === 0 && !ctx.atRoot) {
+            const message = "Block scalar values in collections must be indented";
+            onError(offset, "BAD_INDENT", message);
+          }
+          break;
+        }
+        offset += indent.length + content.length + 1;
+      }
+      for (let i = lines.length - 1; i >= chompStart; --i) {
+        if (lines[i][0].length > trimIndent)
+          chompStart = i + 1;
+      }
+      let value = "";
+      let sep = "";
+      let prevMoreIndented = false;
+      for (let i = 0; i < contentStart; ++i)
+        value += lines[i][0].slice(trimIndent) + "\n";
+      for (let i = contentStart; i < chompStart; ++i) {
+        let [indent, content] = lines[i];
+        offset += indent.length + content.length + 1;
+        const crlf = content[content.length - 1] === "\r";
+        if (crlf)
+          content = content.slice(0, -1);
+        if (content && indent.length < trimIndent) {
+          const src = header.indent ? "explicit indentation indicator" : "first line";
+          const message = `Block scalar lines must not be less indented than their ${src}`;
+          onError(offset - content.length - (crlf ? 2 : 1), "BAD_INDENT", message);
+          indent = "";
+        }
+        if (type2 === Scalar.Scalar.BLOCK_LITERAL) {
+          value += sep + indent.slice(trimIndent) + content;
+          sep = "\n";
+        } else if (indent.length > trimIndent || content[0] === "	") {
+          if (sep === " ")
+            sep = "\n";
+          else if (!prevMoreIndented && sep === "\n")
+            sep = "\n\n";
+          value += sep + indent.slice(trimIndent) + content;
+          sep = "\n";
+          prevMoreIndented = true;
+        } else if (content === "") {
+          if (sep === "\n")
+            value += "\n";
+          else
+            sep = "\n";
+        } else {
+          value += sep + content;
+          sep = " ";
+          prevMoreIndented = false;
+        }
+      }
+      switch (header.chomp) {
+        case "-":
+          break;
+        case "+":
+          for (let i = chompStart; i < lines.length; ++i)
+            value += "\n" + lines[i][0].slice(trimIndent);
+          if (value[value.length - 1] !== "\n")
+            value += "\n";
+          break;
+        default:
+          value += "\n";
+      }
+      const end = start + header.length + scalar.source.length;
+      return { value, type: type2, comment: header.comment, range: [start, end, end] };
+    }
+    function parseBlockScalarHeader({ offset, props }, strict, onError) {
+      if (props[0].type !== "block-scalar-header") {
+        onError(props[0], "IMPOSSIBLE", "Block scalar header not found");
+        return null;
+      }
+      const { source } = props[0];
+      const mode = source[0];
+      let indent = 0;
+      let chomp = "";
+      let error = -1;
+      for (let i = 1; i < source.length; ++i) {
+        const ch = source[i];
+        if (!chomp && (ch === "-" || ch === "+"))
+          chomp = ch;
+        else {
+          const n = Number(ch);
+          if (!indent && n)
+            indent = n;
+          else if (error === -1)
+            error = offset + i;
+        }
+      }
+      if (error !== -1)
+        onError(error, "UNEXPECTED_TOKEN", `Block scalar header includes extra characters: ${source}`);
+      let hasSpace = false;
+      let comment = "";
+      let length = source.length;
+      for (let i = 1; i < props.length; ++i) {
+        const token = props[i];
+        switch (token.type) {
+          case "space":
+            hasSpace = true;
+          // fallthrough
+          case "newline":
+            length += token.source.length;
+            break;
+          case "comment":
+            if (strict && !hasSpace) {
+              const message = "Comments must be separated from other tokens by white space characters";
+              onError(token, "MISSING_CHAR", message);
+            }
+            length += token.source.length;
+            comment = token.source.substring(1);
+            break;
+          case "error":
+            onError(token, "UNEXPECTED_TOKEN", token.message);
+            length += token.source.length;
+            break;
+          /* istanbul ignore next should not happen */
+          default: {
+            const message = `Unexpected token in block scalar header: ${token.type}`;
+            onError(token, "UNEXPECTED_TOKEN", message);
+            const ts = token.source;
+            if (ts && typeof ts === "string")
+              length += ts.length;
+          }
+        }
+      }
+      return { mode, indent, chomp, comment, length };
+    }
+    function splitLines(source) {
+      const split = source.split(/\n( *)/);
+      const first = split[0];
+      const m = first.match(/^( *)/);
+      const line0 = m?.[1] ? [m[1], first.slice(m[1].length)] : ["", first];
+      const lines = [line0];
+      for (let i = 1; i < split.length; i += 2)
+        lines.push([split[i], split[i + 1]]);
+      return lines;
+    }
+    exports.resolveBlockScalar = resolveBlockScalar;
+  }
+});
+
+// node_modules/yaml/dist/compose/resolve-flow-scalar.js
+var require_resolve_flow_scalar = __commonJS({
+  "node_modules/yaml/dist/compose/resolve-flow-scalar.js"(exports) {
+    "use strict";
+    var Scalar = require_Scalar();
+    var resolveEnd = require_resolve_end();
+    function resolveFlowScalar(scalar, strict, onError) {
+      const { offset, type: type2, source, end } = scalar;
+      let _type;
+      let value;
+      const _onError = (rel, code, msg) => onError(offset + rel, code, msg);
+      switch (type2) {
+        case "scalar":
+          _type = Scalar.Scalar.PLAIN;
+          value = plainValue(source, _onError);
+          break;
+        case "single-quoted-scalar":
+          _type = Scalar.Scalar.QUOTE_SINGLE;
+          value = singleQuotedValue(source, _onError);
+          break;
+        case "double-quoted-scalar":
+          _type = Scalar.Scalar.QUOTE_DOUBLE;
+          value = doubleQuotedValue(source, _onError);
+          break;
+        /* istanbul ignore next should not happen */
+        default:
+          onError(scalar, "UNEXPECTED_TOKEN", `Expected a flow scalar value, but found: ${type2}`);
+          return {
+            value: "",
+            type: null,
+            comment: "",
+            range: [offset, offset + source.length, offset + source.length]
+          };
+      }
+      const valueEnd = offset + source.length;
+      const re = resolveEnd.resolveEnd(end, valueEnd, strict, onError);
+      return {
+        value,
+        type: _type,
+        comment: re.comment,
+        range: [offset, valueEnd, re.offset]
+      };
+    }
+    function plainValue(source, onError) {
+      let badChar = "";
+      switch (source[0]) {
+        /* istanbul ignore next should not happen */
+        case "	":
+          badChar = "a tab character";
+          break;
+        case ",":
+          badChar = "flow indicator character ,";
+          break;
+        case "%":
+          badChar = "directive indicator character %";
+          break;
+        case "|":
+        case ">": {
+          badChar = `block scalar indicator ${source[0]}`;
+          break;
+        }
+        case "@":
+        case "`": {
+          badChar = `reserved character ${source[0]}`;
+          break;
+        }
+      }
+      if (badChar)
+        onError(0, "BAD_SCALAR_START", `Plain value cannot start with ${badChar}`);
+      return unfoldLines(source);
+    }
+    function singleQuotedValue(source, onError) {
+      if (source[source.length - 1] !== "'" || source.length === 1)
+        onError(source.length, "MISSING_CHAR", "Missing closing 'quote");
+      return unfoldLines(source.slice(1, -1)).replace(/''/g, "'");
+    }
+    function unfoldLines(source) {
+      const line = /(.*?)\r?\n/sy;
+      let match = line.exec(source);
+      if (!match)
+        return source;
+      let trimEnd, trimBoth;
+      try {
+        trimEnd = new RegExp("(?<![ 	])[ 	]+$");
+        trimBoth = new RegExp("^[ 	]+|(?<![ 	])[ 	]+$", "g");
+      } catch {
+        trimEnd = /[ \t]+$/;
+        trimBoth = /^[ \t]+|[ \t]+$/g;
+      }
+      let res = match[1].replace(trimEnd, "");
+      let sep = " ";
+      let pos = line.lastIndex;
+      while (match = line.exec(source)) {
+        const lm = match[1].replace(trimBoth, "");
+        if (lm === "") {
+          if (sep === "\n")
+            res += sep;
+          else
+            sep = "\n";
+        } else {
+          res += sep + lm;
+          sep = " ";
+        }
+        pos = line.lastIndex;
+      }
+      const last = /[ \t]*(.*)/sy;
+      last.lastIndex = pos;
+      match = last.exec(source);
+      return res + sep + (match?.[1] ?? "");
+    }
+    function doubleQuotedValue(source, onError) {
+      let res = "";
+      for (let i = 1; i < source.length - 1; ++i) {
+        const ch = source[i];
+        if (ch === "\r" && source[i + 1] === "\n")
+          continue;
+        if (ch === "\n") {
+          const { fold, offset } = foldNewline(source, i);
+          res += fold;
+          i = offset;
+        } else if (ch === "\\") {
+          let next = source[++i];
+          const cc = escapeCodes[next];
+          if (cc)
+            res += cc;
+          else if (next === "\n") {
+            next = source[i + 1];
+            while (next === " " || next === "	")
+              next = source[++i + 1];
+          } else if (next === "\r" && source[i + 1] === "\n") {
+            next = source[++i + 1];
+            while (next === " " || next === "	")
+              next = source[++i + 1];
+          } else if (next === "x" || next === "u" || next === "U") {
+            const length = next === "x" ? 2 : next === "u" ? 4 : 8;
+            res += parseCharCode(source, i + 1, length, onError);
+            i += length;
+          } else {
+            const raw = source.substr(i - 1, 2);
+            onError(i - 1, "BAD_DQ_ESCAPE", `Invalid escape sequence ${raw}`);
+            res += raw;
+          }
+        } else if (ch === " " || ch === "	") {
+          const wsStart = i;
+          let next = source[i + 1];
+          while (next === " " || next === "	")
+            next = source[++i + 1];
+          if (next !== "\n" && !(next === "\r" && source[i + 2] === "\n"))
+            res += i > wsStart ? source.slice(wsStart, i + 1) : ch;
+        } else {
+          res += ch;
+        }
+      }
+      if (source[source.length - 1] !== '"' || source.length === 1)
+        onError(source.length, "MISSING_CHAR", 'Missing closing "quote');
+      return res;
+    }
+    function foldNewline(source, offset) {
+      let fold = "";
+      let ch = source[offset + 1];
+      while (ch === " " || ch === "	" || ch === "\n" || ch === "\r") {
+        if (ch === "\r" && source[offset + 2] !== "\n")
+          break;
+        if (ch === "\n")
+          fold += "\n";
+        offset += 1;
+        ch = source[offset + 1];
+      }
+      if (!fold)
+        fold = " ";
+      return { fold, offset };
+    }
+    var escapeCodes = {
+      "0": "\0",
+      // null character
+      a: "\x07",
+      // bell character
+      b: "\b",
+      // backspace
+      e: "\x1B",
+      // escape character
+      f: "\f",
+      // form feed
+      n: "\n",
+      // line feed
+      r: "\r",
+      // carriage return
+      t: "	",
+      // horizontal tab
+      v: "\v",
+      // vertical tab
+      N: "\x85",
+      // Unicode next line
+      _: "\xA0",
+      // Unicode non-breaking space
+      L: "\u2028",
+      // Unicode line separator
+      P: "\u2029",
+      // Unicode paragraph separator
+      " ": " ",
+      '"': '"',
+      "/": "/",
+      "\\": "\\",
+      "	": "	"
+    };
+    function parseCharCode(source, offset, length, onError) {
+      const cc = source.substr(offset, length);
+      const ok = cc.length === length && /^[0-9a-fA-F]+$/.test(cc);
+      const code = ok ? parseInt(cc, 16) : NaN;
+      try {
+        return String.fromCodePoint(code);
+      } catch {
+        const raw = source.substr(offset - 2, length + 2);
+        onError(offset - 2, "BAD_DQ_ESCAPE", `Invalid escape sequence ${raw}`);
+        return raw;
+      }
+    }
+    exports.resolveFlowScalar = resolveFlowScalar;
+  }
+});
+
+// node_modules/yaml/dist/compose/compose-scalar.js
+var require_compose_scalar = __commonJS({
+  "node_modules/yaml/dist/compose/compose-scalar.js"(exports) {
+    "use strict";
+    var identity = require_identity();
+    var Scalar = require_Scalar();
+    var resolveBlockScalar = require_resolve_block_scalar();
+    var resolveFlowScalar = require_resolve_flow_scalar();
+    function composeScalar(ctx, token, tagToken, onError) {
+      const { value, type: type2, comment, range } = token.type === "block-scalar" ? resolveBlockScalar.resolveBlockScalar(ctx, token, onError) : resolveFlowScalar.resolveFlowScalar(token, ctx.options.strict, onError);
+      const tagName = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
+      let tag;
+      if (ctx.options.stringKeys && ctx.atKey) {
+        tag = ctx.schema[identity.SCALAR];
+      } else if (tagName)
+        tag = findScalarTagByName(ctx.schema, value, tagName, tagToken, onError);
+      else if (token.type === "scalar")
+        tag = findScalarTagByTest(ctx, value, token, onError);
+      else
+        tag = ctx.schema[identity.SCALAR];
+      let scalar;
+      try {
+        const res = tag.resolve(value, (msg) => onError(tagToken ?? token, "TAG_RESOLVE_FAILED", msg), ctx.options);
+        scalar = identity.isScalar(res) ? res : new Scalar.Scalar(res);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        onError(tagToken ?? token, "TAG_RESOLVE_FAILED", msg);
+        scalar = new Scalar.Scalar(value);
+      }
+      scalar.range = range;
+      scalar.source = value;
+      if (type2)
+        scalar.type = type2;
+      if (tagName)
+        scalar.tag = tagName;
+      if (tag.format)
+        scalar.format = tag.format;
+      if (comment)
+        scalar.comment = comment;
+      return scalar;
+    }
+    function findScalarTagByName(schema2, value, tagName, tagToken, onError) {
+      if (tagName === "!")
+        return schema2[identity.SCALAR];
+      const matchWithTest = [];
+      for (const tag of schema2.tags) {
+        if (!tag.collection && tag.tag === tagName) {
+          if (tag.default && tag.test)
+            matchWithTest.push(tag);
+          else
+            return tag;
+        }
+      }
+      for (const tag of matchWithTest)
+        if (tag.test?.test(value))
+          return tag;
+      const kt = schema2.knownTags[tagName];
+      if (kt && !kt.collection) {
+        schema2.tags.push(Object.assign({}, kt, { default: false, test: void 0 }));
+        return kt;
+      }
+      onError(tagToken, "TAG_RESOLVE_FAILED", `Unresolved tag: ${tagName}`, tagName !== "tag:yaml.org,2002:str");
+      return schema2[identity.SCALAR];
+    }
+    function findScalarTagByTest({ atKey, directives, schema: schema2 }, value, token, onError) {
+      const tag = schema2.tags.find((tag2) => (tag2.default === true || atKey && tag2.default === "key") && tag2.test?.test(value)) || schema2[identity.SCALAR];
+      if (schema2.compat) {
+        const compat = schema2.compat.find((tag2) => tag2.default && tag2.test?.test(value)) ?? schema2[identity.SCALAR];
+        if (tag.tag !== compat.tag) {
+          const ts = directives.tagString(tag.tag);
+          const cs = directives.tagString(compat.tag);
+          const msg = `Value may be parsed as either ${ts} or ${cs}`;
+          onError(token, "TAG_RESOLVE_FAILED", msg, true);
+        }
+      }
+      return tag;
+    }
+    exports.composeScalar = composeScalar;
+  }
+});
+
+// node_modules/yaml/dist/compose/util-empty-scalar-position.js
+var require_util_empty_scalar_position = __commonJS({
+  "node_modules/yaml/dist/compose/util-empty-scalar-position.js"(exports) {
+    "use strict";
+    function emptyScalarPosition(offset, before, pos) {
+      if (before) {
+        pos ?? (pos = before.length);
+        for (let i = pos - 1; i >= 0; --i) {
+          let st = before[i];
+          switch (st.type) {
+            case "space":
+            case "comment":
+            case "newline":
+              offset -= st.source.length;
+              continue;
+          }
+          st = before[++i];
+          while (st?.type === "space") {
+            offset += st.source.length;
+            st = before[++i];
+          }
+          break;
+        }
+      }
+      return offset;
+    }
+    exports.emptyScalarPosition = emptyScalarPosition;
+  }
+});
+
+// node_modules/yaml/dist/compose/compose-node.js
+var require_compose_node = __commonJS({
+  "node_modules/yaml/dist/compose/compose-node.js"(exports) {
+    "use strict";
+    var Alias = require_Alias();
+    var identity = require_identity();
+    var composeCollection = require_compose_collection();
+    var composeScalar = require_compose_scalar();
+    var resolveEnd = require_resolve_end();
+    var utilEmptyScalarPosition = require_util_empty_scalar_position();
+    var CN = { composeNode, composeEmptyNode };
+    function composeNode(ctx, token, props, onError) {
+      const atKey = ctx.atKey;
+      const { spaceBefore, comment, anchor, tag } = props;
+      let node;
+      let isSrcToken = true;
+      switch (token.type) {
+        case "alias":
+          node = composeAlias(ctx, token, onError);
+          if (anchor || tag)
+            onError(token, "ALIAS_PROPS", "An alias node must not specify any properties");
+          break;
+        case "scalar":
+        case "single-quoted-scalar":
+        case "double-quoted-scalar":
+        case "block-scalar":
+          node = composeScalar.composeScalar(ctx, token, tag, onError);
+          if (anchor)
+            node.anchor = anchor.source.substring(1);
+          break;
+        case "block-map":
+        case "block-seq":
+        case "flow-collection":
+          try {
+            node = composeCollection.composeCollection(CN, ctx, token, props, onError);
+            if (anchor)
+              node.anchor = anchor.source.substring(1);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            onError(token, "RESOURCE_EXHAUSTION", message);
+          }
+          break;
+        default: {
+          const message = token.type === "error" ? token.message : `Unsupported token (type: ${token.type})`;
+          onError(token, "UNEXPECTED_TOKEN", message);
+          isSrcToken = false;
+        }
+      }
+      node ?? (node = composeEmptyNode(ctx, token.offset, void 0, null, props, onError));
+      if (anchor && node.anchor === "")
+        onError(anchor, "BAD_ALIAS", "Anchor cannot be an empty string");
+      if (atKey && ctx.options.stringKeys && (!identity.isScalar(node) || typeof node.value !== "string" || node.tag && node.tag !== "tag:yaml.org,2002:str")) {
+        const msg = "With stringKeys, all keys must be strings";
+        onError(tag ?? token, "NON_STRING_KEY", msg);
+      }
+      if (spaceBefore)
+        node.spaceBefore = true;
+      if (comment) {
+        if (token.type === "scalar" && token.source === "")
+          node.comment = comment;
+        else
+          node.commentBefore = comment;
+      }
+      if (ctx.options.keepSourceTokens && isSrcToken)
+        node.srcToken = token;
+      return node;
+    }
+    function composeEmptyNode(ctx, offset, before, pos, { spaceBefore, comment, anchor, tag, end }, onError) {
+      const token = {
+        type: "scalar",
+        offset: utilEmptyScalarPosition.emptyScalarPosition(offset, before, pos),
+        indent: -1,
+        source: ""
+      };
+      const node = composeScalar.composeScalar(ctx, token, tag, onError);
+      if (anchor) {
+        node.anchor = anchor.source.substring(1);
+        if (node.anchor === "")
+          onError(anchor, "BAD_ALIAS", "Anchor cannot be an empty string");
+      }
+      if (spaceBefore)
+        node.spaceBefore = true;
+      if (comment) {
+        node.comment = comment;
+        node.range[2] = end;
+      }
+      return node;
+    }
+    function composeAlias({ options }, { offset, source, end }, onError) {
+      const alias = new Alias.Alias(source.substring(1));
+      if (alias.source === "")
+        onError(offset, "BAD_ALIAS", "Alias cannot be an empty string");
+      if (alias.source.endsWith(":"))
+        onError(offset + source.length - 1, "BAD_ALIAS", "Alias ending in : is ambiguous", true);
+      const valueEnd = offset + source.length;
+      const re = resolveEnd.resolveEnd(end, valueEnd, options.strict, onError);
+      alias.range = [offset, valueEnd, re.offset];
+      if (re.comment)
+        alias.comment = re.comment;
+      return alias;
+    }
+    exports.composeEmptyNode = composeEmptyNode;
+    exports.composeNode = composeNode;
+  }
+});
+
+// node_modules/yaml/dist/compose/compose-doc.js
+var require_compose_doc = __commonJS({
+  "node_modules/yaml/dist/compose/compose-doc.js"(exports) {
+    "use strict";
+    var Document = require_Document();
+    var composeNode = require_compose_node();
+    var resolveEnd = require_resolve_end();
+    var resolveProps = require_resolve_props();
+    function composeDoc(options, directives, { offset, start, value, end }, onError) {
+      const opts = Object.assign({ _directives: directives }, options);
+      const doc = new Document.Document(void 0, opts);
+      const ctx = {
+        atKey: false,
+        atRoot: true,
+        directives: doc.directives,
+        options: doc.options,
+        schema: doc.schema
+      };
+      const props = resolveProps.resolveProps(start, {
+        indicator: "doc-start",
+        next: value ?? end?.[0],
+        offset,
+        onError,
+        parentIndent: 0,
+        startOnNewline: true
+      });
+      if (props.found) {
+        doc.directives.docStart = true;
+        if (value && (value.type === "block-map" || value.type === "block-seq") && !props.hasNewline)
+          onError(props.end, "MISSING_CHAR", "Block collection cannot start on same line with directives-end marker");
+      }
+      doc.contents = value ? composeNode.composeNode(ctx, value, props, onError) : composeNode.composeEmptyNode(ctx, props.end, start, null, props, onError);
+      const contentEnd = doc.contents.range[2];
+      const re = resolveEnd.resolveEnd(end, contentEnd, false, onError);
+      if (re.comment)
+        doc.comment = re.comment;
+      doc.range = [offset, contentEnd, re.offset];
+      return doc;
+    }
+    exports.composeDoc = composeDoc;
+  }
+});
+
+// node_modules/yaml/dist/compose/composer.js
+var require_composer = __commonJS({
+  "node_modules/yaml/dist/compose/composer.js"(exports) {
+    "use strict";
+    var node_process = __require("process");
+    var directives = require_directives();
+    var Document = require_Document();
+    var errors = require_errors2();
+    var identity = require_identity();
+    var composeDoc = require_compose_doc();
+    var resolveEnd = require_resolve_end();
+    function getErrorPos(src) {
+      if (typeof src === "number")
+        return [src, src + 1];
+      if (Array.isArray(src))
+        return src.length === 2 ? src : [src[0], src[1]];
+      const { offset, source } = src;
+      return [offset, offset + (typeof source === "string" ? source.length : 1)];
+    }
+    function parsePrelude(prelude) {
+      let comment = "";
+      let atComment = false;
+      let afterEmptyLine = false;
+      for (let i = 0; i < prelude.length; ++i) {
+        const source = prelude[i];
+        switch (source[0]) {
+          case "#":
+            comment += (comment === "" ? "" : afterEmptyLine ? "\n\n" : "\n") + (source.substring(1) || " ");
+            atComment = true;
+            afterEmptyLine = false;
+            break;
+          case "%":
+            if (prelude[i + 1]?.[0] !== "#")
+              i += 1;
+            atComment = false;
+            break;
+          default:
+            if (!atComment)
+              afterEmptyLine = true;
+            atComment = false;
+        }
+      }
+      return { comment, afterEmptyLine };
+    }
+    var Composer = class {
+      constructor(options = {}) {
+        this.doc = null;
+        this.atDirectives = false;
+        this.prelude = [];
+        this.errors = [];
+        this.warnings = [];
+        this.onError = (source, code, message, warning) => {
+          const pos = getErrorPos(source);
+          if (warning)
+            this.warnings.push(new errors.YAMLWarning(pos, code, message));
+          else
+            this.errors.push(new errors.YAMLParseError(pos, code, message));
+        };
+        this.directives = new directives.Directives({ version: options.version || "1.2" });
+        this.options = options;
+      }
+      decorate(doc, afterDoc) {
+        const { comment, afterEmptyLine } = parsePrelude(this.prelude);
+        if (comment) {
+          const dc = doc.contents;
+          if (afterDoc) {
+            doc.comment = doc.comment ? `${doc.comment}
+${comment}` : comment;
+          } else if (afterEmptyLine || doc.directives.docStart || !dc) {
+            doc.commentBefore = comment;
+          } else if (identity.isCollection(dc) && !dc.flow && dc.items.length > 0) {
+            let it = dc.items[0];
+            if (identity.isPair(it))
+              it = it.key;
+            const cb = it.commentBefore;
+            it.commentBefore = cb ? `${comment}
+${cb}` : comment;
+          } else {
+            const cb = dc.commentBefore;
+            dc.commentBefore = cb ? `${comment}
+${cb}` : comment;
+          }
+        }
+        if (afterDoc) {
+          for (let i = 0; i < this.errors.length; ++i)
+            doc.errors.push(this.errors[i]);
+          for (let i = 0; i < this.warnings.length; ++i)
+            doc.warnings.push(this.warnings[i]);
+        } else {
+          doc.errors = this.errors;
+          doc.warnings = this.warnings;
+        }
+        this.prelude = [];
+        this.errors = [];
+        this.warnings = [];
+      }
+      /**
+       * Current stream status information.
+       *
+       * Mostly useful at the end of input for an empty stream.
+       */
+      streamInfo() {
+        return {
+          comment: parsePrelude(this.prelude).comment,
+          directives: this.directives,
+          errors: this.errors,
+          warnings: this.warnings
+        };
+      }
+      /**
+       * Compose tokens into documents.
+       *
+       * @param forceDoc - If the stream contains no document, still emit a final document including any comments and directives that would be applied to a subsequent document.
+       * @param endOffset - Should be set if `forceDoc` is also set, to set the document range end and to indicate errors correctly.
+       */
+      *compose(tokens, forceDoc = false, endOffset = -1) {
+        for (const token of tokens)
+          yield* this.next(token);
+        yield* this.end(forceDoc, endOffset);
+      }
+      /** Advance the composer by one CST token. */
+      *next(token) {
+        if (node_process.env.LOG_STREAM)
+          console.dir(token, { depth: null });
+        switch (token.type) {
+          case "directive":
+            this.directives.add(token.source, (offset, message, warning) => {
+              const pos = getErrorPos(token);
+              pos[0] += offset;
+              this.onError(pos, "BAD_DIRECTIVE", message, warning);
+            });
+            this.prelude.push(token.source);
+            this.atDirectives = true;
+            break;
+          case "document": {
+            const doc = composeDoc.composeDoc(this.options, this.directives, token, this.onError);
+            if (this.atDirectives && !doc.directives.docStart)
+              this.onError(token, "MISSING_CHAR", "Missing directives-end/doc-start indicator line");
+            this.decorate(doc, false);
+            if (this.doc)
+              yield this.doc;
+            this.doc = doc;
+            this.atDirectives = false;
+            break;
+          }
+          case "byte-order-mark":
+          case "space":
+            break;
+          case "comment":
+          case "newline":
+            this.prelude.push(token.source);
+            break;
+          case "error": {
+            const msg = token.source ? `${token.message}: ${JSON.stringify(token.source)}` : token.message;
+            const error = new errors.YAMLParseError(getErrorPos(token), "UNEXPECTED_TOKEN", msg);
+            if (this.atDirectives || !this.doc)
+              this.errors.push(error);
+            else
+              this.doc.errors.push(error);
+            break;
+          }
+          case "doc-end": {
+            if (!this.doc) {
+              const msg = "Unexpected doc-end without preceding document";
+              this.errors.push(new errors.YAMLParseError(getErrorPos(token), "UNEXPECTED_TOKEN", msg));
+              break;
+            }
+            this.doc.directives.docEnd = true;
+            const end = resolveEnd.resolveEnd(token.end, token.offset + token.source.length, this.doc.options.strict, this.onError);
+            this.decorate(this.doc, true);
+            if (end.comment) {
+              const dc = this.doc.comment;
+              this.doc.comment = dc ? `${dc}
+${end.comment}` : end.comment;
+            }
+            this.doc.range[2] = end.offset;
+            break;
+          }
+          default:
+            this.errors.push(new errors.YAMLParseError(getErrorPos(token), "UNEXPECTED_TOKEN", `Unsupported token ${token.type}`));
+        }
+      }
+      /**
+       * Call at end of input to yield any remaining document.
+       *
+       * @param forceDoc - If the stream contains no document, still emit a final document including any comments and directives that would be applied to a subsequent document.
+       * @param endOffset - Should be set if `forceDoc` is also set, to set the document range end and to indicate errors correctly.
+       */
+      *end(forceDoc = false, endOffset = -1) {
+        if (this.doc) {
+          this.decorate(this.doc, true);
+          yield this.doc;
+          this.doc = null;
+        } else if (forceDoc) {
+          const opts = Object.assign({ _directives: this.directives }, this.options);
+          const doc = new Document.Document(void 0, opts);
+          if (this.atDirectives)
+            this.onError(endOffset, "MISSING_CHAR", "Missing directives-end indicator line");
+          doc.range = [0, endOffset, endOffset];
+          this.decorate(doc, false);
+          yield doc;
+        }
+      }
+    };
+    exports.Composer = Composer;
+  }
+});
+
+// node_modules/yaml/dist/parse/cst-scalar.js
+var require_cst_scalar = __commonJS({
+  "node_modules/yaml/dist/parse/cst-scalar.js"(exports) {
+    "use strict";
+    var resolveBlockScalar = require_resolve_block_scalar();
+    var resolveFlowScalar = require_resolve_flow_scalar();
+    var errors = require_errors2();
+    var stringifyString = require_stringifyString();
+    function resolveAsScalar(token, strict = true, onError) {
+      if (token) {
+        const _onError = (pos, code, message) => {
+          const offset = typeof pos === "number" ? pos : Array.isArray(pos) ? pos[0] : pos.offset;
+          if (onError)
+            onError(offset, code, message);
+          else
+            throw new errors.YAMLParseError([offset, offset + 1], code, message);
+        };
+        switch (token.type) {
+          case "scalar":
+          case "single-quoted-scalar":
+          case "double-quoted-scalar":
+            return resolveFlowScalar.resolveFlowScalar(token, strict, _onError);
+          case "block-scalar":
+            return resolveBlockScalar.resolveBlockScalar({ options: { strict } }, token, _onError);
+        }
+      }
+      return null;
+    }
+    function createScalarToken(value, context) {
+      const { implicitKey = false, indent, inFlow = false, offset = -1, type: type2 = "PLAIN" } = context;
+      const source = stringifyString.stringifyString({ type: type2, value }, {
+        implicitKey,
+        indent: indent > 0 ? " ".repeat(indent) : "",
+        inFlow,
+        options: { blockQuote: true, lineWidth: -1 }
+      });
+      const end = context.end ?? [
+        { type: "newline", offset: -1, indent, source: "\n" }
+      ];
+      switch (source[0]) {
+        case "|":
+        case ">": {
+          const he = source.indexOf("\n");
+          const head = source.substring(0, he);
+          const body = source.substring(he + 1) + "\n";
+          const props = [
+            { type: "block-scalar-header", offset, indent, source: head }
+          ];
+          if (!addEndtoBlockProps(props, end))
+            props.push({ type: "newline", offset: -1, indent, source: "\n" });
+          return { type: "block-scalar", offset, indent, props, source: body };
+        }
+        case '"':
+          return { type: "double-quoted-scalar", offset, indent, source, end };
+        case "'":
+          return { type: "single-quoted-scalar", offset, indent, source, end };
+        default:
+          return { type: "scalar", offset, indent, source, end };
+      }
+    }
+    function setScalarValue(token, value, context = {}) {
+      let { afterKey = false, implicitKey = false, inFlow = false, type: type2 } = context;
+      let indent = "indent" in token ? token.indent : null;
+      if (afterKey && typeof indent === "number")
+        indent += 2;
+      if (!type2)
+        switch (token.type) {
+          case "single-quoted-scalar":
+            type2 = "QUOTE_SINGLE";
+            break;
+          case "double-quoted-scalar":
+            type2 = "QUOTE_DOUBLE";
+            break;
+          case "block-scalar": {
+            const header = token.props[0];
+            if (header.type !== "block-scalar-header")
+              throw new Error("Invalid block scalar header");
+            type2 = header.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
+            break;
+          }
+          default:
+            type2 = "PLAIN";
+        }
+      const source = stringifyString.stringifyString({ type: type2, value }, {
+        implicitKey: implicitKey || indent === null,
+        indent: indent !== null && indent > 0 ? " ".repeat(indent) : "",
+        inFlow,
+        options: { blockQuote: true, lineWidth: -1 }
+      });
+      switch (source[0]) {
+        case "|":
+        case ">":
+          setBlockScalarValue(token, source);
+          break;
+        case '"':
+          setFlowScalarValue(token, source, "double-quoted-scalar");
+          break;
+        case "'":
+          setFlowScalarValue(token, source, "single-quoted-scalar");
+          break;
+        default:
+          setFlowScalarValue(token, source, "scalar");
+      }
+    }
+    function setBlockScalarValue(token, source) {
+      const he = source.indexOf("\n");
+      const head = source.substring(0, he);
+      const body = source.substring(he + 1) + "\n";
+      if (token.type === "block-scalar") {
+        const header = token.props[0];
+        if (header.type !== "block-scalar-header")
+          throw new Error("Invalid block scalar header");
+        header.source = head;
+        token.source = body;
+      } else {
+        const { offset } = token;
+        const indent = "indent" in token ? token.indent : -1;
+        const props = [
+          { type: "block-scalar-header", offset, indent, source: head }
+        ];
+        if (!addEndtoBlockProps(props, "end" in token ? token.end : void 0))
+          props.push({ type: "newline", offset: -1, indent, source: "\n" });
+        for (const key of Object.keys(token))
+          if (key !== "type" && key !== "offset")
+            delete token[key];
+        Object.assign(token, { type: "block-scalar", indent, props, source: body });
+      }
+    }
+    function addEndtoBlockProps(props, end) {
+      if (end)
+        for (const st of end)
+          switch (st.type) {
+            case "space":
+            case "comment":
+              props.push(st);
+              break;
+            case "newline":
+              props.push(st);
+              return true;
+          }
+      return false;
+    }
+    function setFlowScalarValue(token, source, type2) {
+      switch (token.type) {
+        case "scalar":
+        case "double-quoted-scalar":
+        case "single-quoted-scalar":
+          token.type = type2;
+          token.source = source;
+          break;
+        case "block-scalar": {
+          const end = token.props.slice(1);
+          let oa = source.length;
+          if (token.props[0].type === "block-scalar-header")
+            oa -= token.props[0].source.length;
+          for (const tok of end)
+            tok.offset += oa;
+          delete token.props;
+          Object.assign(token, { type: type2, source, end });
+          break;
+        }
+        case "block-map":
+        case "block-seq": {
+          const offset = token.offset + source.length;
+          const nl = { type: "newline", offset, indent: token.indent, source: "\n" };
+          delete token.items;
+          Object.assign(token, { type: type2, source, end: [nl] });
+          break;
+        }
+        default: {
+          const indent = "indent" in token ? token.indent : -1;
+          const end = "end" in token && Array.isArray(token.end) ? token.end.filter((st) => st.type === "space" || st.type === "comment" || st.type === "newline") : [];
+          for (const key of Object.keys(token))
+            if (key !== "type" && key !== "offset")
+              delete token[key];
+          Object.assign(token, { type: type2, indent, source, end });
+        }
+      }
+    }
+    exports.createScalarToken = createScalarToken;
+    exports.resolveAsScalar = resolveAsScalar;
+    exports.setScalarValue = setScalarValue;
+  }
+});
+
+// node_modules/yaml/dist/parse/cst-stringify.js
+var require_cst_stringify = __commonJS({
+  "node_modules/yaml/dist/parse/cst-stringify.js"(exports) {
+    "use strict";
+    var stringify = (cst) => "type" in cst ? stringifyToken(cst) : stringifyItem(cst);
+    function stringifyToken(token) {
+      switch (token.type) {
+        case "block-scalar": {
+          let res = "";
+          for (const tok of token.props)
+            res += stringifyToken(tok);
+          return res + token.source;
+        }
+        case "block-map":
+        case "block-seq": {
+          let res = "";
+          for (const item of token.items)
+            res += stringifyItem(item);
+          return res;
+        }
+        case "flow-collection": {
+          let res = token.start.source;
+          for (const item of token.items)
+            res += stringifyItem(item);
+          for (const st of token.end)
+            res += st.source;
+          return res;
+        }
+        case "document": {
+          let res = stringifyItem(token);
+          if (token.end)
+            for (const st of token.end)
+              res += st.source;
+          return res;
+        }
+        default: {
+          let res = token.source;
+          if ("end" in token && token.end)
+            for (const st of token.end)
+              res += st.source;
+          return res;
+        }
+      }
+    }
+    function stringifyItem({ start, key, sep, value }) {
+      let res = "";
+      for (const st of start)
+        res += st.source;
+      if (key)
+        res += stringifyToken(key);
+      if (sep)
+        for (const st of sep)
+          res += st.source;
+      if (value)
+        res += stringifyToken(value);
+      return res;
+    }
+    exports.stringify = stringify;
+  }
+});
+
+// node_modules/yaml/dist/parse/cst-visit.js
+var require_cst_visit = __commonJS({
+  "node_modules/yaml/dist/parse/cst-visit.js"(exports) {
+    "use strict";
+    var BREAK = /* @__PURE__ */ Symbol("break visit");
+    var SKIP = /* @__PURE__ */ Symbol("skip children");
+    var REMOVE = /* @__PURE__ */ Symbol("remove item");
+    function visit(cst, visitor) {
+      if ("type" in cst && cst.type === "document")
+        cst = { start: cst.start, value: cst.value };
+      _visit(Object.freeze([]), cst, visitor);
+    }
+    visit.BREAK = BREAK;
+    visit.SKIP = SKIP;
+    visit.REMOVE = REMOVE;
+    visit.itemAtPath = (cst, path) => {
+      let item = cst;
+      for (const [field, index] of path) {
+        const tok = item?.[field];
+        if (tok && "items" in tok) {
+          item = tok.items[index];
+        } else
+          return void 0;
+      }
+      return item;
+    };
+    visit.parentCollection = (cst, path) => {
+      const parent = visit.itemAtPath(cst, path.slice(0, -1));
+      const field = path[path.length - 1][0];
+      const coll = parent?.[field];
+      if (coll && "items" in coll)
+        return coll;
+      throw new Error("Parent collection not found");
+    };
+    function _visit(path, item, visitor) {
+      let ctrl = visitor(item, path);
+      if (typeof ctrl === "symbol")
+        return ctrl;
+      for (const field of ["key", "value"]) {
+        const token = item[field];
+        if (token && "items" in token) {
+          for (let i = 0; i < token.items.length; ++i) {
+            const ci = _visit(Object.freeze(path.concat([[field, i]])), token.items[i], visitor);
+            if (typeof ci === "number")
+              i = ci - 1;
+            else if (ci === BREAK)
+              return BREAK;
+            else if (ci === REMOVE) {
+              token.items.splice(i, 1);
+              i -= 1;
+            }
+          }
+          if (typeof ctrl === "function" && field === "key")
+            ctrl = ctrl(item, path);
+        }
+      }
+      return typeof ctrl === "function" ? ctrl(item, path) : ctrl;
+    }
+    exports.visit = visit;
+  }
+});
+
+// node_modules/yaml/dist/parse/cst.js
+var require_cst = __commonJS({
+  "node_modules/yaml/dist/parse/cst.js"(exports) {
+    "use strict";
+    var cstScalar = require_cst_scalar();
+    var cstStringify = require_cst_stringify();
+    var cstVisit = require_cst_visit();
+    var BOM = "\uFEFF";
+    var DOCUMENT = "";
+    var FLOW_END = "";
+    var SCALAR = "";
+    var isCollection = (token) => !!token && "items" in token;
+    var isScalar = (token) => !!token && (token.type === "scalar" || token.type === "single-quoted-scalar" || token.type === "double-quoted-scalar" || token.type === "block-scalar");
+    function prettyToken(token) {
+      switch (token) {
+        case BOM:
+          return "<BOM>";
+        case DOCUMENT:
+          return "<DOC>";
+        case FLOW_END:
+          return "<FLOW_END>";
+        case SCALAR:
+          return "<SCALAR>";
+        default:
+          return JSON.stringify(token);
+      }
+    }
+    function tokenType(source) {
+      switch (source) {
+        case BOM:
+          return "byte-order-mark";
+        case DOCUMENT:
+          return "doc-mode";
+        case FLOW_END:
+          return "flow-error-end";
+        case SCALAR:
+          return "scalar";
+        case "---":
+          return "doc-start";
+        case "...":
+          return "doc-end";
+        case "":
+        case "\n":
+        case "\r\n":
+          return "newline";
+        case "-":
+          return "seq-item-ind";
+        case "?":
+          return "explicit-key-ind";
+        case ":":
+          return "map-value-ind";
+        case "{":
+          return "flow-map-start";
+        case "}":
+          return "flow-map-end";
+        case "[":
+          return "flow-seq-start";
+        case "]":
+          return "flow-seq-end";
+        case ",":
+          return "comma";
+      }
+      switch (source[0]) {
+        case " ":
+        case "	":
+          return "space";
+        case "#":
+          return "comment";
+        case "%":
+          return "directive-line";
+        case "*":
+          return "alias";
+        case "&":
+          return "anchor";
+        case "!":
+          return "tag";
+        case "'":
+          return "single-quoted-scalar";
+        case '"':
+          return "double-quoted-scalar";
+        case "|":
+        case ">":
+          return "block-scalar-header";
+      }
+      return null;
+    }
+    exports.createScalarToken = cstScalar.createScalarToken;
+    exports.resolveAsScalar = cstScalar.resolveAsScalar;
+    exports.setScalarValue = cstScalar.setScalarValue;
+    exports.stringify = cstStringify.stringify;
+    exports.visit = cstVisit.visit;
+    exports.BOM = BOM;
+    exports.DOCUMENT = DOCUMENT;
+    exports.FLOW_END = FLOW_END;
+    exports.SCALAR = SCALAR;
+    exports.isCollection = isCollection;
+    exports.isScalar = isScalar;
+    exports.prettyToken = prettyToken;
+    exports.tokenType = tokenType;
+  }
+});
+
+// node_modules/yaml/dist/parse/lexer.js
+var require_lexer = __commonJS({
+  "node_modules/yaml/dist/parse/lexer.js"(exports) {
+    "use strict";
+    var cst = require_cst();
+    function isEmpty2(ch) {
+      switch (ch) {
+        case void 0:
+        case " ":
+        case "\n":
+        case "\r":
+        case "	":
+          return true;
+        default:
+          return false;
+      }
+    }
+    var hexDigits = new Set("0123456789ABCDEFabcdef");
+    var tagChars = new Set("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-#;/?:@&=+$_.!~*'()");
+    var flowIndicatorChars = new Set(",[]{}");
+    var invalidAnchorChars = new Set(" ,[]{}\n\r	");
+    var isNotAnchorChar = (ch) => !ch || invalidAnchorChars.has(ch);
+    var Lexer = class {
+      constructor() {
+        this.atEnd = false;
+        this.blockScalarIndent = -1;
+        this.blockScalarKeep = false;
+        this.buffer = "";
+        this.flowKey = false;
+        this.flowLevel = 0;
+        this.indentNext = 0;
+        this.indentValue = 0;
+        this.lineEndPos = null;
+        this.next = null;
+        this.pos = 0;
+      }
+      /**
+       * Generate YAML tokens from the `source` string. If `incomplete`,
+       * a part of the last line may be left as a buffer for the next call.
+       *
+       * @returns A generator of lexical tokens
+       */
+      *lex(source, incomplete = false) {
+        if (source) {
+          if (typeof source !== "string")
+            throw TypeError("source is not a string");
+          this.buffer = this.buffer ? this.buffer + source : source;
+          this.lineEndPos = null;
+        }
+        this.atEnd = !incomplete;
+        let next = this.next ?? "stream";
+        while (next && (incomplete || this.hasChars(1)))
+          next = yield* this.parseNext(next);
+      }
+      atLineEnd() {
+        let i = this.pos;
+        let ch = this.buffer[i];
+        while (ch === " " || ch === "	")
+          ch = this.buffer[++i];
+        if (!ch || ch === "#" || ch === "\n")
+          return true;
+        if (ch === "\r")
+          return this.buffer[i + 1] === "\n";
+        return false;
+      }
+      charAt(n) {
+        return this.buffer[this.pos + n];
+      }
+      continueScalar(offset) {
+        let ch = this.buffer[offset];
+        if (this.indentNext > 0) {
+          let indent = 0;
+          while (ch === " ")
+            ch = this.buffer[++indent + offset];
+          if (ch === "\r") {
+            const next = this.buffer[indent + offset + 1];
+            if (next === "\n" || !next && !this.atEnd)
+              return offset + indent + 1;
+          }
+          return ch === "\n" || indent >= this.indentNext || !ch && !this.atEnd ? offset + indent : -1;
+        }
+        if (ch === "-" || ch === ".") {
+          const dt = this.buffer.substr(offset, 3);
+          if ((dt === "---" || dt === "...") && isEmpty2(this.buffer[offset + 3]))
+            return -1;
+        }
+        return offset;
+      }
+      getLine() {
+        let end = this.lineEndPos;
+        if (typeof end !== "number" || end !== -1 && end < this.pos) {
+          end = this.buffer.indexOf("\n", this.pos);
+          this.lineEndPos = end;
+        }
+        if (end === -1)
+          return this.atEnd ? this.buffer.substring(this.pos) : null;
+        if (this.buffer[end - 1] === "\r")
+          end -= 1;
+        return this.buffer.substring(this.pos, end);
+      }
+      hasChars(n) {
+        return this.pos + n <= this.buffer.length;
+      }
+      setNext(state) {
+        this.buffer = this.buffer.substring(this.pos);
+        this.pos = 0;
+        this.lineEndPos = null;
+        this.next = state;
+        return null;
+      }
+      peek(n) {
+        return this.buffer.substr(this.pos, n);
+      }
+      *parseNext(next) {
+        switch (next) {
+          case "stream":
+            return yield* this.parseStream();
+          case "line-start":
+            return yield* this.parseLineStart();
+          case "block-start":
+            return yield* this.parseBlockStart();
+          case "doc":
+            return yield* this.parseDocument();
+          case "flow":
+            return yield* this.parseFlowCollection();
+          case "quoted-scalar":
+            return yield* this.parseQuotedScalar();
+          case "block-scalar":
+            return yield* this.parseBlockScalar();
+          case "plain-scalar":
+            return yield* this.parsePlainScalar();
+        }
+      }
+      *parseStream() {
+        let line = this.getLine();
+        if (line === null)
+          return this.setNext("stream");
+        if (line[0] === cst.BOM) {
+          yield* this.pushCount(1);
+          line = line.substring(1);
+        }
+        if (line[0] === "%") {
+          let dirEnd = line.length;
+          let cs = line.indexOf("#");
+          while (cs !== -1) {
+            const ch = line[cs - 1];
+            if (ch === " " || ch === "	") {
+              dirEnd = cs - 1;
+              break;
+            } else {
+              cs = line.indexOf("#", cs + 1);
+            }
+          }
+          while (true) {
+            const ch = line[dirEnd - 1];
+            if (ch === " " || ch === "	")
+              dirEnd -= 1;
+            else
+              break;
+          }
+          const n = (yield* this.pushCount(dirEnd)) + (yield* this.pushSpaces(true));
+          yield* this.pushCount(line.length - n);
+          this.pushNewline();
+          return "stream";
+        }
+        if (this.atLineEnd()) {
+          const sp = yield* this.pushSpaces(true);
+          yield* this.pushCount(line.length - sp);
+          yield* this.pushNewline();
+          return "stream";
+        }
+        yield cst.DOCUMENT;
+        return yield* this.parseLineStart();
+      }
+      *parseLineStart() {
+        const ch = this.charAt(0);
+        if (!ch && !this.atEnd)
+          return this.setNext("line-start");
+        if (ch === "-" || ch === ".") {
+          if (!this.atEnd && !this.hasChars(4))
+            return this.setNext("line-start");
+          const s = this.peek(3);
+          if ((s === "---" || s === "...") && isEmpty2(this.charAt(3))) {
+            yield* this.pushCount(3);
+            this.indentValue = 0;
+            this.indentNext = 0;
+            return s === "---" ? "doc" : "stream";
+          }
+        }
+        this.indentValue = yield* this.pushSpaces(false);
+        if (this.indentNext > this.indentValue && !isEmpty2(this.charAt(1)))
+          this.indentNext = this.indentValue;
+        return yield* this.parseBlockStart();
+      }
+      *parseBlockStart() {
+        const [ch0, ch1] = this.peek(2);
+        if (!ch1 && !this.atEnd)
+          return this.setNext("block-start");
+        if ((ch0 === "-" || ch0 === "?" || ch0 === ":") && isEmpty2(ch1)) {
+          const n = (yield* this.pushCount(1)) + (yield* this.pushSpaces(true));
+          this.indentNext = this.indentValue + 1;
+          this.indentValue += n;
+          return "block-start";
+        }
+        return "doc";
+      }
+      *parseDocument() {
+        yield* this.pushSpaces(true);
+        const line = this.getLine();
+        if (line === null)
+          return this.setNext("doc");
+        let n = yield* this.pushIndicators();
+        switch (line[n]) {
+          case "#":
+            yield* this.pushCount(line.length - n);
+          // fallthrough
+          case void 0:
+            yield* this.pushNewline();
+            return yield* this.parseLineStart();
+          case "{":
+          case "[":
+            yield* this.pushCount(1);
+            this.flowKey = false;
+            this.flowLevel = 1;
+            return "flow";
+          case "}":
+          case "]":
+            yield* this.pushCount(1);
+            return "doc";
+          case "*":
+            yield* this.pushUntil(isNotAnchorChar);
+            return "doc";
+          case '"':
+          case "'":
+            return yield* this.parseQuotedScalar();
+          case "|":
+          case ">":
+            n += yield* this.parseBlockScalarHeader();
+            n += yield* this.pushSpaces(true);
+            yield* this.pushCount(line.length - n);
+            yield* this.pushNewline();
+            return yield* this.parseBlockScalar();
+          default:
+            return yield* this.parsePlainScalar();
+        }
+      }
+      *parseFlowCollection() {
+        let nl, sp;
+        let indent = -1;
+        do {
+          nl = yield* this.pushNewline();
+          if (nl > 0) {
+            sp = yield* this.pushSpaces(false);
+            this.indentValue = indent = sp;
+          } else {
+            sp = 0;
+          }
+          sp += yield* this.pushSpaces(true);
+        } while (nl + sp > 0);
+        const line = this.getLine();
+        if (line === null)
+          return this.setNext("flow");
+        if (indent !== -1 && indent < this.indentNext && line[0] !== "#" || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty2(line[3])) {
+          const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line[0] === "]" || line[0] === "}");
+          if (!atFlowEndMarker) {
+            this.flowLevel = 0;
+            yield cst.FLOW_END;
+            return yield* this.parseLineStart();
+          }
+        }
+        let n = 0;
+        while (line[n] === ",") {
+          n += yield* this.pushCount(1);
+          n += yield* this.pushSpaces(true);
+          this.flowKey = false;
+        }
+        n += yield* this.pushIndicators();
+        switch (line[n]) {
+          case void 0:
+            return "flow";
+          case "#":
+            yield* this.pushCount(line.length - n);
+            return "flow";
+          case "{":
+          case "[":
+            yield* this.pushCount(1);
+            this.flowKey = false;
+            this.flowLevel += 1;
+            return "flow";
+          case "}":
+          case "]":
+            yield* this.pushCount(1);
+            this.flowKey = true;
+            this.flowLevel -= 1;
+            return this.flowLevel ? "flow" : "doc";
+          case "*":
+            yield* this.pushUntil(isNotAnchorChar);
+            return "flow";
+          case '"':
+          case "'":
+            this.flowKey = true;
+            return yield* this.parseQuotedScalar();
+          case ":": {
+            const next = this.charAt(1);
+            if (this.flowKey || isEmpty2(next) || next === ",") {
+              this.flowKey = false;
+              yield* this.pushCount(1);
+              yield* this.pushSpaces(true);
+              return "flow";
+            }
+          }
+          // fallthrough
+          default:
+            this.flowKey = false;
+            return yield* this.parsePlainScalar();
+        }
+      }
+      *parseQuotedScalar() {
+        const quote = this.charAt(0);
+        let end = this.buffer.indexOf(quote, this.pos + 1);
+        if (quote === "'") {
+          while (end !== -1 && this.buffer[end + 1] === "'")
+            end = this.buffer.indexOf("'", end + 2);
+        } else {
+          while (end !== -1) {
+            let n = 0;
+            while (this.buffer[end - 1 - n] === "\\")
+              n += 1;
+            if (n % 2 === 0)
+              break;
+            end = this.buffer.indexOf('"', end + 1);
+          }
+        }
+        const qb = this.buffer.substring(0, end);
+        let nl = qb.indexOf("\n", this.pos);
+        if (nl !== -1) {
+          while (nl !== -1) {
+            const cs = this.continueScalar(nl + 1);
+            if (cs === -1)
+              break;
+            nl = qb.indexOf("\n", cs);
+          }
+          if (nl !== -1) {
+            end = nl - (qb[nl - 1] === "\r" ? 2 : 1);
+          }
+        }
+        if (end === -1) {
+          if (!this.atEnd)
+            return this.setNext("quoted-scalar");
+          end = this.buffer.length;
+        }
+        yield* this.pushToIndex(end + 1, false);
+        return this.flowLevel ? "flow" : "doc";
+      }
+      *parseBlockScalarHeader() {
+        this.blockScalarIndent = -1;
+        this.blockScalarKeep = false;
+        let i = this.pos;
+        while (true) {
+          const ch = this.buffer[++i];
+          if (ch === "+")
+            this.blockScalarKeep = true;
+          else if (ch > "0" && ch <= "9")
+            this.blockScalarIndent = Number(ch) - 1;
+          else if (ch !== "-")
+            break;
+        }
+        return yield* this.pushUntil((ch) => isEmpty2(ch) || ch === "#");
+      }
+      *parseBlockScalar() {
+        let nl = this.pos - 1;
+        let indent = 0;
+        let ch;
+        loop: for (let i2 = this.pos; ch = this.buffer[i2]; ++i2) {
+          switch (ch) {
+            case " ":
+              indent += 1;
+              break;
+            case "\n":
+              nl = i2;
+              indent = 0;
+              break;
+            case "\r": {
+              const next = this.buffer[i2 + 1];
+              if (!next && !this.atEnd)
+                return this.setNext("block-scalar");
+              if (next === "\n")
+                break;
+            }
+            // fallthrough
+            default:
+              break loop;
+          }
+        }
+        if (!ch && !this.atEnd)
+          return this.setNext("block-scalar");
+        if (indent >= this.indentNext) {
+          if (this.blockScalarIndent === -1)
+            this.indentNext = indent;
+          else {
+            this.indentNext = this.blockScalarIndent + (this.indentNext === 0 ? 1 : this.indentNext);
+          }
+          do {
+            const cs = this.continueScalar(nl + 1);
+            if (cs === -1)
+              break;
+            nl = this.buffer.indexOf("\n", cs);
+          } while (nl !== -1);
+          if (nl === -1) {
+            if (!this.atEnd)
+              return this.setNext("block-scalar");
+            nl = this.buffer.length;
+          }
+        }
+        let i = nl + 1;
+        ch = this.buffer[i];
+        while (ch === " ")
+          ch = this.buffer[++i];
+        if (ch === "	") {
+          while (ch === "	" || ch === " " || ch === "\r" || ch === "\n")
+            ch = this.buffer[++i];
+          nl = i - 1;
+        } else if (!this.blockScalarKeep) {
+          do {
+            let i2 = nl - 1;
+            let ch2 = this.buffer[i2];
+            if (ch2 === "\r")
+              ch2 = this.buffer[--i2];
+            const lastChar = i2;
+            while (ch2 === " ")
+              ch2 = this.buffer[--i2];
+            if (ch2 === "\n" && i2 >= this.pos && i2 + 1 + indent > lastChar)
+              nl = i2;
+            else
+              break;
+          } while (true);
+        }
+        yield cst.SCALAR;
+        yield* this.pushToIndex(nl + 1, true);
+        return yield* this.parseLineStart();
+      }
+      *parsePlainScalar() {
+        const inFlow = this.flowLevel > 0;
+        let end = this.pos - 1;
+        let i = this.pos - 1;
+        let ch;
+        while (ch = this.buffer[++i]) {
+          if (ch === ":") {
+            const next = this.buffer[i + 1];
+            if (isEmpty2(next) || inFlow && flowIndicatorChars.has(next))
+              break;
+            end = i;
+          } else if (isEmpty2(ch)) {
+            let next = this.buffer[i + 1];
+            if (ch === "\r") {
+              if (next === "\n") {
+                i += 1;
+                ch = "\n";
+                next = this.buffer[i + 1];
+              } else
+                end = i;
+            }
+            if (next === "#" || inFlow && flowIndicatorChars.has(next))
+              break;
+            if (ch === "\n") {
+              const cs = this.continueScalar(i + 1);
+              if (cs === -1)
+                break;
+              i = Math.max(i, cs - 2);
+            }
+          } else {
+            if (inFlow && flowIndicatorChars.has(ch))
+              break;
+            end = i;
+          }
+        }
+        if (!ch && !this.atEnd)
+          return this.setNext("plain-scalar");
+        yield cst.SCALAR;
+        yield* this.pushToIndex(end + 1, true);
+        return inFlow ? "flow" : "doc";
+      }
+      *pushCount(n) {
+        if (n > 0) {
+          yield this.buffer.substr(this.pos, n);
+          this.pos += n;
+          return n;
+        }
+        return 0;
+      }
+      *pushToIndex(i, allowEmpty) {
+        const s = this.buffer.slice(this.pos, i);
+        if (s) {
+          yield s;
+          this.pos += s.length;
+          return s.length;
+        } else if (allowEmpty)
+          yield "";
+        return 0;
+      }
+      *pushIndicators() {
+        let n = 0;
+        loop: while (true) {
+          switch (this.charAt(0)) {
+            case "!":
+              n += yield* this.pushTag();
+              n += yield* this.pushSpaces(true);
+              continue loop;
+            case "&":
+              n += yield* this.pushUntil(isNotAnchorChar);
+              n += yield* this.pushSpaces(true);
+              continue loop;
+            case "-":
+            // this is an error
+            case "?":
+            // this is an error outside flow collections
+            case ":": {
+              const inFlow = this.flowLevel > 0;
+              const ch1 = this.charAt(1);
+              if (isEmpty2(ch1) || inFlow && flowIndicatorChars.has(ch1)) {
+                if (!inFlow)
+                  this.indentNext = this.indentValue + 1;
+                else if (this.flowKey)
+                  this.flowKey = false;
+                n += yield* this.pushCount(1);
+                n += yield* this.pushSpaces(true);
+                continue loop;
+              }
+            }
+          }
+          break loop;
+        }
+        return n;
+      }
+      *pushTag() {
+        if (this.charAt(1) === "<") {
+          let i = this.pos + 2;
+          let ch = this.buffer[i];
+          while (!isEmpty2(ch) && ch !== ">")
+            ch = this.buffer[++i];
+          return yield* this.pushToIndex(ch === ">" ? i + 1 : i, false);
+        } else {
+          let i = this.pos + 1;
+          let ch = this.buffer[i];
+          while (ch) {
+            if (tagChars.has(ch))
+              ch = this.buffer[++i];
+            else if (ch === "%" && hexDigits.has(this.buffer[i + 1]) && hexDigits.has(this.buffer[i + 2])) {
+              ch = this.buffer[i += 3];
+            } else
+              break;
+          }
+          return yield* this.pushToIndex(i, false);
+        }
+      }
+      *pushNewline() {
+        const ch = this.buffer[this.pos];
+        if (ch === "\n")
+          return yield* this.pushCount(1);
+        else if (ch === "\r" && this.charAt(1) === "\n")
+          return yield* this.pushCount(2);
+        else
+          return 0;
+      }
+      *pushSpaces(allowTabs) {
+        let i = this.pos - 1;
+        let ch;
+        do {
+          ch = this.buffer[++i];
+        } while (ch === " " || allowTabs && ch === "	");
+        const n = i - this.pos;
+        if (n > 0) {
+          yield this.buffer.substr(this.pos, n);
+          this.pos = i;
+        }
+        return n;
+      }
+      *pushUntil(test) {
+        let i = this.pos;
+        let ch = this.buffer[i];
+        while (!test(ch))
+          ch = this.buffer[++i];
+        return yield* this.pushToIndex(i, false);
+      }
+    };
+    exports.Lexer = Lexer;
+  }
+});
+
+// node_modules/yaml/dist/parse/line-counter.js
+var require_line_counter = __commonJS({
+  "node_modules/yaml/dist/parse/line-counter.js"(exports) {
+    "use strict";
+    var LineCounter = class {
+      constructor() {
+        this.lineStarts = [];
+        this.addNewLine = (offset) => this.lineStarts.push(offset);
+        this.linePos = (offset) => {
+          let low = 0;
+          let high = this.lineStarts.length;
+          while (low < high) {
+            const mid = low + high >> 1;
+            if (this.lineStarts[mid] < offset)
+              low = mid + 1;
+            else
+              high = mid;
+          }
+          if (this.lineStarts[low] === offset)
+            return { line: low + 1, col: 1 };
+          if (low === 0)
+            return { line: 0, col: offset };
+          const start = this.lineStarts[low - 1];
+          return { line: low, col: offset - start + 1 };
+        };
+      }
+    };
+    exports.LineCounter = LineCounter;
+  }
+});
+
+// node_modules/yaml/dist/parse/parser.js
+var require_parser = __commonJS({
+  "node_modules/yaml/dist/parse/parser.js"(exports) {
+    "use strict";
+    var node_process = __require("process");
+    var cst = require_cst();
+    var lexer = require_lexer();
+    function includesToken(list, type2) {
+      for (let i = 0; i < list.length; ++i)
+        if (list[i].type === type2)
+          return true;
+      return false;
+    }
+    function findNonEmptyIndex(list) {
+      for (let i = 0; i < list.length; ++i) {
+        switch (list[i].type) {
+          case "space":
+          case "comment":
+          case "newline":
+            break;
+          default:
+            return i;
+        }
+      }
+      return -1;
+    }
+    function isFlowToken(token) {
+      switch (token?.type) {
+        case "alias":
+        case "scalar":
+        case "single-quoted-scalar":
+        case "double-quoted-scalar":
+        case "flow-collection":
+          return true;
+        default:
+          return false;
+      }
+    }
+    function getPrevProps(parent) {
+      switch (parent.type) {
+        case "document":
+          return parent.start;
+        case "block-map": {
+          const it = parent.items[parent.items.length - 1];
+          return it.sep ?? it.start;
+        }
+        case "block-seq":
+          return parent.items[parent.items.length - 1].start;
+        /* istanbul ignore next should not happen */
+        default:
+          return [];
+      }
+    }
+    function getFirstKeyStartProps(prev) {
+      if (prev.length === 0)
+        return [];
+      let i = prev.length;
+      loop: while (--i >= 0) {
+        switch (prev[i].type) {
+          case "doc-start":
+          case "explicit-key-ind":
+          case "map-value-ind":
+          case "seq-item-ind":
+          case "newline":
+            break loop;
+        }
+      }
+      while (prev[++i]?.type === "space") {
+      }
+      return prev.splice(i, prev.length);
+    }
+    function arrayPushArray(target, source) {
+      if (source.length < 1e5)
+        Array.prototype.push.apply(target, source);
+      else
+        for (let i = 0; i < source.length; ++i)
+          target.push(source[i]);
+    }
+    function fixFlowSeqItems(fc) {
+      if (fc.start.type === "flow-seq-start") {
+        for (const it of fc.items) {
+          if (it.sep && !it.value && !includesToken(it.start, "explicit-key-ind") && !includesToken(it.sep, "map-value-ind")) {
+            if (it.key)
+              it.value = it.key;
+            delete it.key;
+            if (isFlowToken(it.value)) {
+              if (it.value.end)
+                arrayPushArray(it.value.end, it.sep);
+              else
+                it.value.end = it.sep;
+            } else
+              arrayPushArray(it.start, it.sep);
+            delete it.sep;
+          }
+        }
+      }
+    }
+    var Parser = class {
+      /**
+       * @param onNewLine - If defined, called separately with the start position of
+       *   each new line (in `parse()`, including the start of input).
+       */
+      constructor(onNewLine) {
+        this.atNewLine = true;
+        this.atScalar = false;
+        this.indent = 0;
+        this.offset = 0;
+        this.onKeyLine = false;
+        this.stack = [];
+        this.source = "";
+        this.type = "";
+        this.lexer = new lexer.Lexer();
+        this.onNewLine = onNewLine;
+      }
+      /**
+       * Parse `source` as a YAML stream.
+       * If `incomplete`, a part of the last line may be left as a buffer for the next call.
+       *
+       * Errors are not thrown, but yielded as `{ type: 'error', message }` tokens.
+       *
+       * @returns A generator of tokens representing each directive, document, and other structure.
+       */
+      *parse(source, incomplete = false) {
+        if (this.onNewLine && this.offset === 0)
+          this.onNewLine(0);
+        for (const lexeme of this.lexer.lex(source, incomplete))
+          yield* this.next(lexeme);
+        if (!incomplete)
+          yield* this.end();
+      }
+      /**
+       * Advance the parser by the `source` of one lexical token.
+       */
+      *next(source) {
+        this.source = source;
+        if (node_process.env.LOG_TOKENS)
+          console.log("|", cst.prettyToken(source));
+        if (this.atScalar) {
+          this.atScalar = false;
+          yield* this.step();
+          this.offset += source.length;
+          return;
+        }
+        const type2 = cst.tokenType(source);
+        if (!type2) {
+          const message = `Not a YAML token: ${source}`;
+          yield* this.pop({ type: "error", offset: this.offset, message, source });
+          this.offset += source.length;
+        } else if (type2 === "scalar") {
+          this.atNewLine = false;
+          this.atScalar = true;
+          this.type = "scalar";
+        } else {
+          this.type = type2;
+          yield* this.step();
+          switch (type2) {
+            case "newline":
+              this.atNewLine = true;
+              this.indent = 0;
+              if (this.onNewLine)
+                this.onNewLine(this.offset + source.length);
+              break;
+            case "space":
+              if (this.atNewLine && source[0] === " ")
+                this.indent += source.length;
+              break;
+            case "explicit-key-ind":
+            case "map-value-ind":
+            case "seq-item-ind":
+              if (this.atNewLine)
+                this.indent += source.length;
+              break;
+            case "doc-mode":
+            case "flow-error-end":
+              return;
+            default:
+              this.atNewLine = false;
+          }
+          this.offset += source.length;
+        }
+      }
+      /** Call at end of input to push out any remaining constructions */
+      *end() {
+        while (this.stack.length > 0)
+          yield* this.pop();
+      }
+      get sourceToken() {
+        const st = {
+          type: this.type,
+          offset: this.offset,
+          indent: this.indent,
+          source: this.source
+        };
+        return st;
+      }
+      *step() {
+        const top = this.peek(1);
+        if (this.type === "doc-end" && top?.type !== "doc-end") {
+          while (this.stack.length > 0)
+            yield* this.pop();
+          this.stack.push({
+            type: "doc-end",
+            offset: this.offset,
+            source: this.source
+          });
+          return;
+        }
+        if (!top)
+          return yield* this.stream();
+        switch (top.type) {
+          case "document":
+            return yield* this.document(top);
+          case "alias":
+          case "scalar":
+          case "single-quoted-scalar":
+          case "double-quoted-scalar":
+            return yield* this.scalar(top);
+          case "block-scalar":
+            return yield* this.blockScalar(top);
+          case "block-map":
+            return yield* this.blockMap(top);
+          case "block-seq":
+            return yield* this.blockSequence(top);
+          case "flow-collection":
+            return yield* this.flowCollection(top);
+          case "doc-end":
+            return yield* this.documentEnd(top);
+        }
+        yield* this.pop();
+      }
+      peek(n) {
+        return this.stack[this.stack.length - n];
+      }
+      *pop(error) {
+        const token = error ?? this.stack.pop();
+        if (!token) {
+          const message = "Tried to pop an empty stack";
+          yield { type: "error", offset: this.offset, source: "", message };
+        } else if (this.stack.length === 0) {
+          yield token;
+        } else {
+          const top = this.peek(1);
+          if (token.type === "block-scalar") {
+            token.indent = "indent" in top ? top.indent : 0;
+          } else if (token.type === "flow-collection" && top.type === "document") {
+            token.indent = 0;
+          }
+          if (token.type === "flow-collection")
+            fixFlowSeqItems(token);
+          switch (top.type) {
+            case "document":
+              top.value = token;
+              break;
+            case "block-scalar":
+              top.props.push(token);
+              break;
+            case "block-map": {
+              const it = top.items[top.items.length - 1];
+              if (it.value) {
+                top.items.push({ start: [], key: token, sep: [] });
+                this.onKeyLine = true;
+                return;
+              } else if (it.sep) {
+                it.value = token;
+              } else {
+                Object.assign(it, { key: token, sep: [] });
+                this.onKeyLine = !it.explicitKey;
+                return;
+              }
+              break;
+            }
+            case "block-seq": {
+              const it = top.items[top.items.length - 1];
+              if (it.value)
+                top.items.push({ start: [], value: token });
+              else
+                it.value = token;
+              break;
+            }
+            case "flow-collection": {
+              const it = top.items[top.items.length - 1];
+              if (!it || it.value)
+                top.items.push({ start: [], key: token, sep: [] });
+              else if (it.sep)
+                it.value = token;
+              else
+                Object.assign(it, { key: token, sep: [] });
+              return;
+            }
+            /* istanbul ignore next should not happen */
+            default:
+              yield* this.pop();
+              yield* this.pop(token);
+          }
+          if ((top.type === "document" || top.type === "block-map" || top.type === "block-seq") && (token.type === "block-map" || token.type === "block-seq")) {
+            const last = token.items[token.items.length - 1];
+            if (last && !last.sep && !last.value && last.start.length > 0 && findNonEmptyIndex(last.start) === -1 && (token.indent === 0 || last.start.every((st) => st.type !== "comment" || st.indent < token.indent))) {
+              if (top.type === "document")
+                top.end = last.start;
+              else
+                top.items.push({ start: last.start });
+              token.items.splice(-1, 1);
+            }
+          }
+        }
+      }
+      *stream() {
+        switch (this.type) {
+          case "directive-line":
+            yield { type: "directive", offset: this.offset, source: this.source };
+            return;
+          case "byte-order-mark":
+          case "space":
+          case "comment":
+          case "newline":
+            yield this.sourceToken;
+            return;
+          case "doc-mode":
+          case "doc-start": {
+            const doc = {
+              type: "document",
+              offset: this.offset,
+              start: []
+            };
+            if (this.type === "doc-start")
+              doc.start.push(this.sourceToken);
+            this.stack.push(doc);
+            return;
+          }
+        }
+        yield {
+          type: "error",
+          offset: this.offset,
+          message: `Unexpected ${this.type} token in YAML stream`,
+          source: this.source
+        };
+      }
+      *document(doc) {
+        if (doc.value)
+          return yield* this.lineEnd(doc);
+        switch (this.type) {
+          case "doc-start": {
+            if (findNonEmptyIndex(doc.start) !== -1) {
+              yield* this.pop();
+              yield* this.step();
+            } else
+              doc.start.push(this.sourceToken);
+            return;
+          }
+          case "anchor":
+          case "tag":
+          case "space":
+          case "comment":
+          case "newline":
+            doc.start.push(this.sourceToken);
+            return;
+        }
+        const bv = this.startBlockValue(doc);
+        if (bv)
+          this.stack.push(bv);
+        else {
+          yield {
+            type: "error",
+            offset: this.offset,
+            message: `Unexpected ${this.type} token in YAML document`,
+            source: this.source
+          };
+        }
+      }
+      *scalar(scalar) {
+        if (this.type === "map-value-ind") {
+          const prev = getPrevProps(this.peek(2));
+          const start = getFirstKeyStartProps(prev);
+          let sep;
+          if (scalar.end) {
+            sep = scalar.end;
+            sep.push(this.sourceToken);
+            delete scalar.end;
+          } else
+            sep = [this.sourceToken];
+          const map2 = {
+            type: "block-map",
+            offset: scalar.offset,
+            indent: scalar.indent,
+            items: [{ start, key: scalar, sep }]
+          };
+          this.onKeyLine = true;
+          this.stack[this.stack.length - 1] = map2;
+        } else
+          yield* this.lineEnd(scalar);
+      }
+      *blockScalar(scalar) {
+        switch (this.type) {
+          case "space":
+          case "comment":
+          case "newline":
+            scalar.props.push(this.sourceToken);
+            return;
+          case "scalar":
+            scalar.source = this.source;
+            this.atNewLine = true;
+            this.indent = 0;
+            if (this.onNewLine) {
+              let nl = this.source.indexOf("\n") + 1;
+              while (nl !== 0) {
+                this.onNewLine(this.offset + nl);
+                nl = this.source.indexOf("\n", nl) + 1;
+              }
+            }
+            yield* this.pop();
+            break;
+          /* istanbul ignore next should not happen */
+          default:
+            yield* this.pop();
+            yield* this.step();
+        }
+      }
+      *blockMap(map2) {
+        const it = map2.items[map2.items.length - 1];
+        switch (this.type) {
+          case "newline":
+            this.onKeyLine = false;
+            if (it.value) {
+              const end = "end" in it.value ? it.value.end : void 0;
+              const last = Array.isArray(end) ? end[end.length - 1] : void 0;
+              if (last?.type === "comment")
+                end?.push(this.sourceToken);
+              else
+                map2.items.push({ start: [this.sourceToken] });
+            } else if (it.sep) {
+              it.sep.push(this.sourceToken);
+            } else {
+              it.start.push(this.sourceToken);
+            }
+            return;
+          case "space":
+          case "comment":
+            if (it.value) {
+              map2.items.push({ start: [this.sourceToken] });
+            } else if (it.sep) {
+              it.sep.push(this.sourceToken);
+            } else {
+              if (this.atIndentedComment(it.start, map2.indent)) {
+                const prev = map2.items[map2.items.length - 2];
+                const end = prev?.value?.end;
+                if (Array.isArray(end)) {
+                  arrayPushArray(end, it.start);
+                  end.push(this.sourceToken);
+                  map2.items.pop();
+                  return;
+                }
+              }
+              it.start.push(this.sourceToken);
+            }
+            return;
+        }
+        if (this.indent >= map2.indent) {
+          const atMapIndent = !this.onKeyLine && this.indent === map2.indent;
+          const atNextItem = atMapIndent && (it.sep || it.explicitKey) && this.type !== "seq-item-ind";
+          let start = [];
+          if (atNextItem && it.sep && !it.value) {
+            const nl = [];
+            for (let i = 0; i < it.sep.length; ++i) {
+              const st = it.sep[i];
+              switch (st.type) {
+                case "newline":
+                  nl.push(i);
+                  break;
+                case "space":
+                  break;
+                case "comment":
+                  if (st.indent > map2.indent)
+                    nl.length = 0;
+                  break;
+                default:
+                  nl.length = 0;
+              }
+            }
+            if (nl.length >= 2)
+              start = it.sep.splice(nl[1]);
+          }
+          switch (this.type) {
+            case "anchor":
+            case "tag":
+              if (atNextItem || it.value) {
+                start.push(this.sourceToken);
+                map2.items.push({ start });
+                this.onKeyLine = true;
+              } else if (it.sep) {
+                it.sep.push(this.sourceToken);
+              } else {
+                it.start.push(this.sourceToken);
+              }
+              return;
+            case "explicit-key-ind":
+              if (!it.sep && !it.explicitKey) {
+                it.start.push(this.sourceToken);
+                it.explicitKey = true;
+              } else if (atNextItem || it.value) {
+                start.push(this.sourceToken);
+                map2.items.push({ start, explicitKey: true });
+              } else {
+                this.stack.push({
+                  type: "block-map",
+                  offset: this.offset,
+                  indent: this.indent,
+                  items: [{ start: [this.sourceToken], explicitKey: true }]
+                });
+              }
+              this.onKeyLine = true;
+              return;
+            case "map-value-ind":
+              if (it.explicitKey) {
+                if (!it.sep) {
+                  if (includesToken(it.start, "newline")) {
+                    Object.assign(it, { key: null, sep: [this.sourceToken] });
+                  } else {
+                    const start2 = getFirstKeyStartProps(it.start);
+                    this.stack.push({
+                      type: "block-map",
+                      offset: this.offset,
+                      indent: this.indent,
+                      items: [{ start: start2, key: null, sep: [this.sourceToken] }]
+                    });
+                  }
+                } else if (it.value) {
+                  map2.items.push({ start: [], key: null, sep: [this.sourceToken] });
+                } else if (includesToken(it.sep, "map-value-ind")) {
+                  this.stack.push({
+                    type: "block-map",
+                    offset: this.offset,
+                    indent: this.indent,
+                    items: [{ start, key: null, sep: [this.sourceToken] }]
+                  });
+                } else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
+                  const start2 = getFirstKeyStartProps(it.start);
+                  const key = it.key;
+                  const sep = it.sep;
+                  sep.push(this.sourceToken);
+                  delete it.key;
+                  delete it.sep;
+                  this.stack.push({
+                    type: "block-map",
+                    offset: this.offset,
+                    indent: this.indent,
+                    items: [{ start: start2, key, sep }]
+                  });
+                } else if (start.length > 0) {
+                  it.sep = it.sep.concat(start, this.sourceToken);
+                } else {
+                  it.sep.push(this.sourceToken);
+                }
+              } else {
+                if (!it.sep) {
+                  Object.assign(it, { key: null, sep: [this.sourceToken] });
+                } else if (it.value || atNextItem) {
+                  map2.items.push({ start, key: null, sep: [this.sourceToken] });
+                } else if (includesToken(it.sep, "map-value-ind")) {
+                  this.stack.push({
+                    type: "block-map",
+                    offset: this.offset,
+                    indent: this.indent,
+                    items: [{ start: [], key: null, sep: [this.sourceToken] }]
+                  });
+                } else {
+                  it.sep.push(this.sourceToken);
+                }
+              }
+              this.onKeyLine = true;
+              return;
+            case "alias":
+            case "scalar":
+            case "single-quoted-scalar":
+            case "double-quoted-scalar": {
+              const fs = this.flowScalar(this.type);
+              if (atNextItem || it.value) {
+                map2.items.push({ start, key: fs, sep: [] });
+                this.onKeyLine = true;
+              } else if (it.sep) {
+                this.stack.push(fs);
+              } else {
+                Object.assign(it, { key: fs, sep: [] });
+                this.onKeyLine = true;
+              }
+              return;
+            }
+            default: {
+              const bv = this.startBlockValue(map2);
+              if (bv) {
+                if (bv.type === "block-seq") {
+                  if (!it.explicitKey && it.sep && !includesToken(it.sep, "newline")) {
+                    yield* this.pop({
+                      type: "error",
+                      offset: this.offset,
+                      message: "Unexpected block-seq-ind on same line with key",
+                      source: this.source
+                    });
+                    return;
+                  }
+                } else if (atMapIndent) {
+                  map2.items.push({ start });
+                }
+                this.stack.push(bv);
+                return;
+              }
+            }
+          }
+        }
+        yield* this.pop();
+        yield* this.step();
+      }
+      *blockSequence(seq2) {
+        const it = seq2.items[seq2.items.length - 1];
+        switch (this.type) {
+          case "newline":
+            if (it.value) {
+              const end = "end" in it.value ? it.value.end : void 0;
+              const last = Array.isArray(end) ? end[end.length - 1] : void 0;
+              if (last?.type === "comment")
+                end?.push(this.sourceToken);
+              else
+                seq2.items.push({ start: [this.sourceToken] });
+            } else
+              it.start.push(this.sourceToken);
+            return;
+          case "space":
+          case "comment":
+            if (it.value)
+              seq2.items.push({ start: [this.sourceToken] });
+            else {
+              if (this.atIndentedComment(it.start, seq2.indent)) {
+                const prev = seq2.items[seq2.items.length - 2];
+                const end = prev?.value?.end;
+                if (Array.isArray(end)) {
+                  arrayPushArray(end, it.start);
+                  end.push(this.sourceToken);
+                  seq2.items.pop();
+                  return;
+                }
+              }
+              it.start.push(this.sourceToken);
+            }
+            return;
+          case "anchor":
+          case "tag":
+            if (it.value || this.indent <= seq2.indent)
+              break;
+            it.start.push(this.sourceToken);
+            return;
+          case "seq-item-ind":
+            if (this.indent !== seq2.indent)
+              break;
+            if (it.value || includesToken(it.start, "seq-item-ind"))
+              seq2.items.push({ start: [this.sourceToken] });
+            else
+              it.start.push(this.sourceToken);
+            return;
+        }
+        if (this.indent > seq2.indent) {
+          const bv = this.startBlockValue(seq2);
+          if (bv) {
+            this.stack.push(bv);
+            return;
+          }
+        }
+        yield* this.pop();
+        yield* this.step();
+      }
+      *flowCollection(fc) {
+        const it = fc.items[fc.items.length - 1];
+        if (this.type === "flow-error-end") {
+          let top;
+          do {
+            yield* this.pop();
+            top = this.peek(1);
+          } while (top?.type === "flow-collection");
+        } else if (fc.end.length === 0) {
+          switch (this.type) {
+            case "comma":
+            case "explicit-key-ind":
+              if (!it || it.sep)
+                fc.items.push({ start: [this.sourceToken] });
+              else
+                it.start.push(this.sourceToken);
+              return;
+            case "map-value-ind":
+              if (!it || it.value)
+                fc.items.push({ start: [], key: null, sep: [this.sourceToken] });
+              else if (it.sep)
+                it.sep.push(this.sourceToken);
+              else
+                Object.assign(it, { key: null, sep: [this.sourceToken] });
+              return;
+            case "space":
+            case "comment":
+            case "newline":
+            case "anchor":
+            case "tag":
+              if (!it || it.value)
+                fc.items.push({ start: [this.sourceToken] });
+              else if (it.sep)
+                it.sep.push(this.sourceToken);
+              else
+                it.start.push(this.sourceToken);
+              return;
+            case "alias":
+            case "scalar":
+            case "single-quoted-scalar":
+            case "double-quoted-scalar": {
+              const fs = this.flowScalar(this.type);
+              if (!it || it.value)
+                fc.items.push({ start: [], key: fs, sep: [] });
+              else if (it.sep)
+                this.stack.push(fs);
+              else
+                Object.assign(it, { key: fs, sep: [] });
+              return;
+            }
+            case "flow-map-end":
+            case "flow-seq-end":
+              fc.end.push(this.sourceToken);
+              return;
+          }
+          const bv = this.startBlockValue(fc);
+          if (bv)
+            this.stack.push(bv);
+          else {
+            yield* this.pop();
+            yield* this.step();
+          }
+        } else {
+          const parent = this.peek(2);
+          if (parent.type === "block-map" && (this.type === "map-value-ind" && parent.indent === fc.indent || this.type === "newline" && !parent.items[parent.items.length - 1].sep)) {
+            yield* this.pop();
+            yield* this.step();
+          } else if (this.type === "map-value-ind" && parent.type !== "flow-collection") {
+            const prev = getPrevProps(parent);
+            const start = getFirstKeyStartProps(prev);
+            fixFlowSeqItems(fc);
+            const sep = fc.end.splice(1, fc.end.length);
+            sep.push(this.sourceToken);
+            const map2 = {
+              type: "block-map",
+              offset: fc.offset,
+              indent: fc.indent,
+              items: [{ start, key: fc, sep }]
+            };
+            this.onKeyLine = true;
+            this.stack[this.stack.length - 1] = map2;
+          } else {
+            yield* this.lineEnd(fc);
+          }
+        }
+      }
+      flowScalar(type2) {
+        if (this.onNewLine) {
+          let nl = this.source.indexOf("\n") + 1;
+          while (nl !== 0) {
+            this.onNewLine(this.offset + nl);
+            nl = this.source.indexOf("\n", nl) + 1;
+          }
+        }
+        return {
+          type: type2,
+          offset: this.offset,
+          indent: this.indent,
+          source: this.source
+        };
+      }
+      startBlockValue(parent) {
+        switch (this.type) {
+          case "alias":
+          case "scalar":
+          case "single-quoted-scalar":
+          case "double-quoted-scalar":
+            return this.flowScalar(this.type);
+          case "block-scalar-header":
+            return {
+              type: "block-scalar",
+              offset: this.offset,
+              indent: this.indent,
+              props: [this.sourceToken],
+              source: ""
+            };
+          case "flow-map-start":
+          case "flow-seq-start":
+            return {
+              type: "flow-collection",
+              offset: this.offset,
+              indent: this.indent,
+              start: this.sourceToken,
+              items: [],
+              end: []
+            };
+          case "seq-item-ind":
+            return {
+              type: "block-seq",
+              offset: this.offset,
+              indent: this.indent,
+              items: [{ start: [this.sourceToken] }]
+            };
+          case "explicit-key-ind": {
+            this.onKeyLine = true;
+            const prev = getPrevProps(parent);
+            const start = getFirstKeyStartProps(prev);
+            start.push(this.sourceToken);
+            return {
+              type: "block-map",
+              offset: this.offset,
+              indent: this.indent,
+              items: [{ start, explicitKey: true }]
+            };
+          }
+          case "map-value-ind": {
+            this.onKeyLine = true;
+            const prev = getPrevProps(parent);
+            const start = getFirstKeyStartProps(prev);
+            return {
+              type: "block-map",
+              offset: this.offset,
+              indent: this.indent,
+              items: [{ start, key: null, sep: [this.sourceToken] }]
+            };
+          }
+        }
+        return null;
+      }
+      atIndentedComment(start, indent) {
+        if (this.type !== "comment")
+          return false;
+        if (this.indent <= indent)
+          return false;
+        return start.every((st) => st.type === "newline" || st.type === "space");
+      }
+      *documentEnd(docEnd) {
+        if (this.type !== "doc-mode") {
+          if (docEnd.end)
+            docEnd.end.push(this.sourceToken);
+          else
+            docEnd.end = [this.sourceToken];
+          if (this.type === "newline")
+            yield* this.pop();
+        }
+      }
+      *lineEnd(token) {
+        switch (this.type) {
+          case "comma":
+          case "doc-start":
+          case "doc-end":
+          case "flow-seq-end":
+          case "flow-map-end":
+          case "map-value-ind":
+            yield* this.pop();
+            yield* this.step();
+            break;
+          case "newline":
+            this.onKeyLine = false;
+          // fallthrough
+          case "space":
+          case "comment":
+          default:
+            if (token.end)
+              token.end.push(this.sourceToken);
+            else
+              token.end = [this.sourceToken];
+            if (this.type === "newline")
+              yield* this.pop();
+        }
+      }
+    };
+    exports.Parser = Parser;
+  }
+});
+
+// node_modules/yaml/dist/public-api.js
+var require_public_api = __commonJS({
+  "node_modules/yaml/dist/public-api.js"(exports) {
+    "use strict";
+    var composer = require_composer();
+    var Document = require_Document();
+    var errors = require_errors2();
+    var log = require_log();
+    var identity = require_identity();
+    var lineCounter = require_line_counter();
+    var parser = require_parser();
+    function parseOptions(options) {
+      const prettyErrors = options.prettyErrors !== false;
+      const lineCounter$1 = options.lineCounter || prettyErrors && new lineCounter.LineCounter() || null;
+      return { lineCounter: lineCounter$1, prettyErrors };
+    }
+    function parseAllDocuments(source, options = {}) {
+      const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
+      const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
+      const composer$1 = new composer.Composer(options);
+      const docs = Array.from(composer$1.compose(parser$1.parse(source)));
+      if (prettyErrors && lineCounter2)
+        for (const doc of docs) {
+          doc.errors.forEach(errors.prettifyError(source, lineCounter2));
+          doc.warnings.forEach(errors.prettifyError(source, lineCounter2));
+        }
+      if (docs.length > 0)
+        return docs;
+      return Object.assign([], { empty: true }, composer$1.streamInfo());
+    }
+    function parseDocument(source, options = {}) {
+      const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
+      const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
+      const composer$1 = new composer.Composer(options);
+      let doc = null;
+      for (const _doc of composer$1.compose(parser$1.parse(source), true, source.length)) {
+        if (!doc)
+          doc = _doc;
+        else if (doc.options.logLevel !== "silent") {
+          doc.errors.push(new errors.YAMLParseError(_doc.range.slice(0, 2), "MULTIPLE_DOCS", "Source contains multiple documents; please use YAML.parseAllDocuments()"));
+          break;
+        }
+      }
+      if (prettyErrors && lineCounter2) {
+        doc.errors.forEach(errors.prettifyError(source, lineCounter2));
+        doc.warnings.forEach(errors.prettifyError(source, lineCounter2));
+      }
+      return doc;
+    }
+    function parse4(src, reviver, options) {
+      let _reviver = void 0;
+      if (typeof reviver === "function") {
+        _reviver = reviver;
+      } else if (options === void 0 && reviver && typeof reviver === "object") {
+        options = reviver;
+      }
+      const doc = parseDocument(src, options);
+      if (!doc)
+        return null;
+      doc.warnings.forEach((warning) => log.warn(doc.options.logLevel, warning));
+      if (doc.errors.length > 0) {
+        if (doc.options.logLevel !== "silent")
+          throw doc.errors[0];
+        else
+          doc.errors = [];
+      }
+      return doc.toJS(Object.assign({ reviver: _reviver }, options));
+    }
+    function stringify(value, replacer, options) {
+      let _replacer = null;
+      if (typeof replacer === "function" || Array.isArray(replacer)) {
+        _replacer = replacer;
+      } else if (options === void 0 && replacer) {
+        options = replacer;
+      }
+      if (typeof options === "string")
+        options = options.length;
+      if (typeof options === "number") {
+        const indent = Math.round(options);
+        options = indent < 1 ? void 0 : indent > 8 ? { indent: 8 } : { indent };
+      }
+      if (value === void 0) {
+        const { keepUndefined } = options ?? replacer ?? {};
+        if (!keepUndefined)
+          return void 0;
+      }
+      if (identity.isDocument(value) && !_replacer)
+        return value.toString(options);
+      return new Document.Document(value, _replacer, options).toString(options);
+    }
+    exports.parse = parse4;
+    exports.parseAllDocuments = parseAllDocuments;
+    exports.parseDocument = parseDocument;
+    exports.stringify = stringify;
+  }
+});
+
+// node_modules/yaml/dist/index.js
+var require_dist2 = __commonJS({
+  "node_modules/yaml/dist/index.js"(exports) {
+    "use strict";
+    var composer = require_composer();
+    var Document = require_Document();
+    var Schema2 = require_Schema();
+    var errors = require_errors2();
+    var Alias = require_Alias();
+    var identity = require_identity();
+    var Pair = require_Pair();
+    var Scalar = require_Scalar();
+    var YAMLMap = require_YAMLMap();
+    var YAMLSeq = require_YAMLSeq();
+    var cst = require_cst();
+    var lexer = require_lexer();
+    var lineCounter = require_line_counter();
+    var parser = require_parser();
+    var publicApi = require_public_api();
+    var visit = require_visit();
+    exports.Composer = composer.Composer;
+    exports.Document = Document.Document;
+    exports.Schema = Schema2.Schema;
+    exports.YAMLError = errors.YAMLError;
+    exports.YAMLParseError = errors.YAMLParseError;
+    exports.YAMLWarning = errors.YAMLWarning;
+    exports.Alias = Alias.Alias;
+    exports.isAlias = identity.isAlias;
+    exports.isCollection = identity.isCollection;
+    exports.isDocument = identity.isDocument;
+    exports.isMap = identity.isMap;
+    exports.isNode = identity.isNode;
+    exports.isPair = identity.isPair;
+    exports.isScalar = identity.isScalar;
+    exports.isSeq = identity.isSeq;
+    exports.Pair = Pair.Pair;
+    exports.Scalar = Scalar.Scalar;
+    exports.YAMLMap = YAMLMap.YAMLMap;
+    exports.YAMLSeq = YAMLSeq.YAMLSeq;
+    exports.CST = cst;
+    exports.Lexer = lexer.Lexer;
+    exports.LineCounter = lineCounter.LineCounter;
+    exports.Parser = parser.Parser;
+    exports.parse = publicApi.parse;
+    exports.parseAllDocuments = publicApi.parseAllDocuments;
+    exports.parseDocument = publicApi.parseDocument;
+    exports.stringify = publicApi.stringify;
+    exports.visit = visit.visit;
+    exports.visitAsync = visit.visitAsync;
+  }
+});
+
+// src/main.ts
+import { appendFileSync, readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+
+// src/confluence.ts
+var ConfluenceError = class extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
+  status;
+};
+function confluenceClient(siteUrl, email, token, fetchImpl = fetch) {
+  const base = siteUrl.replace(/\/+$/, "").replace(/\/wiki$/, "");
+  const auth = "Basic " + Buffer.from(`${email}:${token}`).toString("base64");
+  async function call(path, init = {}) {
+    const res = await fetchImpl(base + path, { ...init, headers: { Authorization: auth, Accept: "application/json", ...init.headers ?? {} } });
+    if (!res.ok) {
+      const body = (await res.text()).slice(0, 300);
+      const hint = res.status === 401 ? " Check the email and API token." : res.status === 403 ? " The account needs permission to view and edit the page and add attachments." : res.status === 404 ? " Check confluence-url and page-id, and that the account can see the page." : "";
+      throw new ConfluenceError(`Confluence returned HTTP ${res.status} for ${init.method ?? "GET"} ${path}.${hint} ${body}`.trim(), res.status);
+    }
+    return res;
+  }
+  const toAttachment = (a) => ({
+    id: String(a.id),
+    title: String(a.title),
+    version: Number(a.version?.number ?? 1),
+    downloadPath: String(a._links?.download ?? "")
+  });
+  return {
+    async find(pageId, fileName) {
+      const res = await call(`/wiki/rest/api/content/${encodeURIComponent(pageId)}/child/attachment?filename=${encodeURIComponent(fileName)}&expand=version`);
+      const body = await res.json();
+      const hit = (body.results ?? []).find((a) => a.title === fileName);
+      return hit ? toAttachment(hit) : null;
+    },
+    async download(att) {
+      const res = await call(`/wiki${att.downloadPath}`, { headers: { Accept: "*/*" } });
+      return res.text();
+    },
+    async upload(pageId, fileName, text, comment) {
+      const form = new FormData();
+      const type2 = /\.json$/i.test(fileName) ? "application/json" : "application/yaml";
+      form.append("file", new Blob([text], { type: type2 }), fileName);
+      form.append("comment", comment);
+      form.append("minorEdit", "true");
+      const res = await call(`/wiki/rest/api/content/${encodeURIComponent(pageId)}/child/attachment?expand=version`, {
+        method: "PUT",
+        headers: { "X-Atlassian-Token": "no-check" },
+        body: form
+      });
+      const body = await res.json();
+      return toAttachment(body.results?.[0] ?? body);
+    }
+  };
+}
+
+// src/run.ts
+import { basename } from "node:path";
+
+// src/core/parse.ts
+var import_swagger_parser = __toESM(require_lib3(), 1);
+var import_yaml2 = __toESM(require_dist2(), 1);
+var SpecSyntaxError = class extends Error {
+};
+function parseText(text) {
+  const trimmed = text.replace(/^﻿/, "").trim();
+  if (!trimmed) throw new SpecSyntaxError("The spec is empty.");
+  let doc;
+  try {
+    doc = trimmed.startsWith("{") ? JSON.parse(trimmed) : (0, import_yaml2.parse)(trimmed, { maxAliasCount: 1e3 });
+  } catch (e) {
+    throw new SpecSyntaxError(`Could not parse the spec as JSON or YAML: ${e.message}`);
+  }
+  if (!doc || typeof doc !== "object" || Array.isArray(doc)) {
+    throw new SpecSyntaxError("The spec must be a JSON or YAML object.");
+  }
+  return doc;
+}
+function detectFlavor(doc) {
+  if (typeof doc.swagger === "string" && doc.swagger.startsWith("2.")) return "swagger-2.0";
+  const v = typeof doc.openapi === "string" ? doc.openapi : "";
+  if (v.startsWith("3.0")) return "openapi-3.0";
+  if (v.startsWith("3.1")) return "openapi-3.1";
+  if (v.startsWith("3.2")) return "openapi-3.2";
+  return "unknown";
+}
+async function loadSpec(text, opts = {}) {
+  const parsed = parseText(text);
+  const raw = opts.prepare ? opts.prepare(parsed) : parsed;
+  const flavor = detectFlavor(raw);
+  const errors = [];
+  if (flavor === "unknown") {
+    errors.push('Not an OpenAPI or Swagger document: missing a top-level "openapi" or "swagger" version field.');
+  }
+  const resolve3 = { external: false };
+  if (flavor !== "unknown" && opts.validate === false) {
+    errors.push(...structuralProblems(raw));
+  } else if (flavor !== "unknown" && flavor !== "openapi-3.2") {
+    try {
+      await import_swagger_parser.default.validate(structuredClone(raw), { resolve: resolve3, dereference: { circular: true } });
+    } catch (e) {
+      errors.push(cleanValidationMessage(e.message));
+    }
+  }
+  let dereferenced = null;
+  if (flavor !== "unknown") {
+    try {
+      dereferenced = await import_swagger_parser.default.dereference(annotateSchemaNames(structuredClone(raw)), {
+        resolve: resolve3,
+        dereference: { circular: true }
+      });
+    } catch (e) {
+      errors.push(`Could not resolve $refs: ${e.message}`);
+    }
+  }
+  return {
+    flavor,
+    raw,
+    dereferenced,
+    title: String(raw.info?.title ?? "Untitled API"),
+    version: String(raw.info?.version ?? ""),
+    errors: [...new Set(errors)]
+  };
+}
+function structuralProblems(doc) {
+  const out = [];
+  if (!doc.info || typeof doc.info !== "object") out.push('Missing required "info" object.');
+  else {
+    if (typeof doc.info.title !== "string") out.push('Missing required "info.title".');
+    if (doc.info.version === void 0) out.push('Missing required "info.version".');
+  }
+  if (doc.paths !== void 0 && (typeof doc.paths !== "object" || Array.isArray(doc.paths))) out.push('"paths" must be an object.');
+  if (detectFlavor(doc) !== "openapi-3.1" && doc.paths === void 0) out.push('Missing required "paths" object.');
+  for (const path of Object.keys(doc.paths ?? {})) {
+    if (!path.startsWith("/")) out.push(`Path "${path}" must start with "/".`);
+  }
+  return out;
+}
+function annotateSchemaNames(doc) {
+  const named = doc.components?.schemas ?? doc.definitions ?? {};
+  for (const [name, schema2] of Object.entries(named)) {
+    if (schema2 && typeof schema2 === "object" && !Array.isArray(schema2) && !schema2.$ref && schema2["x-schema-name"] === void 0) {
+      schema2["x-schema-name"] = name;
+    }
+  }
+  return doc;
+}
+function cleanValidationMessage(msg) {
+  return msg.replace(/\s+/g, " ").trim().slice(0, 2e3);
+}
+var HTTP_METHODS = ["get", "put", "post", "delete", "options", "head", "patch", "trace"];
+function listOperations(doc) {
+  const out = [];
+  for (const [path, pathItem] of Object.entries(doc.paths ?? {})) {
+    if (!pathItem || typeof pathItem !== "object") continue;
+    for (const method of HTTP_METHODS) {
+      if (pathItem[method]) out.push({ path, method, op: pathItem[method], pathItem });
+    }
+  }
+  return out;
+}
+
+// src/core/normalize.ts
+function pathKey(path) {
+  return path.replace(/\{[^}]*\}/g, "{}").replace(/\/+$/, "") || "/";
+}
+var SWAGGER2_TO_SCHEMA_KEYS = [
+  "type",
+  "format",
+  "items",
+  "enum",
+  "default",
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "minLength",
+  "maxLength",
+  "pattern",
+  "minItems",
+  "maxItems",
+  "uniqueItems",
+  "multipleOf"
+];
+function swagger2ParamSchema(p) {
+  if (p.schema) return p.schema;
+  const s = {};
+  for (const k of SWAGGER2_TO_SCHEMA_KEYS) if (p[k] !== void 0) s[k] = p[k];
+  return s;
+}
+function normSecurity(req) {
+  if (!Array.isArray(req)) return [];
+  return req.map(
+    (alt) => Object.entries(alt ?? {}).map(([name, scopes]) => `${name}:${[...scopes ?? []].sort().join(",")}`).sort()
+  );
+}
+function normalizeOperations(doc) {
+  const swagger2 = detectFlavor(doc) === "swagger-2.0";
+  const globalConsumes = doc.consumes ?? ["application/json"];
+  const globalProduces = doc.produces ?? ["application/json"];
+  const out = /* @__PURE__ */ new Map();
+  for (const { path, method, op, pathItem } of listOperations(doc)) {
+    const params = /* @__PURE__ */ new Map();
+    let body = null;
+    const allParams = [...pathItem.parameters ?? [], ...op.parameters ?? []];
+    for (const p of allParams) {
+      if (!p || typeof p !== "object") continue;
+      if (swagger2 && p.in === "body") {
+        const content = /* @__PURE__ */ new Map();
+        for (const mt of op.consumes ?? globalConsumes) content.set(mt, p.schema ?? {});
+        body = { required: p.required === true, content };
+        continue;
+      }
+      if (swagger2 && p.in === "formData") {
+        const mt = (op.consumes ?? globalConsumes).find((m) => m.includes("form")) ?? "application/x-www-form-urlencoded";
+        body ??= { required: false, content: /* @__PURE__ */ new Map([[mt, { type: "object", properties: {}, required: [] }]]) };
+        const schema2 = body.content.get(mt) ?? [...body.content.values()][0];
+        schema2.properties[p.name] = swagger2ParamSchema(p);
+        if (p.required) {
+          schema2.required.push(p.name);
+          body.required = true;
+        }
+        continue;
+      }
+      const isPath = p.in === "path";
+      params.set(`${p.in}:${isPath ? p.name : String(p.name).toLowerCase()}`, {
+        name: p.name,
+        in: p.in,
+        required: isPath ? true : p.required === true,
+        deprecated: p.deprecated === true,
+        schema: swagger2 ? swagger2ParamSchema(p) : p.schema ?? firstContentSchema(p.content)
+      });
+    }
+    if (!swagger2 && op.requestBody) {
+      const content = /* @__PURE__ */ new Map();
+      for (const [mt, media] of Object.entries(op.requestBody.content ?? {})) content.set(mt, media?.schema ?? {});
+      body = { required: op.requestBody.required === true, content };
+    }
+    const responses = /* @__PURE__ */ new Map();
+    for (const [code, resp] of Object.entries(op.responses ?? {})) {
+      const media = /* @__PURE__ */ new Map();
+      if (swagger2) {
+        if (resp?.schema) for (const mt of op.produces ?? globalProduces) media.set(mt, resp.schema);
+      } else {
+        for (const [mt, m] of Object.entries(resp?.content ?? {})) media.set(mt, m?.schema ?? {});
+      }
+      responses.set(String(code).toUpperCase(), media);
+    }
+    const key = `${method.toUpperCase()} ${pathKey(path)}`;
+    out.set(key, {
+      path,
+      pathKey: pathKey(path),
+      method,
+      operationId: op.operationId,
+      deprecated: op.deprecated === true,
+      params: renamePathParamsByPosition(path, params),
+      body,
+      responses,
+      security: normSecurity(op.security ?? doc.security)
+    });
+  }
+  return out;
+}
+function firstContentSchema(content) {
+  if (!content) return void 0;
+  const first = Object.values(content)[0];
+  return first?.schema;
+}
+function renamePathParamsByPosition(path, params) {
+  const names = [...path.matchAll(/\{([^}]*)\}/g)].map((m) => m[1]);
+  const out = /* @__PURE__ */ new Map();
+  for (const [k, v] of params) {
+    if (v.in === "path") {
+      const idx = names.indexOf(v.name);
+      out.set(idx >= 0 ? `path:#${idx}` : k, v);
+    } else out.set(k, v);
+  }
+  return out;
+}
+
+// src/core/diff.ts
+function diffSpecs(oldDoc, newDoc) {
+  const changes = [];
+  const add = (c) => changes.push(c);
+  const oldOps = normalizeOperations(oldDoc);
+  const newOps = normalizeOperations(newDoc);
+  for (const [key, o] of oldOps) {
+    const n = newOps.get(key);
+    const label = `${o.method.toUpperCase()} ${o.path}`;
+    if (!n) {
+      add({
+        severity: o.deprecated ? "warning" : "breaking",
+        code: o.deprecated ? "deprecated-operation-removed" : "operation-removed",
+        operation: label,
+        location: "",
+        message: o.deprecated ? "Deprecated operation was removed." : "Operation was removed."
+      });
+      continue;
+    }
+    diffOperation(o, n, `${n.method.toUpperCase()} ${n.path}`, add);
+  }
+  for (const [key, n] of newOps) {
+    if (!oldOps.has(key)) {
+      add({ severity: "info", code: "operation-added", operation: `${n.method.toUpperCase()} ${n.path}`, location: "", message: "New operation." });
+    }
+  }
+  const oldServers = serverUrls(oldDoc);
+  const newServers = new Set(serverUrls(newDoc));
+  for (const url of oldServers) {
+    if (!newServers.has(url)) {
+      add({ severity: "warning", code: "server-removed", operation: "servers", location: "", message: `Server ${url} was removed.` });
+    }
+  }
+  const order = { breaking: 0, warning: 1, info: 2 };
+  changes.sort((a, b) => order[a.severity] - order[b.severity] || a.operation.localeCompare(b.operation));
+  const summary = { breaking: 0, warning: 0, info: 0 };
+  for (const c of changes) summary[c.severity]++;
+  return { changes, summary };
+}
+function serverUrls(doc) {
+  if (Array.isArray(doc.servers)) return doc.servers.map((s) => String(s?.url ?? "")).filter(Boolean);
+  if (doc.host) return (doc.schemes ?? ["https"]).map((s) => `${s}://${doc.host}${doc.basePath ?? ""}`);
+  return [];
+}
+function diffOperation(o, n, op, add) {
+  if (!o.deprecated && n.deprecated) {
+    add({ severity: "info", code: "operation-deprecated", operation: op, location: "", message: "Operation is now deprecated." });
+  }
+  if (o.operationId && n.operationId && o.operationId !== n.operationId) {
+    add({
+      severity: "warning",
+      code: "operation-id-changed",
+      operation: op,
+      location: "",
+      message: `operationId changed from "${o.operationId}" to "${n.operationId}" (generated SDK method names will change).`
+    });
+  }
+  for (const [key, p] of o.params) {
+    const q = n.params.get(key);
+    const where = `${p.in} parameter "${p.name}"`;
+    if (!q) {
+      add({ severity: "warning", code: "parameter-removed", operation: op, location: where, message: "Parameter was removed; clients still sending it may be rejected." });
+      continue;
+    }
+    if (!p.required && q.required) {
+      add({ severity: "breaking", code: "parameter-became-required", operation: op, location: where, message: "Optional parameter is now required." });
+    }
+    compareSchema(p.schema, q.schema, "request", { op, loc: where, add });
+  }
+  for (const [key, q] of n.params) {
+    if (o.params.has(key)) continue;
+    const where = `${q.in} parameter "${q.name}"`;
+    if (q.required) {
+      add({ severity: "breaking", code: "required-parameter-added", operation: op, location: where, message: "New required parameter." });
+    } else {
+      add({ severity: "info", code: "optional-parameter-added", operation: op, location: where, message: "New optional parameter." });
+    }
+  }
+  if (!o.body && n.body?.required) {
+    add({ severity: "breaking", code: "required-request-body-added", operation: op, location: "request body", message: "A required request body was added." });
+  } else if (o.body && !n.body) {
+    add({ severity: "warning", code: "request-body-removed", operation: op, location: "request body", message: "Request body was removed." });
+  } else if (o.body && n.body) {
+    if (!o.body.required && n.body.required) {
+      add({ severity: "breaking", code: "request-body-became-required", operation: op, location: "request body", message: "Request body is now required." });
+    }
+    for (const [mt, schema2] of o.body.content) {
+      const loc = `request body \u203A ${mt}`;
+      if (!n.body.content.has(mt)) {
+        add({ severity: "breaking", code: "request-media-type-removed", operation: op, location: loc, message: `Media type ${mt} is no longer accepted.` });
+      } else {
+        compareSchema(schema2, n.body.content.get(mt), "request", { op, loc, add });
+      }
+    }
+  }
+  for (const [code, media] of o.responses) {
+    const loc = `response ${code}`;
+    const nm = n.responses.get(code);
+    if (!nm) {
+      const success = /^2/.test(code);
+      add({
+        severity: success ? "breaking" : "warning",
+        code: success ? "success-response-removed" : "response-removed",
+        operation: op,
+        location: loc,
+        message: `Response ${code} was removed.`
+      });
+      continue;
+    }
+    for (const [mt, schema2] of media) {
+      if (!nm.has(mt)) {
+        add({ severity: "breaking", code: "response-media-type-removed", operation: op, location: `${loc} \u203A ${mt}`, message: `Response no longer returns ${mt}.` });
+      } else {
+        compareSchema(schema2, nm.get(mt), "response", { op, loc: `${loc} \u203A ${mt}`, add });
+      }
+    }
+  }
+  for (const code of n.responses.keys()) {
+    if (!o.responses.has(code) && code !== "DEFAULT") {
+      add({ severity: /^2/.test(code) ? "warning" : "info", code: "response-added", operation: op, location: `response ${code}`, message: `New response ${code}; clients may need to handle it.` });
+    }
+  }
+  const oldAlts = o.security;
+  const newAlts = n.security;
+  if (!isAnonymous(oldAlts) || !isAnonymous(newAlts)) {
+    if (isAnonymous(oldAlts) && !isAnonymous(newAlts)) {
+      add({ severity: "breaking", code: "security-added", operation: op, location: "security", message: "Operation now requires authentication." });
+    } else {
+      for (const alt of oldAlts) {
+        if (!newAlts.some((nalt) => satisfiedBy(nalt, alt))) {
+          add({
+            severity: "breaking",
+            code: "security-requirement-tightened",
+            operation: op,
+            location: "security",
+            message: `Clients authenticating with ${describeAuth(alt)} are no longer accepted.`
+          });
+        }
+      }
+    }
+  }
+}
+function describeAuth(alt) {
+  if (!alt.length) return "no credentials";
+  return alt.map((req) => {
+    const [scheme, scopes] = req.split(":");
+    return scopes ? `${scheme} (scopes: ${scopes.split(",").join(", ")})` : scheme;
+  }).join(" + ");
+}
+function isAnonymous(alts) {
+  return alts.length === 0 || alts.some((a) => a.length === 0);
+}
+function satisfiedBy(need, have) {
+  return need.every((req) => {
+    const [scheme, scopes = ""] = req.split(":");
+    const needScopes = scopes ? scopes.split(",") : [];
+    return have.some((h) => {
+      const [hs, hscopes = ""] = h.split(":");
+      const got = new Set(hscopes ? hscopes.split(",") : []);
+      return hs === scheme && needScopes.every((s) => got.has(s));
+    });
+  });
+}
+var MAX_DEPTH = 40;
+function typeSet(s) {
+  if (!s || typeof s !== "object") return null;
+  let t = null;
+  if (Array.isArray(s.type)) t = [...s.type];
+  else if (typeof s.type === "string") t = [s.type];
+  if (!t) return null;
+  if (s.nullable === true && !t.includes("null")) t.push("null");
+  return new Set(t);
+}
+function flatten(s) {
+  if (!s || typeof s !== "object" || !Array.isArray(s.allOf)) return s;
+  const merged = { ...s, properties: { ...s.properties ?? {} }, required: [...s.required ?? []] };
+  delete merged.allOf;
+  for (const part of s.allOf) {
+    const f = flatten(part);
+    if (!f || typeof f !== "object") continue;
+    Object.assign(merged.properties, f.properties ?? {});
+    merged.required.push(...f.required ?? []);
+    if (!merged.type && f.type) merged.type = f.type;
+    if (merged.nullable === void 0 && f.nullable !== void 0) merged.nullable = f.nullable;
+  }
+  if (!Object.keys(merged.properties).length) delete merged.properties;
+  if (!merged.required.length) delete merged.required;
+  return merged;
+}
+function accepts(wider, narrower) {
+  for (const t of narrower) {
+    if (wider.has(t)) continue;
+    if (t === "integer" && wider.has("number")) continue;
+    return false;
+  }
+  return true;
+}
+var fmt = (s) => [...s].sort().join(" | ");
+function compareSchema(oldS, newS, dir, ctx) {
+  if (!oldS || !newS || typeof oldS !== "object" || typeof newS !== "object") return;
+  const depth = ctx.depth ?? 0;
+  if (depth > MAX_DEPTH) return;
+  const seen = ctx.seen ?? /* @__PURE__ */ new WeakMap();
+  const pairs2 = seen.get(oldS) ?? /* @__PURE__ */ new WeakSet();
+  if (pairs2.has(newS)) return;
+  pairs2.add(newS);
+  seen.set(oldS, pairs2);
+  const o = flatten(oldS);
+  const n = flatten(newS);
+  const here = at(ctx.loc, ctx.prop);
+  const emit = (severity, code, message) => ctx.add({ severity, code: `${dir}-${code}`, operation: ctx.op, location: here, message });
+  const ot = typeSet(o);
+  const nt = typeSet(n);
+  if (ot && nt) {
+    const ok = dir === "request" ? accepts(nt, ot) : accepts(ot, nt);
+    if (!ok) emit("breaking", "type-changed", `Type changed from ${fmt(ot)} to ${fmt(nt)}.`);
+  }
+  if (o.format && n.format && o.format !== n.format) {
+    emit("breaking", "format-changed", `Format changed from "${o.format}" to "${n.format}".`);
+  }
+  if (Array.isArray(o.enum) && Array.isArray(n.enum)) {
+    const ov = new Set(o.enum.map((v) => JSON.stringify(v)));
+    const nv = new Set(n.enum.map((v) => JSON.stringify(v)));
+    const removed = [...ov].filter((v) => !nv.has(v));
+    const added = [...nv].filter((v) => !ov.has(v));
+    if (dir === "request" && removed.length) emit("breaking", "enum-value-removed", `No longer accepts ${removed.join(", ")}.`);
+    if (dir === "response" && added.length) emit("warning", "enum-value-added", `May now return ${added.join(", ")}; strict clients may fail.`);
+  } else if (dir === "request" && !Array.isArray(o.enum) && Array.isArray(n.enum)) {
+    emit("breaking", "enum-added", `Now restricted to ${n.enum.map((v) => JSON.stringify(v)).join(", ")}.`);
+  }
+  if (dir === "request") {
+    const tighter = (k, cmp, word) => {
+      const a = o[k], b = n[k];
+      if (typeof b === "number" && (typeof a !== "number" || cmp(b, a))) emit("breaking", `${k}-tightened`, `${k} ${word} (${a ?? "none"} \u2192 ${b}).`);
+    };
+    tighter("maxLength", (b, a) => b < a, "reduced");
+    tighter("maximum", (b, a) => b < a, "reduced");
+    tighter("maxItems", (b, a) => b < a, "reduced");
+    tighter("minLength", (b, a) => b > a, "increased");
+    tighter("minimum", (b, a) => b > a, "increased");
+    tighter("minItems", (b, a) => b > a, "increased");
+    if (n.pattern && n.pattern !== o.pattern) emit("breaking", "pattern-changed", `Pattern changed to /${n.pattern}/.`);
+  }
+  const oProps = o.properties ?? {};
+  const nProps = n.properties ?? {};
+  const oReq = new Set(o.required ?? []);
+  const nReq = new Set(n.required ?? []);
+  for (const [name, os] of Object.entries(oProps)) {
+    const prop = ctx.prop ? `${ctx.prop}.${name}` : name;
+    const loc = at(ctx.loc, prop);
+    const ns = nProps[name];
+    const sub = (severity, code, message) => ctx.add({ severity, code: `${dir}-${code}`, operation: ctx.op, location: loc, message });
+    if (ns === void 0) {
+      if (dir === "response") sub("breaking", "property-removed", "Property was removed from the response.");
+      else if (n.additionalProperties === false) sub("breaking", "property-removed", "Property was removed and additional properties are not allowed.");
+      else sub("warning", "property-removed", "Property was removed from the request schema.");
+      continue;
+    }
+    if (dir === "request" && !oReq.has(name) && nReq.has(name)) sub("breaking", "property-became-required", "Property is now required.");
+    if (dir === "response" && oReq.has(name) && !nReq.has(name)) sub("breaking", "property-became-optional", "Property is no longer guaranteed in the response.");
+    compareSchema(os, ns, dir, { ...ctx, prop, seen, depth: depth + 1 });
+  }
+  for (const name of Object.keys(nProps)) {
+    if (name in oProps) continue;
+    if (dir === "request" && nReq.has(name)) {
+      ctx.add({ severity: "breaking", code: "request-required-property-added", operation: ctx.op, location: at(ctx.loc, ctx.prop ? `${ctx.prop}.${name}` : name), message: "New required property." });
+    }
+  }
+  if (o.items || n.items) compareSchema(o.items, n.items, dir, { ...ctx, prop: `${ctx.prop ?? ""}[]`, seen, depth: depth + 1 });
+  if (o.additionalProperties && typeof o.additionalProperties === "object" && typeof n.additionalProperties === "object") {
+    compareSchema(o.additionalProperties, n.additionalProperties, dir, { ...ctx, prop: `${ctx.prop ?? ""}{*}`, seen, depth: depth + 1 });
+  }
+  if (dir === "request" && o.additionalProperties !== false && n.additionalProperties === false && Object.keys(oProps).length) {
+    emit("warning", "additional-properties-disallowed", "Additional properties are no longer allowed.");
+  }
+  for (const kw of ["oneOf", "anyOf"]) {
+    const ov = Array.isArray(o[kw]) ? o[kw] : [];
+    const nv = Array.isArray(n[kw]) ? n[kw] : [];
+    if (!ov.length && !nv.length) continue;
+    if (dir === "request" && nv.length < ov.length) emit("breaking", `${kw}-variant-removed`, `${ov.length - nv.length} ${kw} variant(s) removed.`);
+    if (dir === "response" && nv.length > ov.length) emit("warning", `${kw}-variant-added`, `${nv.length - ov.length} new ${kw} variant(s) may be returned.`);
+    const len = Math.min(ov.length, nv.length);
+    for (let i = 0; i < len; i++) compareSchema(ov[i], nv[i], dir, { ...ctx, prop: `${ctx.prop ?? ""}<${kw}#${i + 1}>`, seen, depth: depth + 1 });
+  }
+}
+function at(loc, prop) {
+  return prop ? `${loc} \u203A ${prop}` : loc;
+}
+
+// src/run.ts
+function parseMode(v) {
+  const m = (v || "publish").trim().toLowerCase();
+  if (m !== "publish" && m !== "check") throw new Error(`Invalid mode "${v}". Use "publish" or "check".`);
+  return m;
+}
+function parseFailOn(v) {
+  const m = (v || "breaking").trim().toLowerCase();
+  if (m !== "breaking" && m !== "warning" && m !== "none") throw new Error(`Invalid fail-on "${v}". Use "breaking", "warning" or "none".`);
+  return m;
+}
+async function run2(inputs, store) {
+  const fileName = inputs.attachmentName?.trim() || basename(inputs.specPath);
+  const next = await loadSpec(inputs.specText);
+  if (next.flavor === "unknown" || !next.dereferenced) {
+    const report2 = `### \u274C ${fileName} is not a usable OpenAPI spec
+
+${next.errors.map((e) => `- ${e}`).join("\n")}
+`;
+    return { ok: false, failureReason: next.errors[0] ?? "Invalid spec.", published: false, summary: { breaking: 0, warning: 0, info: 0 }, report: report2 };
+  }
+  const existing = await store.find(inputs.pageId, fileName);
+  let diff = { changes: [], summary: { breaking: 0, warning: 0, info: 0 } };
+  let baseline = null;
+  let prevText = null;
+  if (existing) {
+    prevText = await store.download(existing);
+    const prev = await loadSpec(prevText).catch(() => null);
+    if (prev?.dereferenced) {
+      diff = diffSpecs(prev.dereferenced, next.dereferenced);
+      baseline = `${fileName} v${existing.version}${prev.version ? ` (API ${prev.version})` : ""}`;
+    }
+  }
+  const blocking = inputs.failOn === "breaking" ? diff.summary.breaking : inputs.failOn === "warning" ? diff.summary.breaking + diff.summary.warning : 0;
+  let published = false;
+  let attachmentVersion = existing?.version;
+  const unchanged = prevText !== null && prevText.trim() === inputs.specText.trim();
+  if (inputs.mode === "publish" && blocking === 0 && !unchanged) {
+    const att = await store.upload(inputs.pageId, fileName, inputs.specText, inputs.comment);
+    published = true;
+    attachmentVersion = att.version;
+  }
+  const report = renderReport({ fileName, title: next.title, apiVersion: next.version, baseline, diff, inputs, published, attachmentVersion, blocking, unchanged, warnings: next.errors });
+  return {
+    ok: blocking === 0,
+    failureReason: blocking ? `${blocking} ${inputs.failOn === "warning" ? "breaking change(s) or warning(s)" : "breaking change(s)"} compared with the published spec.` : void 0,
+    published,
+    attachmentVersion,
+    summary: diff.summary,
+    report
+  };
+}
+var ICON = { breaking: "\u{1F534} Breaking", warning: "\u{1F7E0} Warning", info: "\u{1F535} Info" };
+function renderReport(r) {
+  const { diff } = r;
+  const lines = [];
+  const head = r.blocking ? "\u274C" : diff.summary.breaking ? "\u26A0\uFE0F" : "\u2705";
+  lines.push(`### ${head} ${r.title}${r.apiVersion ? ` ${r.apiVersion}` : ""}`);
+  lines.push("");
+  if (!r.baseline) {
+    lines.push(`No published version of \`${r.fileName}\` found on the page, so there is nothing to compare.`);
+  } else {
+    lines.push(`Compared with **${r.baseline}**: **${diff.summary.breaking}** breaking, **${diff.summary.warning}** warnings, **${diff.summary.info}** non-breaking.`);
+  }
+  lines.push("");
+  if (r.published) {
+    lines.push(`\u{1F4D8} Published as \`${r.fileName}\` version ${r.attachmentVersion}${r.inputs.pageUrl ? ` on [the Confluence page](${r.inputs.pageUrl})` : ""}.`);
+  } else if (r.inputs.mode === "publish" && r.unchanged) {
+    lines.push("Spec is identical to the published version, so nothing was uploaded.");
+  } else if (r.inputs.mode === "publish" && r.blocking) {
+    lines.push(`Not published, because \`fail-on: ${r.inputs.failOn}\` blocked it.`);
+  }
+  const shown = diff.changes.filter((c) => c.severity !== "info");
+  if (shown.length) {
+    lines.push("", "| Severity | Operation | Where | Change |", "|---|---|---|---|");
+    for (const c of shown) lines.push(`| ${ICON[c.severity]} | \`${esc(c.operation)}\` | ${c.location ? `\`${esc(c.location)}\`` : ""} | ${esc(c.message)} |`);
+  }
+  const info = diff.changes.filter((c) => c.severity === "info");
+  if (info.length) {
+    lines.push("", `<details><summary>${info.length} non-breaking change${info.length > 1 ? "s" : ""}</summary>`, "");
+    for (const c of info) lines.push(`- \`${esc(c.operation)}\`${c.location ? ` ${esc(c.location)}` : ""}: ${esc(c.message)}`);
+    lines.push("", "</details>");
+  }
+  if (r.warnings.length) {
+    lines.push("", `<details><summary>Spec validation notes (${r.warnings.length})</summary>`, "");
+    for (const w of r.warnings) lines.push(`- ${esc(w)}`);
+    lines.push("", "</details>");
+  }
+  lines.push("", "<sub>Rendered in Confluence by [API Docs for Confluence](https://fernlight.dev) \xB7 Fernlight</sub>");
+  return lines.join("\n") + "\n";
+}
+var esc = (s) => s.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+
+// src/main.ts
+var input = (name, required = false) => {
+  const v = (process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] ?? "").trim();
+  if (required && !v) throw new Error(`Input "${name}" is required.`);
+  return v;
+};
+function setOutput(name, value) {
+  const file = process.env.GITHUB_OUTPUT;
+  if (!file) return;
+  const delim = `ghadelim_${randomUUID()}`;
+  appendFileSync(file, `${name}<<${delim}
+${value}
+${delim}
+`);
+}
+async function main() {
+  const token = input("api-token", true);
+  console.log(`::add-mask::${token}`);
+  const specPath = input("spec", true);
+  const siteUrl = input("confluence-url", true);
+  const pageId = input("page-id", true);
+  if (!/^\d+$/.test(pageId)) throw new Error(`page-id must be the numeric page ID, got "${pageId}".`);
+  if (!/^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)[:/]/.test(siteUrl)) throw new Error(`confluence-url must start with https://, got "${siteUrl}".`);
+  let specText;
+  try {
+    specText = readFileSync(specPath, "utf8");
+  } catch {
+    throw new Error(`Spec file not found: ${specPath}`);
+  }
+  const repo = process.env.GITHUB_REPOSITORY;
+  const sha = process.env.GITHUB_SHA?.slice(0, 7);
+  const comment = input("comment") || (repo && sha ? `Published from ${repo}@${sha}` : "Published by GitHub Actions");
+  const result = await run2(
+    {
+      specPath,
+      specText,
+      pageId,
+      mode: parseMode(input("mode")),
+      attachmentName: input("attachment-name"),
+      failOn: parseFailOn(input("fail-on")),
+      comment,
+      pageUrl: `${siteUrl.replace(/\/+$/, "").replace(/\/wiki$/, "")}/wiki/pages/viewpage.action?pageId=${pageId}`
+    },
+    confluenceClient(siteUrl, input("email", true), token)
+  );
+  console.log(result.report);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, result.report);
+  setOutput("breaking", result.summary.breaking);
+  setOutput("warnings", result.summary.warning);
+  setOutput("info", result.summary.info);
+  setOutput("published", result.published);
+  setOutput("attachment-version", result.attachmentVersion ?? "");
+  setOutput("report", result.report);
+  if (!result.ok) {
+    console.log(`::error::${result.failureReason}`);
+    process.exitCode = 1;
+  }
+}
+main().catch((e) => {
+  console.log(`::error::${e.message}`);
+  process.exitCode = 1;
+});

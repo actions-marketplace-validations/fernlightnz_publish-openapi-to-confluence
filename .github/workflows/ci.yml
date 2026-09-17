@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: dist is up to date
+        run: git diff --exit-code -- dist
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Invalid input fails with a clear error
+        id: bad
+        continue-on-error: true
+        uses: ./
+        with:
+          spec: test/fixtures/payments-v2.yaml
+          confluence-url: https://example.atlassian.net
+          page-id: not-a-number
+          email: ci@example.com
+          api-token: dummy
+      - name: Expect failure
+        run: test "${{ steps.bad.outcome }}" = "failure"

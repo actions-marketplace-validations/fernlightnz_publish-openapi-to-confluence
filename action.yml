@@ -1,0 +1,52 @@
+name: Publish OpenAPI to Confluence
+description: Publish an OpenAPI or Swagger spec to a Confluence Cloud page and fail pull requests that introduce breaking API changes.
+author: Fernlight
+branding:
+  icon: book-open
+  color: green
+inputs:
+  spec:
+    description: Path to the OpenAPI 3.x or Swagger 2.0 file (YAML or JSON).
+    required: true
+  confluence-url:
+    description: Your Confluence Cloud site, e.g. https://yourcompany.atlassian.net
+    required: true
+  page-id:
+    description: ID of the Confluence page that holds the spec attachment (the number in the page URL).
+    required: true
+  email:
+    description: Email of the Atlassian account that owns the API token.
+    required: true
+  api-token:
+    description: Atlassian API token. Store it as a repository secret.
+    required: true
+  mode:
+    description: "`publish` uploads the spec as a new attachment version. `check` only compares it with the published version."
+    required: false
+    default: publish
+  attachment-name:
+    description: Attachment file name on the page. Defaults to the spec's file name.
+    required: false
+  fail-on:
+    description: "Fail the step when the comparison finds changes at this severity or worse: `breaking`, `warning` or `none`."
+    required: false
+    default: breaking
+  comment:
+    description: Version comment stored with the attachment. Defaults to the repository and commit.
+    required: false
+outputs:
+  breaking:
+    description: Number of breaking changes compared with the published version.
+  warnings:
+    description: Number of warnings.
+  info:
+    description: Number of non-breaking changes.
+  published:
+    description: "`true` when a new attachment version was uploaded."
+  attachment-version:
+    description: Version number of the attachment after publishing.
+  report:
+    description: Markdown report of the changes.
+runs:
+  using: node24
+  main: dist/index.mjs

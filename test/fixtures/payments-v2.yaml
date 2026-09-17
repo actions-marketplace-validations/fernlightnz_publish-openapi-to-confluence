@@ -1,0 +1,301 @@
+openapi: 3.1.0
+info:
+  title: Acme Payments API
+  version: 2.4.0
+  description: |
+    Accept payments, issue refunds and manage customers.
+
+    All requests must be authenticated with a **bearer token** or OAuth 2.0.
+    Amounts are in the smallest currency unit (e.g. cents).
+  contact:
+    name: Payments Platform Team
+    email: payments-platform@example.com
+servers:
+  - url: https://api.acme-payments.example/v2
+    description: Production
+  - url: https://sandbox.acme-payments.example/v2
+    description: Sandbox
+security:
+  - bearerAuth: []
+tags:
+  - name: Payments
+    description: Create and capture payments.
+  - name: Refunds
+    description: Return funds to a customer.
+  - name: Customers
+    description: Store customer details for repeat payments.
+paths:
+  /payments:
+    get:
+      operationId: listPayments
+      summary: List payments
+      tags: [Payments]
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          description: Only return payments with this status.
+          schema: { $ref: "#/components/schemas/PaymentStatus" }
+        - name: customer_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: A page of payments.
+          headers:
+            X-Next-Cursor:
+              description: Pass as `cursor` to fetch the next page.
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, has_more]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Payment" }
+                  has_more: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      operationId: createPayment
+      summary: Create a payment
+      description: Creates a payment and, when `capture` is true, captures it immediately.
+      tags: [Payments]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: A unique key so retries do not create duplicate payments.
+          schema: { type: string, maxLength: 64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaymentCreate" }
+            examples:
+              card:
+                summary: Card payment
+                value: { amount: 2599, currency: NZD, source: { type: card, token: tok_visa }, capture: true }
+      responses:
+        "201":
+          description: Payment created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+        "402":
+          description: The payment was declined.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /payments/{payment_id}:
+    parameters:
+      - name: payment_id
+        in: path
+        required: true
+        schema: { type: string, pattern: "^pay_[a-zA-Z0-9]{16}$" }
+    get:
+      operationId: getPayment
+      summary: Retrieve a payment
+      tags: [Payments]
+      responses:
+        "200":
+          description: The payment.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+        "404":
+          description: No payment with that ID.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /payments/{payment_id}/capture:
+    post:
+      operationId: capturePayment
+      summary: Capture a payment
+      tags: [Payments]
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  minimum: 1
+                  description: Capture less than the authorised amount. Defaults to the full amount.
+      responses:
+        "200":
+          description: Captured.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+  /refunds:
+    post:
+      operationId: createRefund
+      summary: Refund a payment
+      tags: [Refunds]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payment_id, reason]
+              properties:
+                payment_id: { type: string }
+                amount: { type: integer, minimum: 1 }
+                reason:
+                  type: string
+                  enum: [duplicate, fraudulent, requested_by_customer]
+      responses:
+        "201":
+          description: Refund created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Refund" }
+  /customers:
+    post:
+      operationId: createCustomer
+      summary: Create a customer
+      tags: [Customers]
+      security:
+        - oauth: [customers:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Customer" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+  /customers/{customer_id}/legacy-cards:
+    get:
+      operationId: listLegacyCards
+      summary: List saved cards (legacy)
+      deprecated: true
+      tags: [Customers]
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Cards.
+webhooks:
+  payment.succeeded:
+    post:
+      summary: Payment succeeded
+      description: Sent when a payment is captured.
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Payment" }
+      responses:
+        "200": { description: Acknowledge receipt. }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    oauth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.acme-payments.example/token
+          scopes:
+            customers:write: Create and update customers
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of results (1–100).
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid credentials.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    PaymentStatus:
+      type: string
+      enum: [pending, authorized, captured, failed, refunded]
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: { type: integer, minimum: 0, example: 2599 }
+        currency: { type: string, pattern: "^[A-Z]{3}$", example: NZD }
+    PaymentCreate:
+      allOf:
+        - $ref: "#/components/schemas/Money"
+        - type: object
+          required: [source]
+          properties:
+            source: { $ref: "#/components/schemas/PaymentSource" }
+            capture: { type: boolean, default: true }
+            metadata:
+              type: object
+              additionalProperties: { type: string }
+              description: Up to 20 key-value pairs.
+    PaymentSource:
+      oneOf:
+        - type: object
+          title: Card
+          required: [type, token]
+          properties:
+            type: { const: card }
+            token: { type: string, example: tok_visa }
+        - type: object
+          title: BankAccount
+          required: [type, account_number]
+          properties:
+            type: { const: bank_account }
+            account_number: { type: string, writeOnly: true }
+    Payment:
+      allOf:
+        - $ref: "#/components/schemas/Money"
+        - type: object
+          required: [id, status, created_at]
+          properties:
+            id: { type: string, readOnly: true, example: pay_8f3kd92ld0s9d8f7 }
+            status: { $ref: "#/components/schemas/PaymentStatus" }
+            customer: { $ref: "#/components/schemas/Customer" }
+            failure_reason: { type: [string, "null"] }
+            created_at: { type: string, format: date-time, readOnly: true }
+            refunds:
+              type: array
+              items: { $ref: "#/components/schemas/Refund" }
+    Refund:
+      type: object
+      required: [id, amount]
+      properties:
+        id: { type: string, example: re_1a2b3c }
+        amount: { type: integer }
+        reason: { type: string }
+    Customer:
+      type: object
+      required: [email]
+      properties:
+        id: { type: string, readOnly: true }
+        email: { type: string, format: email }
+        name: { type: string, maxLength: 200 }
+        default_payment: { $ref: "#/components/schemas/Payment" }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: card_declined }
+        message: { type: string }

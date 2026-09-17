@@ -1,0 +1,24 @@
+{
+  "name": "publish-openapi-to-confluence",
+  "version": "1.0.0",
+  "description": "GitHub Action: publish OpenAPI specs to Confluence Cloud and catch breaking API changes.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "repository": "github:fernlightnz/publish-openapi-to-confluence",
+  "homepage": "https://fernlight.dev",
+  "scripts": {
+    "build": "tsc --noEmit && node build.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^13.0.0",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}
